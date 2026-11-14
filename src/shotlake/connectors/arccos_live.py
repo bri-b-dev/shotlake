@@ -21,14 +21,15 @@ import urllib.parse
 import urllib.request
 from collections import deque
 from dataclasses import dataclass, field
-from http.cookiejar import CookieJar
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Any
 
 from ..devalue import DevalueError, encode_remote_arg
 from ..devalue import parse as devalue_parse
-from .api import AuthError, RateLimitedError, TransientError
+from .api import AuthError
 from .errors import SchemaDriftError
+from .http import Transport, UrllibTransport
+from .http import raise_for_status as _raise_for_status
 
 BASE_URL = "https://dashboard.arccosgolf.com"
 FUNCTIONS = ("roundsBundle", "roundDetailBundle", "roundYears")
@@ -39,54 +40,6 @@ _HASH = re.compile(r"[`\"']([a-z0-9]{4,10})/(\w+)[`\"']")
 _IMPORT = re.compile(r"""["'](\.{0,2}/[^"'\s]+?\.js)["']""")
 # Startseite bindet relativ ein: import("./_app/immutable/entry/start.XYZ.js"), href="./_app/..."
 _ASSET = re.compile(r"""["'(](\.{0,2}/_app/immutable/[^"'\s)]+?\.js)["')]""")
-
-
-@dataclass(frozen=True)
-class Response:
-    status: int
-    text: str
-    headers: dict[str, str] = field(default_factory=dict)
-
-
-class Transport(Protocol):
-    def get(self, url: str, headers: dict[str, str] | None = None) -> Response: ...
-
-
-class UrllibTransport:
-    """HTTP mit Cookie-Jar, folgt Redirects; Fehlerstatus kommen als Response zurück."""
-
-    def __init__(self, timeout_s: float = 30.0) -> None:
-        self.jar = CookieJar()
-        self._opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(self.jar))
-        self._timeout = timeout_s
-
-    def get(self, url: str, headers: dict[str, str] | None = None) -> Response:
-        req = urllib.request.Request(url, headers={"User-Agent": "shotlake", **(headers or {})})
-        try:
-            with self._opener.open(req, timeout=self._timeout) as resp:
-                return Response(
-                    resp.status,
-                    resp.read().decode("utf-8", "replace"),
-                    {k.lower(): v for k, v in resp.headers.items()} | {"x-final-url": resp.url},
-                )
-        except urllib.error.HTTPError as exc:
-            return Response(exc.code, exc.read().decode("utf-8", "replace"),
-                            {k.lower(): v for k, v in exc.headers.items()})  # fmt: skip
-        except (urllib.error.URLError, TimeoutError, ConnectionError) as exc:
-            # nur die Fehlerklasse, nie die URL (kann Zugangsdaten enthalten)
-            raise TransientError(f"Netzwerkfehler: {type(exc).__name__}") from None
-
-
-def _raise_for_status(resp: Response) -> None:
-    if resp.status in (401, 403):
-        raise AuthError(f"Zugriff verweigert (HTTP {resp.status}); Session abgelaufen?")
-    if resp.status == 429:
-        retry = resp.headers.get("retry-after", "")
-        raise RateLimitedError(float(retry) if retry.isdigit() else None)
-    if resp.status >= 500:
-        raise TransientError(f"Serverfehler HTTP {resp.status}")
-    if resp.status >= 400:
-        raise SchemaDriftError(f"Unerwartete Antwort HTTP {resp.status}")
 
 
 def discover_remote_hashes(

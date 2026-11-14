@@ -12,13 +12,9 @@ import pytest
 from shotlake.cli import main
 from shotlake.connectors.api import AuthError, RateLimitedError, TransientError
 from shotlake.connectors.arccos import ArccosConnector
-from shotlake.connectors.arccos_live import (
-    LiveArccosClient,
-    Response,
-    UrllibTransport,
-    discover_remote_hashes,
-)
+from shotlake.connectors.arccos_live import LiveArccosClient, discover_remote_hashes
 from shotlake.connectors.errors import SchemaDriftError
+from shotlake.connectors.http import Response, UrllibTransport
 from shotlake.db import open_db
 from shotlake.devalue import encode_remote_arg
 from shotlake.devalue import parse as devalue_parse

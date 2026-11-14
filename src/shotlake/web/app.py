@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import date, timedelta
 from pathlib import Path
 from typing import Annotated, Any
 from urllib.parse import quote, urlencode
@@ -11,13 +12,16 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+from .. import reports
 from ..analytics.course_shots import club_distances
 from ..analytics.distance import club_stats
 from ..analytics.insights import generate as generate_insights
+from ..analytics.metrics import METRICS
 from ..analytics.score import round_scores
 from ..analytics.sg import CATEGORIES, strokes_gained
 from ..analytics.trend import differential_trend
 from ..baseline import Baseline
+from ..clubs import CANONICAL_CLUBS
 from ..service import (
     default_source,
     round_detail,
@@ -27,7 +31,7 @@ from ..service import (
     source_statuses,
 )
 from ..workspace import Workspace
-from .charts import bars_svg, trend_svg
+from .charts import Marker, bars_svg, trend_svg
 
 HERE = Path(__file__).parent
 M_TO_YD = 1 / 0.9144
@@ -93,6 +97,25 @@ def create_app(data_dir: Path, club_map: Path, baseline_path: Path) -> FastAPI:
             window = int(request.query_params.get("w", "5") or 5)
             scores = round_scores(con, source=source) if source else []
             trend = differential_trend(scores, max(window, 1))
+            notes = [
+                n
+                for n in reports.list_notes(con, limit=500)
+                if n["scope"] == "global" or n["scope"] == f"source:{source}"
+            ]
+            markers = [
+                Marker(
+                    date.fromisoformat(n["date"]),
+                    n["text"][:80],
+                    n["type"],
+                    link(request, "/compare", at=n["date"], source=source),
+                )
+                for n in notes
+            ]
+            first = trend[0].start_utc.date() if trend else None
+            last = trend[-1].start_utc.date() if trend else None
+            outside = sum(
+                1 for m in markers if first is None or not first <= m.when <= (last or m.when)
+            )
             sg = strokes_gained(con, baseline, source=source) if source else None
             totals = sg.totals() if sg else {}
             bars = bars_svg(
@@ -110,7 +133,9 @@ def create_app(data_dir: Path, club_map: Path, baseline_path: Path) -> FastAPI:
                 sources=sources,
                 window=window,
                 trend=trend,
-                trend_svg=trend_svg(trend, window),
+                trend_svg=trend_svg(trend, window, markers),
+                n_markers=len(markers) - outside,
+                n_markers_outside=outside,
                 n_scores=len(scores),
                 recent=list(reversed(scores))[:8],
                 sg=sg,
@@ -141,7 +166,15 @@ def create_app(data_dir: Path, club_map: Path, baseline_path: Path) -> FastAPI:
             detail = round_detail(con, round_id, baseline)
             if detail is None:
                 raise HTTPException(404, "Runde nicht gefunden")
-            return page(request, "round.html", d=detail, errors=[], tee_errors=[])
+            return page(
+                request,
+                "round.html",
+                d=detail,
+                errors=[],
+                tee_errors=[],
+                round_notes=reports.list_notes(con, scope=f"round:{detail.score.round_id}"),
+                today=date.today().isoformat(),
+            )
 
     def back_to_round(request: Request, round_id: str, anchor: str) -> RedirectResponse:
         target = link(request, f"/rounds/{quote(round_id, safe='|')}") + anchor
@@ -252,6 +285,181 @@ def create_app(data_dir: Path, club_map: Path, baseline_path: Path) -> FastAPI:
                 sources=round_sources(con),
                 insights=found,
                 uncertain=uncertain,
+            )
+
+    # --- Notizen -----------------------------------------------------------------------------
+
+    def note_form_values(
+        text: str, type_: str, note_date: str, valid_to: str, scope_kind: str, scope_value: str
+    ) -> tuple[dict[str, str], str]:
+        scope = "global" if scope_kind == "global" else f"{scope_kind}:{scope_value.strip()}"
+        values = {
+            "text": text, "type": type_, "date": note_date, "valid_to": valid_to,
+            "scope_kind": scope_kind, "scope_value": scope_value,
+        }  # fmt: skip
+        return values, scope
+
+    def notes_context(con: Any, request: Request) -> dict[str, Any]:
+        type_ = request.query_params.get("type") or None
+        return {
+            "notes": reports.list_notes(con, type_=type_, limit=300),
+            "filter_type": type_,
+            "note_types": reports.NOTE_TYPES,
+            "clubs": CANONICAL_CLUBS,
+            "sources": sorted(reports.known_sources(con)),
+        }
+
+    def safe_back(back: str, default: str) -> str:
+        return back if back.startswith("/") and not back.startswith("//") else default
+
+    @app.get("/notes", response_class=HTMLResponse)
+    def notes(request: Request) -> HTMLResponse:
+        with session() as con:
+            return page(
+                request,
+                "notes.html",
+                errors=[],
+                form=None,
+                today=date.today().isoformat(),
+                **notes_context(con, request),
+            )
+
+    @app.post("/notes")
+    def note_create(
+        request: Request,
+        text: Annotated[str, Form()] = "",
+        type: Annotated[str, Form()] = "general",
+        date_: Annotated[str, Form(alias="date")] = "",
+        valid_to: Annotated[str, Form()] = "",
+        scope_kind: Annotated[str, Form()] = "global",
+        scope_value: Annotated[str, Form()] = "",
+        back: Annotated[str, Form()] = "",
+    ) -> Any:
+        values, scope = note_form_values(text, type, date_, valid_to, scope_kind, scope_value)
+        with session() as con:
+            try:
+                reports.add_note(con, text, type, date_, scope, valid_to or None)
+            except ValueError as exc:
+                response = page(
+                    request,
+                    "notes.html",
+                    errors=str(exc).split("; "),
+                    form=values,
+                    today=date.today().isoformat(),
+                    **notes_context(con, request),
+                )
+                response.status_code = 400
+                return response
+        return RedirectResponse(safe_back(back, link(request, "/notes")), status_code=303)
+
+    @app.get("/notes/{note_id}/edit", response_class=HTMLResponse)
+    def note_edit(request: Request, note_id: str) -> HTMLResponse:
+        with session() as con:
+            note = reports.get_note(con, note_id)
+            if note is None:
+                raise HTTPException(404, "Notiz nicht gefunden")
+            kind, _, value = note["scope"].partition(":")
+            form = {
+                "text": note["text"], "type": note["type"], "date": note["date"],
+                "valid_to": note["valid_to"] or "", "scope_kind": kind, "scope_value": value,
+            }  # fmt: skip
+            return page(request, "note_edit.html", note=note, form=form, errors=[],
+                        **notes_context(con, request))  # fmt: skip
+
+    @app.post("/notes/{note_id}/edit")
+    def note_update(
+        request: Request,
+        note_id: str,
+        text: Annotated[str, Form()] = "",
+        type: Annotated[str, Form()] = "general",
+        date_: Annotated[str, Form(alias="date")] = "",
+        valid_to: Annotated[str, Form()] = "",
+        scope_kind: Annotated[str, Form()] = "global",
+        scope_value: Annotated[str, Form()] = "",
+    ) -> Any:
+        values, scope = note_form_values(text, type, date_, valid_to, scope_kind, scope_value)
+        with session() as con:
+            note = reports.get_note(con, note_id)
+            if note is None:
+                raise HTTPException(404, "Notiz nicht gefunden")
+            try:
+                reports.update_note(con, note_id, text, type, date_, scope, valid_to or None)
+            except ValueError as exc:
+                response = page(
+                    request, "note_edit.html", note=note, form=values,
+                    errors=str(exc).split("; "), **notes_context(con, request),
+                )  # fmt: skip
+                response.status_code = 400
+                return response
+        return RedirectResponse(link(request, "/notes"), status_code=303)
+
+    @app.get("/notes/{note_id}/delete", response_class=HTMLResponse)
+    def note_delete_confirm(request: Request, note_id: str) -> HTMLResponse:
+        with session() as con:
+            note = reports.get_note(con, note_id)
+            if note is None:
+                raise HTTPException(404, "Notiz nicht gefunden")
+            return page(request, "note_delete.html", note=note)
+
+    @app.post("/notes/{note_id}/delete")
+    def note_delete(request: Request, note_id: str) -> Any:
+        with session() as con:
+            if not reports.delete_note(con, note_id):
+                raise HTTPException(404, "Notiz nicht gefunden")
+        return RedirectResponse(link(request, "/notes"), status_code=303)
+
+    # --- Vergleich A/B und Vorher/Nachher ---------------------------------------------------------
+
+    compare_default = (
+        "to_par_per_hole", "putts_per_hole", "fir_rate", "gir_rate", "sg_total_per_hole",
+        "differential",
+    )  # fmt: skip
+
+    @app.get("/compare", response_class=HTMLResponse)
+    def compare(request: Request) -> HTMLResponse:
+        q = request.query_params
+        with session() as con:
+            source = q.get("source") or default_source(con)
+            at = q.get("at") or ""
+            errors: list[str] = []
+            a: dict[str, Any] = {
+                "since": q.get("a_since") or None,
+                "until": q.get("a_until") or None,
+            }
+            b: dict[str, Any] = {
+                "since": q.get("b_since") or None,
+                "until": q.get("b_until") or None,
+            }
+            if at:
+                try:
+                    day = date.fromisoformat(at)
+                    a = {"since": day.isoformat(), "until": None}
+                    b = {"since": None, "until": (day - timedelta(days=1)).isoformat()}
+                except ValueError:
+                    errors.append("at: Datum im Format JJJJ-MM-TT erwartet")
+            metrics = [m for m in q.getlist("metric") if m in METRICS] or list(compare_default)
+            result = None
+            if not errors and (a["since"] or a["until"]) and (b["since"] or b["until"]):
+                try:
+                    result = reports.compare_report(
+                        con, baseline, a, b, metrics,
+                        reports.make_filters(source=source),
+                    )  # fmt: skip
+                except ValueError as exc:
+                    errors.append(str(exc))
+            return page(
+                request,
+                "compare.html",
+                source=source,
+                sources=round_sources(con),
+                at=at,
+                a=a,
+                b=b,
+                result=result,
+                errors=errors,
+                metrics=metrics,
+                all_metrics=METRICS,
+                notes=[n for n in reports.list_notes(con, limit=100) if n["date"] == at],
             )
 
     @app.get("/sources", response_class=HTMLResponse)

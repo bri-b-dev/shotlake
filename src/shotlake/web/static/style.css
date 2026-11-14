@@ -63,3 +63,16 @@ input, select, button { font: inherit; padding: .4rem .5rem; border: 1px solid v
 button.primary { background: var(--accent); color: var(--bg); border-color: var(--accent); cursor: pointer; }
 :focus-visible { outline: 3px solid var(--avg); outline-offset: 2px; }
 @media (max-width: 480px) { main { padding: 10px; } .card { padding: 10px; } }
+
+.chart .marker line { stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.chart .marker text { fill: var(--muted); font-size: 14px; }
+.chart .marker.equipment line { stroke: var(--avg); } .chart .marker.equipment text { fill: var(--avg); }
+.chart .marker.swing line, .chart .marker.coach line { stroke: var(--accent); }
+.chart .marker.swing text, .chart .marker.coach text { fill: var(--accent); }
+.chart .marker:hover line { stroke-width: 3; }
+textarea { font: inherit; padding: .4rem .5rem; border: 1px solid var(--line); border-radius: 6px;
+  background: var(--card); color: var(--fg); width: 100%; min-height: 5rem; }
+.note { border-top: 1px solid var(--line); padding: .6rem 0; }
+.note:first-child { border-top: 0; }
+.tag { display: inline-block; padding: 0 .5rem; border: 1px solid var(--line); border-radius: 999px;
+  font-size: .8rem; color: var(--muted); margin-right: .3rem; }

@@ -111,6 +111,22 @@
     {% else %}<p class="muted">Für diese Runde liegen keine Schlagdaten vor.</p>{% endif %}
   </section>
 
+  <section class="card wide" aria-labelledby="h-notes">
+    <h2 id="h-notes">Notizen zu dieser Runde</h2>
+    {% for n in round_notes|default([]) %}
+      <div class="note"><p><span class="tag">{{ n.type }}</span> {{ n.date }}</p><p>{{ n.text }}</p>
+        <p class="muted"><a href="{{ link(request, '/notes/' ~ n.note_id ~ '/edit') }}">Bearbeiten</a> ·
+          <a href="{{ link(request, '/notes/' ~ n.note_id ~ '/delete') }}">Löschen</a></p></div>
+    {% else %}<p class="muted">Noch keine Notiz zu dieser Runde.</p>{% endfor %}
+    {% set action = link(request, '/notes') %}
+    {% set back = link(request, '/rounds/' ~ (s.round_id|urlq)) %}
+    {% set fixed_scope = ('round', s.round_id) %}
+    {% set form = {'date': s.start_utc.strftime('%Y-%m-%d'), 'type': 'round'} %}
+    {% set today = s.start_utc.strftime('%Y-%m-%d') %}
+    {% set submit = 'Notiz zur Runde speichern' %}
+    {% include "_note_form.html" %}
+  </section>
+
   <section class="card wide" aria-labelledby="h-prov">
     <h2 id="h-prov">Provenienz</h2>
     <p class="muted">Quelle {{ d.source }} · Rohdaten-Hash {{ d.raw_hash[:16] }}… · Importlauf {{ d.import_run_id[:8] }}… · Dedup-Status: noch nicht verknüpft (Dedup folgt).</p>

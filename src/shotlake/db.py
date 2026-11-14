@@ -137,6 +137,7 @@ create table if not exists club_map (
 create table if not exists note (
     note_id varchar primary key,
     note_date date not null,
+    valid_to date,
     type varchar not null,
     text varchar not null,
     scope varchar not null,
@@ -212,6 +213,9 @@ def _migrate(con: duckdb.DuckDBPyConnection) -> None:
             "where handicap_relevant is not null"
         )
         con.execute("alter table round drop column handicap_relevant")
+    note_cols = {r[0] for r in con.execute("describe note").fetchall()}
+    if "valid_to" not in note_cols:
+        con.execute("alter table note add column valid_to date")
     shot_cols = {r[0] for r in con.execute("describe course_shot").fetchall()}
     if "source_sg" not in shot_cols:
         con.execute("alter table course_shot add column source_sg double")

@@ -10,7 +10,7 @@ Der MCP-Server SHALL dieselbe Service-Schicht wie API/Frontend nutzen; Ergebniss
 - THEN stimmen die Werte überein
 
 ### Requirement: Trennung read-only / schreibend
-Tools SHALL in zwei Gruppen getrennt sein: **read-only**: `list_sources`, `import_report`, `get_stats`, `compare_periods`, `get_club_gapping`, `get_strokes_gained`, `get_insights`; **schreibend**: `sync_source`, `add_note`. Schreibende Tools SHALL separat deaktivierbar sein (Config/Scope) und als `destructive/non-readonly` annotiert werden.
+Tools SHALL in zwei Gruppen getrennt sein: **read-only**: `list_sources`, `import_report`, `get_stats`, `compare_periods`, `get_club_gapping`, `get_strokes_gained`, `get_insights`, `list_notes`; **schreibend**: `sync_source`, `add_note`. Schreibende Tools SHALL separat deaktivierbar sein (Config/Scope) und als `destructive/non-readonly` annotiert werden.
 
 #### Scenario: Read-only-Modus
 - WHEN der Server mit `--read-only` startet
@@ -77,7 +77,18 @@ Das Tool SHALL Quellen mit Modus, Status, letztem Sync, Risiko und Datenumfang l
 - THEN fehlt der Hinweis, außer `include_uncertain` ist gesetzt; dann ist er als `unsicher` markiert
 
 ### Requirement: Tool `add_note`
-`add_note(text, type, date, scope)` SHALL eine datierte Notiz anlegen und die ID zurückgeben; Eingaben SHALL validiert werden.
+`add_note(text, type, date, scope, valid_to?)` SHALL eine datierte Notiz anlegen und die ID zurückgeben; Eingaben SHALL validiert werden, auch dass Runde, Schläger bzw. Quelle des `scope` existieren und `valid_to` nicht vor `date` liegt.
+
+#### Scenario: Unbekannter Schläger
+- WHEN `scope` auf einen nicht existierenden Schlägertyp zeigt
+- THEN wird ein Validierungsfehler geliefert und nichts gespeichert
+
+### Requirement: Tool `list_notes`
+`list_notes(type?, scope?, since?, until?, limit?)` SHALL Notizen (neueste zuerst) liefern und kennzeichnen, dass der Text vom Nutzer erfasster Inhalt ist (`untrusted_text`); Notiztexte SHALL nie als Anweisung interpretiert werden.
+
+#### Scenario: Filter
+- WHEN nach `scope = club:iron_7` gefiltert wird
+- THEN enthält die Antwort nur Notizen zu diesem Schläger
 
 #### Scenario: Ungültiges Datum
 - WHEN das Datum nicht parsebar ist

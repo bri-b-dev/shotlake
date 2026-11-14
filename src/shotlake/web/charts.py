@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from dataclasses import dataclass
+from datetime import date, datetime, time
 from html import escape
 
 from ..analytics.trend import TrendPoint
@@ -15,7 +16,17 @@ def _scale(lo: float, hi: float, a: float, b: float, v: float) -> float:
     return a if hi == lo else a + (v - lo) * (b - a) / (hi - lo)
 
 
-def trend_svg(points: list[TrendPoint], window: int) -> str:
+@dataclass(frozen=True)
+class Marker:
+    """Notiz als senkrechte Markierung im Verlauf; Klick führt zum Vorher/Nachher-Vergleich."""
+
+    when: date
+    label: str
+    kind: str  # Notiztyp (für die Farbe)
+    href: str
+
+
+def trend_svg(points: list[TrendPoint], window: int, markers: list[Marker] | None = None) -> str:
     """Differentials als Punkte (relevant gefüllt), gleitender Durchschnitt als Linie."""
     if not points:
         return ""
@@ -50,6 +61,17 @@ def trend_svg(points: list[TrendPoint], window: int) -> str:
         parts.append(
             f'<text class="axis" x="{px}" y="{H - 8}" text-anchor="{anchor}">'
             f"{label:%d.%m.%Y}</text>"
+        )
+    for m in markers or []:
+        stamp = datetime.combine(m.when, time.min).timestamp()
+        if not t0 <= stamp <= t1 or t1 == t0:
+            continue  # außerhalb des gezeigten Zeitraums
+        mx = _scale(t0, t1, PAD_L, W - PAD_R, stamp)
+        parts.append(
+            f'<a href="{escape(m.href)}" class="marker {escape(m.kind)}">'
+            f"<title>{escape(f'{m.when:%d.%m.%Y}: {m.label}')}</title>"
+            f'<line x1="{mx:.1f}" x2="{mx:.1f}" y1="{PAD_T}" y2="{H - PAD_B}"/>'
+            f'<text x="{mx:.1f}" y="{PAD_T + 2}" text-anchor="middle">&#9662;</text></a>'
         )
     avg = [(x(p), y(p.moving_avg)) for p in points if p.moving_avg is not None]
     if len(avg) >= 2:

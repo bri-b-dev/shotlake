@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Notiz löschen · Shotlake{% endblock %}
+{% block content %}
+<h1>Notiz löschen?</h1>
+<section class="card">
+  <p><span class="tag">{{ note.type }}</span><span class="tag">{{ note.scope }}</span> {{ note.date }}</p>
+  <p>{{ note.text }}</p>
+  <p class="notice">Das Löschen kann nicht rückgängig gemacht werden.</p>
+  <form method="post" action="{{ link(request, '/notes/' ~ note.note_id ~ '/delete') }}">
+    <button class="primary" type="submit">Ja, endgültig löschen</button>
+    <a href="{{ link(request, '/notes') }}">Abbrechen</a>
+  </form>
+</section>
+{% endblock %}

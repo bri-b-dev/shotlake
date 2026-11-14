@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Vergleich · Shotlake{% endblock %}
+{% block content %}
+<h1>Vergleich{% if at %}: vorher/nachher am {{ at[8:10] }}.{{ at[5:7] }}.{{ at[0:4] }}{% else %} A gegen B{% endif %}</h1>
+{% set path = '/compare' %}{% set allow_all = False %}
+{% include "_chips.html" %}
+{% for n in notes %}<p class="notice"><strong>{{ n.type }}</strong> {{ n.date }}: {{ n.text }}</p>{% endfor %}
+{% for e in errors %}<p class="error" role="alert">{{ e }}</p>{% endfor %}
+<form class="inputs card" method="get" action="/compare">
+  <input type="hidden" name="source" value="{{ source or '' }}">
+  <label>A von <input type="date" name="a_since" value="{{ a.since or '' }}"></label>
+  <label>A bis <input type="date" name="a_until" value="{{ a.until or '' }}"></label>
+  <label>B von <input type="date" name="b_since" value="{{ b.since or '' }}"></label>
+  <label>B bis <input type="date" name="b_until" value="{{ b.until or '' }}"></label>
+  <div><button class="primary" type="submit">Vergleichen</button></div>
+</form>
+{% if result %}
+<div class="card scroll" style="margin-top:12px"><table>
+  <thead><tr><th>Kennzahl</th><th>n A / B</th><th>A</th><th>B</th><th>Δ (A − B)</th><th>95-%-Intervall</th><th class="left">Einschätzung</th></tr></thead>
+  <tbody>
+  {% for r in result.results %}
+    {% set labels = {'zu_wenig_daten': 'zu wenig Daten', 'kein_belegbarer_unterschied': 'kein belegbarer Unterschied', 'wahrscheinlich_besser': 'wahrscheinlich besser', 'wahrscheinlich_schlechter': 'wahrscheinlich schlechter', 'unterschied_belegt': 'Unterschied belegt'} %}
+    <tr><td>{{ r.label }} <span class="muted">({{ r.unit }})</span></td>
+        <td>{{ r.a.n }} / {{ r.b.n }}</td>
+        <td>{{ r.a.value|num(2) }}</td><td>{{ r.b.value|num(2) }}</td>
+        <td>{{ r.delta_a_minus_b|num(2, true) }}</td>
+        <td>{% if r.ci %}{{ r.ci.low|num(2) }} bis {{ r.ci.high|num(2) }}{% else %}–{% endif %}</td>
+        <td class="left {{ 'pos' if r.assessment == 'wahrscheinlich_besser' else ('neg' if r.assessment == 'wahrscheinlich_schlechter' else 'muted') }}">{{ labels.get(r.assessment, r.assessment) }}
+          {% for w in r.warnings %}<br><span class="muted">{{ w.split(':')[0] }}</span>{% endfor %}</td></tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+<p class="muted">A = {% if at %}ab {{ at }}{% else %}{{ a.since or '…' }} bis {{ a.until or '…' }}{% endif %}, B = {% if at %}bis zum Vortag{% else %}{{ b.since or '…' }} bis {{ b.until or '…' }}{% endif %}.
+  Δ = A minus B. Eine Richtung (besser/schlechter) gibt es nur ab 5 Beobachtungen je Zeitraum und wenn das Intervall die 0 nicht einschließt. Nur Quelle {{ source }}.</p>
+{% elif not errors %}
+<p class="muted">Zeiträume A und B wählen, oder in der Übersicht auf einen Notiz-Marker klicken.</p>
+{% endif %}
+{% endblock %}

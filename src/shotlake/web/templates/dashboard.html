@@ -14,7 +14,10 @@
       <p class="legend">● Runde (gefüllt = handicap-relevant) · <span style="color:var(--avg)">▬</span> gleitender Durchschnitt über {{ window }} Runden.
         {% set last = trend[-1] %}
         Letzter Wert {{ last.differential|num }}{% if last.moving_avg is not none %}, Durchschnitt {{ last.moving_avg|num }}{% else %}, Durchschnitt erst ab {{ window }} Runden{% endif %}.
-        n = {{ trend|length }} von {{ n_scores }} Runden mit Differential. Kein Handicap-Index.</p>
+        n = {{ trend|length }} von {{ n_scores }} Runden mit Differential. Kein Handicap-Index.
+        {% if n_markers %}Gestrichelte Marker sind Notizen ({{ n_markers }}); Klick = Vorher/Nachher-Vergleich.{% endif %}
+        {% if n_markers_outside %}{{ n_markers_outside }} Notiz(en) liegen außerhalb des gezeigten Zeitraums.{% endif %}
+        <a href="{{ link(request, '/notes') }}">Notizen</a></p>
       <p class="legend">Fenster:
         {% for w in (3, 5, 10) %}<a href="{{ link(request, '/', w=w|string) }}" {% if w == window %}aria-current="true"{% endif %}>{{ w }}</a> {% endfor %}</p>
     {% else %}

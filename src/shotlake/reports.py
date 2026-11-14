@@ -19,6 +19,7 @@ from .analytics.metrics import METRICS, Filters, Metric, observations
 from .analytics.sg import CATEGORIES, strokes_gained
 from .analytics.stats import STATS, Interval, bootstrap_ci, compare
 from .baseline import Baseline
+from .clubs import CANONICAL_CLUBS
 from .service import source_statuses
 
 NOTE_TYPES = ("equipment", "swing", "coach", "round", "general")
@@ -330,27 +331,136 @@ def insights_report(
 # --- Notizen -----------------------------------------------------------------------------------
 
 
-def add_note(
-    con: duckdb.DuckDBPyConnection, text: str, type_: str, note_date: str, scope: str = "global"
-) -> dict[str, Any]:  # fmt: skip
+def _note_values(
+    con: duckdb.DuckDBPyConnection, text: str, type_: str, note_date: str, scope: str,
+    valid_to: str | None,
+) -> tuple[str, date, date | None, str]:  # fmt: skip
+    """Notiz-Eingaben prüfen und normalisieren; sammelt alle Fehler in einer Meldung."""
     errors: list[str] = []
     clean = text.strip()
     if not clean or len(clean) > 2000:
         errors.append("text: 1 bis 2000 Zeichen erwartet")
     if type_ not in NOTE_TYPES:
         errors.append(f"type: erlaubt sind {', '.join(NOTE_TYPES)}")
-    parsed: date | None = None
+    start: date | None = None
     try:
-        parsed = date.fromisoformat(note_date)
+        start = date.fromisoformat(note_date)
     except ValueError:
         errors.append("date: Datum im Format JJJJ-MM-TT erwartet")
+    end: date | None = None
+    if valid_to:
+        try:
+            end = date.fromisoformat(valid_to)
+        except ValueError:
+            errors.append("valid_to: Datum im Format JJJJ-MM-TT erwartet")
+        else:
+            if start and end < start:
+                errors.append("valid_to: darf nicht vor dem Datum liegen")
+    scope = scope.strip() or "global"
     if not _SCOPE.match(scope):
         errors.append("scope: global, round:<id>, club:<typ> oder source:<id> erwartet")
+    else:
+        kind, _, value = scope.partition(":")
+        if kind == "round":
+            row = con.execute(
+                "select round_id from round where round_id = ? or round_key = ?", [value, value]
+            ).fetchall()
+            if len(row) == 1:
+                scope = f"round:{row[0][0]}"  # auf die eindeutige Runden-ID normalisieren
+            else:
+                errors.append(f"scope: Runde {value!r} nicht gefunden oder nicht eindeutig")
+        elif kind == "club" and value not in CANONICAL_CLUBS:
+            errors.append(f"scope: unbekannter Schlägertyp {value!r}")
+        elif kind == "source" and value not in known_sources(con):
+            errors.append(f"scope: unbekannte Quelle {value!r}")
     if errors:
         raise ValueError("; ".join(errors))
+    assert start is not None
+    return clean, start, end, scope
+
+
+def known_sources(con: duckdb.DuckDBPyConnection) -> set[str]:
+    return {s.id for s in source_statuses(con)}
+
+
+def _note_row(r: tuple[Any, ...]) -> dict[str, Any]:
+    return {
+        "note_id": r[0], "date": _iso(r[1]), "valid_to": _iso(r[2]), "type": r[3],
+        "text": r[4], "scope": r[5], "created_at": _iso(r[6]),
+    }  # fmt: skip
+
+
+NOTE_SELECT = "select note_id, note_date, valid_to, type, text, scope, created_at from note"
+
+
+def add_note(
+    con: duckdb.DuckDBPyConnection, text: str, type_: str, note_date: str, scope: str = "global",
+    valid_to: str | None = None,
+) -> dict[str, Any]:  # fmt: skip
+    clean, start, end, norm_scope = _note_values(con, text, type_, note_date, scope, valid_to)
     note_id = uuid.uuid4().hex[:12]
     con.execute(
-        "insert into note values (?,?,?,?,?, now()::timestamp)",
-        [note_id, parsed, type_, clean, scope],
+        "insert into note (note_id, note_date, valid_to, type, text, scope, created_at) "
+        "values (?,?,?,?,?,?, now()::timestamp)",
+        [note_id, start, end, type_, clean, norm_scope],
     )
-    return {"note_id": note_id, "date": _iso(parsed), "type": type_, "scope": scope}
+    return {"note_id": note_id, "date": _iso(start), "valid_to": _iso(end), "type": type_,
+            "scope": norm_scope}  # fmt: skip
+
+
+def get_note(con: duckdb.DuckDBPyConnection, note_id: str) -> dict[str, Any] | None:
+    row = con.execute(f"{NOTE_SELECT} where note_id = ?", [note_id]).fetchone()
+    return None if row is None else _note_row(row)
+
+
+def update_note(
+    con: duckdb.DuckDBPyConnection, note_id: str, text: str, type_: str, note_date: str,
+    scope: str, valid_to: str | None,
+) -> dict[str, Any]:  # fmt: skip
+    if get_note(con, note_id) is None:
+        raise ValueError("Notiz nicht gefunden")
+    clean, start, end, norm_scope = _note_values(con, text, type_, note_date, scope, valid_to)
+    con.execute(
+        "update note set note_date = ?, valid_to = ?, type = ?, text = ?, scope = ? "
+        "where note_id = ?",
+        [start, end, type_, clean, norm_scope, note_id],
+    )
+    return {"note_id": note_id, "date": _iso(start), "valid_to": _iso(end), "type": type_,
+            "scope": norm_scope}  # fmt: skip
+
+
+def delete_note(con: duckdb.DuckDBPyConnection, note_id: str) -> bool:
+    if get_note(con, note_id) is None:
+        return False
+    con.execute("delete from note where note_id = ?", [note_id])
+    return True
+
+
+def list_notes(
+    con: duckdb.DuckDBPyConnection, *, type_: str | None = None, scope: str | None = None,
+    since: str | None = None, until: str | None = None, limit: int = 200,
+) -> list[dict[str, Any]]:  # fmt: skip
+    """Notizen, neueste zuerst. `scope` filtert exakt (z. B. `club:iron_7`); Zeitraum nach Datum."""
+    if limit < 1:
+        raise ValueError("limit muss mindestens 1 sein")
+    where = ["1=1"]
+    params: list[object] = []
+    if type_:
+        where.append("type = ?")
+        params.append(type_)
+    if scope:
+        where.append("scope = ?")
+        params.append(scope)
+    start, end = parse_date(since, "since"), parse_date(until, "until")
+    if start:
+        where.append("note_date >= ?")
+        params.append(start)
+    if end:
+        where.append("note_date <= ?")
+        params.append(end)
+    rows = con.execute(
+        f"{NOTE_SELECT} where {' and '.join(where)} order by note_date desc, created_at desc "
+        "limit ?",
+        [*params, limit],
+    ).fetchall()
+    return [_note_row(r) for r in rows]

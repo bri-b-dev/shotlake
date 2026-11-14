@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Notiz bearbeiten · Shotlake{% endblock %}
+{% block content %}
+<p><a href="{{ link(request, '/notes') }}">← Notizen</a></p>
+<h1>Notiz bearbeiten</h1>
+<section class="card">
+  {% for e in errors %}<p class="error" role="alert">{{ e }}</p>{% endfor %}
+  {% set action = link(request, '/notes/' ~ note.note_id ~ '/edit') %}{% set back = '' %}{% set fixed_scope = none %}{% set submit = 'Änderungen speichern' %}{% set today = note.date %}
+  {% include "_note_form.html" %}
+  <p><a href="{{ link(request, '/notes/' ~ note.note_id ~ '/delete') }}">Notiz löschen</a></p>
+</section>
+{% endblock %}

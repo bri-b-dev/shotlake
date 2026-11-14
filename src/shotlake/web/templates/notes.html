@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Notizen · Shotlake{% endblock %}
+{% block content %}
+<h1>Notizen</h1>
+<p class="muted">Notizen (Equipment, Schwung, Trainer, Runde) erscheinen als Marker im Differential-Verlauf. Ein Klick auf den Marker vergleicht die Zeit davor mit der danach.</p>
+<div class="grid">
+  <section class="card" aria-labelledby="h-new">
+    <h2 id="h-new">Neue Notiz</h2>
+    {% for e in errors %}<p class="error" role="alert">{{ e }}</p>{% endfor %}
+    {% set action = link(request, '/notes') %}{% set back = '' %}{% set fixed_scope = none %}{% set submit = 'Notiz anlegen' %}
+    {% include "_note_form.html" %}
+    <p class="muted">Runde, Schläger und Quelle müssen existieren. Der Text wird nur gespeichert und angezeigt, nie ausgeführt.</p>
+  </section>
+  <section class="card" aria-labelledby="h-list">
+    <h2 id="h-list">Alle Notizen ({{ notes|length }})</h2>
+    <p class="chips"><a href="{{ link(request, '/notes') }}" {% if not filter_type %}aria-current="true"{% endif %}>alle</a>
+      {% for t in note_types %}<a href="{{ link(request, '/notes') }}?type={{ t }}" {% if filter_type == t %}aria-current="true"{% endif %}>{{ t }}</a>{% endfor %}</p>
+    {% for n in notes %}
+      <div class="note">
+        <p><span class="tag">{{ n.type }}</span><span class="tag">{{ n.scope }}</span>
+          {{ n.date[8:10] }}.{{ n.date[5:7] }}.{{ n.date[0:4] }}{% if n.valid_to %} bis {{ n.valid_to[8:10] }}.{{ n.valid_to[5:7] }}.{{ n.valid_to[0:4] }}{% endif %}</p>
+        <p>{{ n.text }}</p>
+        <p class="muted"><a href="{{ link(request, '/notes/' ~ n.note_id ~ '/edit') }}">Bearbeiten</a> ·
+          <a href="{{ link(request, '/notes/' ~ n.note_id ~ '/delete') }}">Löschen</a> ·
+          <a href="{{ link(request, '/compare', at=n.date) }}">Vorher/Nachher</a></p>
+      </div>
+    {% else %}<p class="muted">Noch keine Notizen.</p>{% endfor %}
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,33 @@
+{# Erwartet: action, form (dict oder None), note_types, clubs, sources, today; optional: back, fixed_scope #}
+<form class="inputs" method="post" action="{{ action }}">
+  {% set f = form or {} %}
+  {% if back %}<input type="hidden" name="back" value="{{ back }}">{% endif %}
+  <label>Datum (gültig ab)
+    <input type="date" name="date" required value="{{ f.get('date') or today }}"></label>
+  <label>Gültig bis (optional)
+    <input type="date" name="valid_to" value="{{ f.get('valid_to') or '' }}"></label>
+  <label>Typ
+    <select name="type">
+      {% for t in note_types %}<option value="{{ t }}" {{ 'selected' if f.get('type', 'general') == t }}>{{ {'equipment': 'Equipment', 'swing': 'Schwung', 'coach': 'Trainer', 'round': 'Runde', 'general': 'Allgemein'}.get(t, t) }}</option>{% endfor %}
+    </select></label>
+  {% if fixed_scope %}
+    <input type="hidden" name="scope_kind" value="{{ fixed_scope[0] }}">
+    <input type="hidden" name="scope_value" value="{{ fixed_scope[1] }}">
+  {% else %}
+    <label>Gilt für
+      <select name="scope_kind">
+        {% for k, label in (('global', 'alles'), ('source', 'eine Quelle'), ('club', 'einen Schläger'), ('round', 'eine Runde')) %}
+          <option value="{{ k }}" {{ 'selected' if f.get('scope_kind', 'global') == k }}>{{ label }}</option>
+        {% endfor %}
+      </select></label>
+    <label>Quelle, Schläger oder Runden-ID
+      <input name="scope_value" list="scope-values" value="{{ f.get('scope_value') or '' }}" placeholder="z. B. arccos, iron_7"></label>
+    <datalist id="scope-values">
+      {% for s in sources %}<option value="{{ s }}">{% endfor %}
+      {% for c in clubs %}<option value="{{ c }}">{% endfor %}
+    </datalist>
+  {% endif %}
+  <label style="grid-column:1/-1">Notiz
+    <textarea name="text" required maxlength="2000">{{ f.get('text') or '' }}</textarea></label>
+  <div><button class="primary" type="submit">{{ submit or 'Speichern' }}</button></div>
+</form>

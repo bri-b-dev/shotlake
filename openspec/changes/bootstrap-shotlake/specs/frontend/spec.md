@@ -45,11 +45,18 @@ Die Runde-Detailansicht SHALL das Kennzeichen „handicap-relevant" (ja/nein, St
 - THEN wird die Entscheidung gespeichert und der Differential-Verlauf aktualisiert
 
 ### Requirement: Notizen
-Notizen SHALL angelegt, bearbeitet, gelöscht und Schlägern/Sessions/Zeiträumen zugeordnet werden können.
+Notizen SHALL angelegt, bearbeitet, gelöscht und Runden, Schlägern, Quellen oder Zeiträumen (gültig ab/bis) zugeordnet werden können; Löschen SHALL eine Bestätigung verlangen. Notiztexte SHALL ausschließlich als Text dargestellt werden. Notizen SHALL als Marker im Differential-Verlauf erscheinen, ein Klick auf einen Marker SHALL einen Vorher/Nachher-Vergleich öffnen (Zeit davor gegen Zeit danach, je Kennzahl mit n, Differenz, Intervall und Einschätzung).
 
 #### Scenario: Notiz anlegen
 - WHEN der Nutzer eine Equipment-Notiz mit Datum speichert
 - THEN erscheint sie als Marker in Trends
+
+### Requirement: Vorher/Nachher-Vergleich an einer Notiz
+Die Vergleichsansicht SHALL für ein Datum (z. B. aus einer Notiz) die Beobachtungen davor (A = danach, B = davor) je Quelle vergleichen und eine Einschätzung nur ab dem Mindest-n geben.
+
+#### Scenario: Marker anklicken
+- WHEN der Nutzer einen Marker im Verlauf anklickt
+- THEN sieht er für mehrere Kennzahlen Δ, 95-%-Intervall, n je Zeitraum und die Einschätzung
 
 ### Requirement: Dedup-Review
 Vorgeschlagene Matches SHALL in einer Review-Ansicht bestätigt, getrennt oder zusammengeführt werden können.

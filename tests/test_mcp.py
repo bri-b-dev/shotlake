@@ -23,7 +23,7 @@ BASELINE = Path(__file__).parent.parent / "baselines" / "hcp18w-approx-v1.toml"
 FIXTURES = Path(__file__).parent / "fixtures"
 TOOLS = {
     "list_sources", "import_report", "get_stats", "compare_periods", "get_club_gapping",
-    "get_strokes_gained", "get_insights", "sync_source", "add_note",
+    "get_strokes_gained", "get_insights", "list_notes", "sync_source", "add_note",
 }  # fmt: skip
 
 

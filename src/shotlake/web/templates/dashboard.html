@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Übersicht · Shotlake{% endblock %}
+{% block content %}
+<h1>Übersicht</h1>
+{% set path = '/' %}{% set allow_all = False %}
+{% include "_chips.html" %}
+<p class="notice">Ohne Dedup können dieselben Runden in mehreren Quellen stehen. Die Auswertung gilt deshalb je Quelle ({{ source or '–' }}).</p>
+
+<div class="grid">
+  <section class="card wide" aria-labelledby="h-diff">
+    <h2 id="h-diff">Score Differential</h2>
+    {% if trend %}
+      {{ trend_svg|safe }}
+      <p class="legend">● Runde (gefüllt = handicap-relevant) · <span style="color:var(--avg)">▬</span> gleitender Durchschnitt über {{ window }} Runden.
+        {% set last = trend[-1] %}
+        Letzter Wert {{ last.differential|num }}{% if last.moving_avg is not none %}, Durchschnitt {{ last.moving_avg|num }}{% else %}, Durchschnitt erst ab {{ window }} Runden{% endif %}.
+        n = {{ trend|length }} von {{ n_scores }} Runden mit Differential. Kein Handicap-Index.</p>
+      <p class="legend">Fenster:
+        {% for w in (3, 5, 10) %}<a href="{{ link(request, '/', w=w|string) }}" {% if w == window %}aria-current="true"{% endif %}>{{ w }}</a> {% endfor %}</p>
+    {% else %}
+      <p class="muted">Keine Differentials für „{{ source or '–' }}": Rating/Slope fehlen oder zu wenige gewertete Runden ({{ n_scores }} Runden).</p>
+    {% endif %}
+  </section>
+
+  <section class="card" aria-labelledby="h-sg">
+    <h2 id="h-sg">Strokes Gained</h2>
+    {% if sg and sg.complete_holes %}
+      {{ bars|safe }}
+      <p class="kpi {{ 'pos' if sg_total >= 0 else 'neg' }}">{{ (sg_total / sg.complete_holes)|num(2, true) }} <span class="muted">pro Loch</span></p>
+      <p class="muted">Basis: {{ sg.complete_holes }} von {{ sg.holes|length }} Löchern vollständig erfasst.
+        Baseline {{ baseline.id }} ({{ baseline.status }}): eigene Näherung für Handicap 18, nur für Vergleiche aussagekräftig.</p>
+    {% else %}
+      <p class="muted">Keine vollständig erfassten Löcher für „{{ source or '–' }}".</p>
+    {% endif %}
+  </section>
+
+  <section class="card" aria-labelledby="h-last">
+    <h2 id="h-last">Letzte Runden</h2>
+    <div class="scroll"><table>
+      <thead><tr><th>Datum</th><th>L</th><th>Brutto</th><th>±Par</th><th>Diff</th></tr></thead>
+      <tbody>
+      {% for r in recent %}
+        <tr><td><a href="{{ link(request, '/rounds/' ~ (r.round_id|urlq)) }}">{{ r.start_utc.strftime('%d.%m.%Y') }}</a></td>
+            <td>{{ r.holes_played }}</td><td>{{ r.gross if r.gross is not none else '–' }}</td>
+            <td>{{ r.to_par|num(0, true) }}</td>
+            <td>{{ r.differential|num }}{% if r.extrapolated %}<abbr title="9 Löcher auf 18 hochgerechnet">ˣ</abbr>{% endif %}</td></tr>
+      {% else %}<tr><td colspan="5" class="muted">Keine Runden.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table></div>
+    <p><a href="{{ link(request, '/rounds') }}">Alle Runden</a></p>
+  </section>
+
+  <section class="card wide" aria-labelledby="h-src">
+    <h2 id="h-src">Quellen</h2>
+    <div class="scroll"><table>
+      <thead><tr><th>Quelle</th><th>Modus</th><th>Runden</th><th>Sessions</th><th>Schläge</th><th>Letzter Lauf</th></tr></thead>
+      <tbody>
+      {% for s in statuses %}
+        <tr><td>{{ s.id }}</td><td>{{ s.mode }}</td><td>{{ s.rounds }}</td><td>{{ s.sessions }}</td>
+            <td>{{ s.course_shots + s.range_shots }}</td>
+            <td>{% if s.last_run %}{{ s.last_run.strftime('%d.%m.%Y %H:%M') }} · {{ s.last_status }}{% else %}–{% endif %}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table></div>
+  </section>
+</div>
+{% endblock %}

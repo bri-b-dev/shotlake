@@ -21,3 +21,13 @@ uv run shotlake gapping --outdoor                           # Gapping
 
 Daten liegen unter `./data` (DB `shotlake.duckdb`, unveränderte Importdateien in `raw/`), nicht im Repo.
 Mit `--units yd` werden Yards angezeigt. Wiederholte Importe sind idempotent.
+
+
+## Weboberfläche
+
+    uv run shotlake serve            # http://127.0.0.1:8000, nur lokal, ohne Anmeldung
+
+Seiten: Übersicht (Differential-Verlauf mit gleitendem Durchschnitt, Strokes Gained, letzte Runden),
+Runden, Rundendetail (Löcher, Schläge, Eingaben wie Handicap-Relevanz/PCC/AGS), Schläger, Quellen.
+Einheiten m/yd und Hell/Dunkel sind umschaltbar. Der Server bindet standardmäßig nur an `127.0.0.1`;
+er hat keine Anmeldung und ist nicht für das offene Netz gedacht.

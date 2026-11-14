@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Runden · Shotlake{% endblock %}
+{% block content %}
+<h1>Runden</h1>
+{% set path = '/rounds' %}{% set allow_all = True %}
+{% include "_chips.html" %}
+<p class="chips"><a href="{{ link(request, '/rounds') }}" {% if not only_relevant %}aria-current="true"{% endif %}>alle</a>
+  <a href="{{ link(request, '/rounds', relevant='1') }}" {% if only_relevant %}aria-current="true"{% endif %}>nur handicap-relevant</a></p>
+<div class="card scroll"><table>
+  <thead><tr><th>Datum</th><th>Quelle</th><th>L</th><th>Brutto</th><th>±Par</th><th>Putts</th><th>FIR</th><th>GIR</th><th>Diff</th><th>Rel.</th><th class="left">Hinweis</th></tr></thead>
+  <tbody>
+  {% for r in rows %}
+    <tr><td><a href="{{ link(request, '/rounds/' ~ (r.round_id|urlq)) }}">{{ r.start_utc.strftime('%d.%m.%Y') }}</a></td>
+        <td>{{ r.round_id.split('|')[0] }}</td><td>{{ r.holes_played }}</td>
+        <td>{{ r.gross if r.gross is not none else '–' }}</td><td>{{ r.to_par|num(0, true) }}</td>
+        <td>{{ r.putts if r.putts is not none else '–' }}</td>
+        <td>{{ (r.fir_hits / r.fir_recorded)|pct if r.fir_recorded else '–' }}</td>
+        <td>{{ (r.gir_hits / r.gir_recorded)|pct if r.gir_recorded else '–' }}</td>
+        <td>{{ r.differential|num }}{% if r.extrapolated %}<abbr title="9 Löcher auf 18 hochgerechnet">ˣ</abbr>{% endif %}</td>
+        <td>{% if r.relevant is not none %}{{ 'ja' if r.relevant else 'nein' }}{% else %}<span class="muted">{{ 'ja?' if r.relevant_suggestion else 'nein?' }}</span>{% endif %}</td>
+        <td class="left muted">{{ r.reason or '' }}</td></tr>
+  {% else %}<tr><td colspan="11" class="muted">Keine Runden.</td></tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+<p class="muted">Rel.: ohne Stern = Vorschlag (?), „ja/nein" = deine Entscheidung. ˣ = 9 Löcher auf 18 hochgerechnet. – = nicht erfasst.</p>
+{% endblock %}

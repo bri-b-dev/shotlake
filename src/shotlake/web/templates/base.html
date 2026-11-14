@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Shotlake{% endblock %}</title>
+<link rel="stylesheet" href="/static/style.css">
+<script>
+  try { var t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+</head>
+<body>
+<header><div class="bar">
+  <a class="brand" href="{{ link(request, '/') }}">Shotlake</a>
+  <nav aria-label="Hauptnavigation">
+    {% set here = request.url.path %}
+    <a href="{{ link(request, '/') }}" {% if here == '/' %}aria-current="page"{% endif %}>Übersicht</a>
+    <a href="{{ link(request, '/rounds', source=None) }}" {% if here.startswith('/rounds') %}aria-current="page"{% endif %}>Runden</a>
+    <a href="{{ link(request, '/clubs') }}" {% if here == '/clubs' %}aria-current="page"{% endif %}>Schläger</a>
+    <a href="{{ link(request, '/sources') }}" {% if here == '/sources' %}aria-current="page"{% endif %}>Quellen</a>
+  </nav>
+  <span class="tools">
+    Einheit:
+    <a href="{{ link(request, here, u='m') }}" {% if unit == 'm' %}aria-current="true"{% endif %}>m</a>
+    <a href="{{ link(request, here, u='yd') }}" {% if unit == 'yd' %}aria-current="true"{% endif %}>yd</a>
+    <button type="button" id="theme" aria-label="Darstellung wechseln">Hell/Dunkel</button>
+  </span>
+</div></header>
+<main>{% block content %}{% endblock %}</main>
+<script>
+  document.getElementById("theme").addEventListener("click", function () {
+    var root = document.documentElement;
+    var dark = root.dataset.theme ? root.dataset.theme === "dark"
+      : window.matchMedia("(prefers-color-scheme: dark)").matches;
+    root.dataset.theme = dark ? "light" : "dark";
+    try { localStorage.setItem("theme", root.dataset.theme); } catch (e) {}
+  });
+</script>
+</body>
+</html>

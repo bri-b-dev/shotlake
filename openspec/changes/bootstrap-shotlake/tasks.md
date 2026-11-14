@@ -36,7 +36,7 @@ Vorab ausgewertet: `phase0-findings.md` (aus `../analytics-platform`, `../arccos
 - [ ] 3.2 SG-Berechnung, Abdeckungsprüfung, Golden-Tests
 
 ## Phase 4 – Frontend, MCP, Insights
-- [ ] 4.1 Frontend-Seiten, Dark/Light, mobil
+- [~] 4.1 Frontend-Seiten, Dark/Light, mobil (erster Durchstich 2026-11-14: Übersicht mit Differential-Verlauf und SG, Runden, Rundendetail mit Eingaben, Schläger, Quellen; offen: Streuungs-Scatter/Ellipse, Periodenvergleich, Notizen, Dedup-Review, Sync-Knopf/Upload, Konfidenzintervalle)
 - [ ] 4.2 MCP-Server (8 Tools)
 - [ ] 4.3 Trends, Periodenvergleich, Insights
 - [ ] 4.4 Backup/Restore, Export, Observability, K8s-Manifeste

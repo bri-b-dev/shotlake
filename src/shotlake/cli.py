@@ -109,6 +109,10 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser(
         "arccos-check", help="Arccos-Live-Zugang prüfen (nur Zählwerte, nichts speichern)"
     )
+    sv = sub.add_parser("serve", help="Weboberfläche starten (nur lokal, ohne Anmeldung)")
+    sv.add_argument("--host", default="127.0.0.1")
+    sv.add_argument("--port", type=int, default=8000)
+    sv.add_argument("--baseline-path", type=Path, default=default_baseline_path())
     sub.add_parser("sources", help="Verfügbare Quellen und Risiko anzeigen")
 
     for name in ("clubs", "gapping"):
@@ -340,6 +344,15 @@ def main(argv: list[str] | None = None) -> int:
             return _round_set(con, args)
         if args.cmd == "tee-set":
             return _tee_set(con, args)
+        if args.cmd == "serve":
+            con.close()
+            import uvicorn
+
+            from .web.app import create_app
+
+            app = create_app(data, args.club_map, args.baseline_path)
+            uvicorn.run(app, host=args.host, port=args.port, log_level="info")
+            return 0
         if args.cmd == "arccos-check":
             return _arccos_check(data / "cache")
         if args.cmd == "reprocess":

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Schläger · Shotlake{% endblock %}
+{% block content %}
+<h1>Schläger</h1>
+<div class="grid">
+  <section class="card wide" aria-labelledby="h-course">
+    <h2 id="h-course">Auf dem Platz – Schlagdistanz</h2>
+    {% set path = '/clubs' %}{% set allow_all = False %}
+    {% include "_chips.html" %}
+    <div class="scroll"><table>
+      <thead><tr><th>Schläger</th><th>n</th><th>Median ({{ unit }})</th><th>P10</th><th>P90</th><th>Max</th><th class="left">Hinweis</th></tr></thead>
+      <tbody>
+      {% for c in course %}
+        <tr><td>{{ c.club }}</td><td>{{ c.n }}</td><td>{{ c.median_m|dist(unit) }}</td><td>{{ c.p10_m|dist(unit) }}</td>
+            <td>{{ c.p90_m|dist(unit) }}</td><td>{{ c.max_m|dist(unit) }}</td>
+            <td class="left muted">{{ 'zu wenige Schläge' if c.warning else ('' if c.mapped else 'nicht zugeordnet (config/club_map.toml)') }}</td></tr>
+      {% else %}<tr><td colspan="7" class="muted">Keine Platzschläge.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table></div>
+    <p class="muted">GPS-Strecke von Start bis Ende inkl. Rollen, <strong>kein Carry</strong>; mit Range-Werten nicht vergleichbar. Putts sind ausgeschlossen. Quelle {{ source or '–' }}.</p>
+  </section>
+
+  <section class="card wide" aria-labelledby="h-range">
+    <h2 id="h-range">Range – Carry und Streuung</h2>
+    <div class="scroll"><table>
+      <thead><tr><th>Schläger</th><th>Quelle</th><th>Methode</th><th>n</th><th>Carry-Median ({{ unit }})</th><th>P10</th><th>P90</th><th>Seitenversatz Ø</th><th class="left">Hinweis</th></tr></thead>
+      <tbody>
+      {% for r in range_stats %}
+        <tr><td>{{ r.club_type }}</td><td class="left">{{ r.source }}</td><td class="left">{{ r.method }}</td><td>{{ r.n }}</td>
+            <td>{{ r.carry_median_m|dist(unit) }}</td><td>{{ r.carry_p10_m|dist(unit) }}</td><td>{{ r.carry_p90_m|dist(unit) }}</td>
+            <td>{{ r.side_bias_m|dist(unit, 1) }}</td>
+            <td class="left muted">{{ 'zu wenige Schläge' if r.warning else '' }}</td></tr>
+      {% else %}<tr><td colspan="9" class="muted">Keine Range-Daten.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table></div>
+    <p class="muted">Je Quelle und Messmethode getrennt, da Radar-Systeme systematisch unterschiedlich messen. Seitenversatz: rechts positiv. Ausreißer sind markiert und ausgeschlossen.</p>
+  </section>
+</div>
+{% endblock %}

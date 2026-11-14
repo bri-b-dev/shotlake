@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Quellen · Shotlake{% endblock %}
+{% block content %}
+<h1>Quellen &amp; Import</h1>
+<div class="card scroll"><table>
+  <thead><tr><th>Quelle</th><th>Modus</th><th class="left">Risiko</th><th>Runden</th><th>Sessions</th><th>Schläge</th><th class="left">Letzter Lauf</th></tr></thead>
+  <tbody>
+  {% for s in statuses %}
+    <tr><td title="{{ s.description }}">{{ s.id }}</td><td>{{ s.mode }}</td>
+        <td class="left">{{ {'file_only': 'nur Datei', 'official': 'offiziell', 'unofficial_tos_risk': 'inoffiziell (ToS-Risiko)'}.get(s.risk, s.risk) }}</td>
+        <td>{{ s.rounds }}</td><td>{{ s.sessions }}</td><td>{{ s.course_shots + s.range_shots }}</td>
+        <td class="left">{% if s.last_run %}{{ s.last_run.strftime('%d.%m.%Y %H:%M') }} · {{ s.last_status }}{% else %}–{% endif %}</td></tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+<p class="muted">Sync und Datei-Import laufen über die Kommandozeile (<code>shotlake sync …</code>, <code>shotlake import …</code>); ein Sync-Knopf in der Oberfläche folgt.</p>
+
+<div class="card scroll"><h2>Letzte Importläufe</h2><table>
+  <thead><tr><th>Zeit</th><th class="left">Quelle</th><th class="left">Datei</th><th class="left">Status</th><th>Sessions neu</th><th>Schläge neu</th><th>geändert</th><th>unverändert</th><th class="left">Fehler</th></tr></thead>
+  <tbody>
+  {% for r in runs %}
+    <tr><td>{{ r[0].strftime('%d.%m.%Y %H:%M') }}</td><td class="left">{{ r[1] }}</td><td class="left">{{ r[2] }}</td><td class="left">{{ r[3] }}</td>
+        <td>{{ r[4] }}</td><td>{{ r[5] }}</td><td>{{ r[6] }}</td><td>{{ r[7] }}</td><td class="left muted">{{ r[8] or '' }}</td></tr>
+  {% else %}<tr><td colspan="9" class="muted">Noch keine Importläufe.</td></tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+{% endblock %}

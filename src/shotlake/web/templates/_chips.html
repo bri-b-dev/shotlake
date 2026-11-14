@@ -1,0 +1,7 @@
+{# Quellenwahl: erwartet `sources`, `source`, `path` #}
+<div class="chips" role="group" aria-label="Quelle">
+  {% if allow_all %}<a href="{{ link(request, path, source=None) }}" {% if not source %}aria-current="true"{% endif %}>alle</a>{% endif %}
+  {% for s in sources %}
+    <a href="{{ link(request, path, source=s) }}" {% if source == s %}aria-current="true"{% endif %}>{{ s }}</a>
+  {% endfor %}
+</div>

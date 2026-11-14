@@ -122,6 +122,8 @@ class CourseShotRecord:
     end_lie: str | None = None
     end_lie_source: str | None = None
     exclude_from_stats: bool = False
+    source_sg: float | None = None  # SG der Quelle (source_provided, andere Baseline!)
+    source_sg_facet: str | None = None
 
     def content_hash(self) -> str:
         payload = json.dumps(asdict(self), sort_keys=True, default=str)

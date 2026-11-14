@@ -23,6 +23,7 @@ from .analytics.trend import differential_trend
 from .baseline import default_baseline_path, load_baseline
 from .clubs import CANONICAL_CLUBS
 from .config import default_club_map_path, load_club_map, save_club_map, sync_club_map
+from .connectors.arccos import ArccosConnector, HarArccosClient
 from .connectors.registry import API_CONNECTORS, CONNECTORS
 from .db import open_db
 from .ingest import sync_location
@@ -56,6 +57,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     syn = sub.add_parser("sync", help="API-Quelle inkrementell abrufen")
     syn.add_argument("source", choices=sorted(API_CONNECTORS))
+    syn.add_argument("--har", type=Path, help="Arccos: Browser-HAR-Export des Dashboards einlesen")
 
     rep_p = sub.add_parser("reprocess", help="Canonical aus gespeicherten Rohdaten neu aufbauen")
     rep_p.add_argument("source", choices=sorted(API_CONNECTORS))
@@ -298,7 +300,13 @@ def main(argv: list[str] | None = None) -> int:
             print(rep.as_text())
             return 0 if rep.status == "ok" else 2
         if args.cmd == "sync":
-            rep = sync_api(con, API_CONNECTORS[args.source](), raw_dir=data / "raw")
+            connector = API_CONNECTORS[args.source]()
+            if args.har is not None:
+                if not isinstance(connector, ArccosConnector):
+                    print("--har gilt nur für arccos", file=sys.stderr)
+                    return 2
+                connector.client = HarArccosClient(args.har)
+            rep = sync_api(con, connector, raw_dir=data / "raw")
             print(rep.as_text())
             return 0 if rep.status == "ok" else 2
         if args.cmd == "import":

@@ -107,6 +107,7 @@ def sync_api(
     except TransientError as exc:
         rep.status = "error"
         rep.errors.append(f"Quelle nicht erreichbar: {exc}")
+    rep.warnings.extend(connector.notes)
     _record_run(con, rep, started)
     return rep
 

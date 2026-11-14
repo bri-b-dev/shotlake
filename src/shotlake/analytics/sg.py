@@ -78,13 +78,18 @@ def _incomplete(h: _Hole, reason: str) -> tuple[HoleSG, list[ShotSG]]:
 def hole_sg(h: _Hole, shots: list[_Shot], baseline: Baseline) -> tuple[HoleSG, list[ShotSG]]:
     if h.strokes is None or h.putts is None or h.penalties is None:
         return _incomplete(h, "Schläge, Putts oder Strafschläge nicht erfasst")
+    # Schläge, die auf dem Grün beginnen, sind Putts (Arccos); Garmin erfasst sie nicht als Schläge
+    everything = sorted(shots, key=lambda s: s.order)
+    putt_shots = [s for s in everything if s.start_lie == "green"]
+    ordered = [s for s in everything if s.start_lie != "green"]
     expected_n = h.strokes - h.putts - h.penalties
-    if expected_n < 1 or len(shots) != expected_n:
-        return _incomplete(h, f"{len(shots)} Schläge erfasst, {expected_n} erwartet")
+    if expected_n < 1 or len(ordered) != expected_n:
+        return _incomplete(h, f"{len(ordered)} Schläge erfasst, {expected_n} erwartet")
+    if putt_shots and len(putt_shots) != h.putts:
+        return _incomplete(h, f"{len(putt_shots)} Putt-Schläge erfasst, {h.putts} Putts")
     if h.pin is None:
         return _incomplete(h, "Fahnenposition fehlt")
-    ordered = sorted(shots, key=lambda s: s.order)
-    for s in ordered:
+    for s in everything:
         if s.excluded:
             return _incomplete(h, "Schlag von der Quelle ausgeschlossen")
         if s.start is None or s.end is None or not s.start_lie or not s.end_lie:
@@ -103,12 +108,18 @@ def hole_sg(h: _Hole, shots: list[_Shot], baseline: Baseline) -> tuple[HoleSG, l
         return baseline.expected(lie or "", d)
 
     e_tee = exp("tee", dist(ordered[0].start))
-    # Grün-Ende ohne echte Ballposition: Putts nicht vom letzten Schlag trennbar (green_play)
-    snapped = h.putts > 0 and dist(last.end) < SNAP_M
-    if snapped:
-        first_putt: float | None = float(h.putts)
+    # Putt-Distanz: bei erfassten Putts die echte Startposition des ersten Putts. Sonst gilt die
+    # Endposition des letzten Schlags; liegt sie auf der Fahne, ist sie keine echte Ballposition,
+    # und Putts sind nicht vom letzten Schlag trennbar (green_play).
+    snapped = False
+    if h.putts == 0:
+        first_putt: float | None = 0.0
+    elif putt_shots:
+        first_putt = exp("green", dist(putt_shots[0].start))
+    elif dist(last.end) < SNAP_M:
+        snapped, first_putt = True, float(h.putts)
     else:
-        first_putt = exp("green", dist(last.end)) if h.putts > 0 else 0.0
+        first_putt = exp("green", dist(last.end))
     if e_tee is None or first_putt is None:
         return _incomplete(h, "Baseline ohne Tabelle für die Lage")
 

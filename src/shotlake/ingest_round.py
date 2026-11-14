@@ -34,6 +34,15 @@ ROUND_COLUMNS = [
 ]
 
 
+SHOT_COLUMNS = [
+    *("shot_id", "round_id", "hole_number", "shot_order", "shot_time_utc", "club_raw", "club_type"),
+    *("shot_type", "shot_source", "distance_m", "start_lat", "start_lon", "start_lie"),
+    *("start_lie_source", "end_lat", "end_lon", "end_lie", "end_lie_source"),
+    *("exclude_from_stats", "source_sg", "source_sg_facet"),
+    *("content_hash", "raw_hash", "import_run_id"),
+]
+
+
 def round_content_hash(parsed: ParsedRound) -> str:
     payload = {
         "round": {
@@ -136,7 +145,11 @@ def write_round(
             if old and old[0] == sh:
                 continue
             con.execute(
-                "insert or replace into course_shot values (" + ",".join("?" * 22) + ")",
+                "insert or replace into course_shot ("
+                + ",".join(SHOT_COLUMNS)
+                + ") values ("
+                + ",".join("?" * len(SHOT_COLUMNS))
+                + ")",
                 [
                     shot_id,
                     rid,
@@ -157,6 +170,8 @@ def write_round(
                     s.end_lie,
                     s.end_lie_source,
                     s.exclude_from_stats,
+                    s.source_sg,
+                    s.source_sg_facet,
                     sh,
                     digest,
                     rep.run_id,

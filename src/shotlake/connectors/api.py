@@ -118,6 +118,7 @@ class ApiConnector(ABC):
 
     retry: RetryPolicy = field(default_factory=RetryPolicy)
     sleep: Callable[[float], None] = time.sleep
+    notes: list[str] = field(default_factory=list, repr=False)  # Hinweise für den Sync-Report
 
     id: ClassVar[str]
     mode: ClassVar[Literal["api"]] = "api"

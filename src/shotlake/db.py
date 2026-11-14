@@ -167,6 +167,8 @@ create table if not exists course_shot (
     end_lie varchar,
     end_lie_source varchar,
     exclude_from_stats boolean not null,
+    source_sg double,
+    source_sg_facet varchar,
     content_hash varchar not null,
     raw_hash varchar not null,
     import_run_id varchar not null
@@ -202,6 +204,10 @@ def _migrate(con: duckdb.DuckDBPyConnection) -> None:
             "where handicap_relevant is not null"
         )
         con.execute("alter table round drop column handicap_relevant")
+    shot_cols = {r[0] for r in con.execute("describe course_shot").fetchall()}
+    if "source_sg" not in shot_cols:
+        con.execute("alter table course_shot add column source_sg double")
+        con.execute("alter table course_shot add column source_sg_facet varchar")
     if "source_handicap_index" in cols:  # Handicap-Angaben der Quelle werden nicht übernommen
         con.execute("alter table round drop column source_handicap_index")
     if "simulated" not in cols:

@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable
 
 from .api import ApiConnector
+from .arccos import ArccosConnector
 from .base import Connector
 from .garmin_platform import GarminPlatformConnector
 from .garmin_range import GarminRangeConnector
@@ -19,4 +20,5 @@ def get_connector(source: str) -> Connector:
 
 API_CONNECTORS: dict[str, Callable[[], ApiConnector]] = {
     GarminPlatformConnector.id: GarminPlatformConnector,
+    ArccosConnector.id: ArccosConnector,
 }

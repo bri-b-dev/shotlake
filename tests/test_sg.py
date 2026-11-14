@@ -81,17 +81,33 @@ def test_penalty_and_short_game_categories():
 
 
 def test_holed_chip_has_no_putting():
-    h, _ = hole_sg(
-        hole(3, 0),
-        [
-            shot(1, "tee", 300, "fairway", 20),
-            shot(2, "fairway", 20, "green", 0),
-            shot(3, "green", 0, "green", 0),
-        ],
+    shots = [shot(1, "tee", 300, "fairway", 20), shot(2, "fairway", 20, "green", 0)]
+    h, _ = hole_sg(hole(2, 0), shots, LINEAR)
+    assert h.complete and "putting" not in h.by_category
+    assert h.total == pytest.approx(4.0 - 2, abs=1e-6)
+    assert h.total == pytest.approx(sum(h.by_category.values()), abs=1e-6)
+
+
+def test_recorded_putt_shots_give_real_first_putt_distance():
+    # Arccos: Putts sind Schläge. Approach endet 5 m vor der Fahne, 2 Putts (E(5 m) = 1.5)
+    putts = [shot(3, "green", 5, "green", 1), shot(4, "green", 1, "green", 0)]
+    h, shots = hole_sg(
+        hole(4, 2),
+        [shot(1, "tee", 300, "fairway", 100), shot(2, "fairway", 100, "green", 5), *putts],
         LINEAR,
     )
-    assert h.complete and "putting" not in h.by_category
-    assert h.total == pytest.approx(sum(h.by_category.values()))
+    assert h.complete
+    assert h.by_category["putting"] == pytest.approx(1.5 - 2)
+    assert "green_play" not in h.by_category
+    assert [s.category for s in shots] == ["tee", "approach"]  # Putts nur in der Kategorie putting
+    assert sum(h.by_category.values()) == pytest.approx(h.total or 0.0, abs=1e-6)
+    # Anzahl der Putt-Schläge muss zur Putt-Zahl passen
+    h2, _ = hole_sg(
+        hole(4, 2),
+        [shot(1, "tee", 300, "fairway", 100), shot(2, "fairway", 100, "green", 5), putts[0]],
+        LINEAR,
+    )
+    assert not h2.complete and "Putt-Schläge" in (h2.reason or "")
 
 
 def test_snapped_green_end_merges_last_shot_and_putts():

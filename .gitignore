@@ -1,0 +1,21 @@
+# Rohmitschnitte und Secrets nie committen (HAR enthält User-IDs, Tokens, Standortdaten)
+*.har
+.env
+.env.*
+!.env.template
+
+# Probe-Ausgaben (personenbezogen)
+probe-output/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# Lokale Daten (DB, raw) nie committen
+/data/
+
+# Anonymisierte Test-Fixtures sind gewollt (globales *.csv-Ignore übersteuern)
+!tests/fixtures/**/*.csv

@@ -1,0 +1,6 @@
+club,Shot,Ball (mph),Club (mph),Smash,Carry (yds),Total (yds),Roll (yds),Spin (rpm),Height (ft),Time (s),AOA (°),Spin Loft (°),Spin Axis (°),Lateral (yds),Shot Type,Launch H (°),Launch V (°),Mode,Location,Temperature (°F),Humidity (%),Air Pressure (psi),Altitude (ft),Wind Relative Direction,Wind Speed (mph)
+Driver,1,92.8,72.4,1.28,129.5,133.7,4.2,3857,63.9,4.9,-1,33.3,10.1 R,35.8 R,Push/Fade,11.7 R,21.8,Outdoor,N/A,-,-,-,-,-,-
+Driver,2,91.4,69.5,1.31,108.1,123,15,2553,34.2,3.5,1.6,21.2,27.7 R,6 R,Fade,2.4 L,17.1,Outdoor,N/A,-,-,-,-,-,-
+Driver,3,85.1,70.1,1.21,101.4,109,7.6,4164,36,3.7,0.7,21.4,23.6 R,18.4 R,Push/Slice,3.8 R,17.4,Outdoor,N/A,-,-,-,-,-,-
+Driver,4,89.6,69.3,1.29,115.3,125.8,10.4,3146,42.6,3.9,4.2,20,22.1 R,6.1 R,Slice,2.8 L,18.5,Outdoor,N/A,-,-,-,-,-,-
+Driver,5,84.3,71,1.19,111.5,115.8,4.3,3478,68.8,4.7,3.2,37.1,6.3 R,3.7 R,Fade,0.2 R,29.5,Outdoor,N/A,-,-,-,-,-,-

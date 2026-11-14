@@ -1,0 +1,6 @@
+club,Shot,Ball (mph),Club (mph),Smash,Carry (yds),Total (yds),Roll (yds),Swing H (°),Spin (rpm),Height (ft),Time (s),AOA (°),Spin Loft (°),Swing V (°),Spin Axis (°),Lateral (yds),Shot Type,FTP (°),FTT (°),Dynamic Loft (°),Club Path (°),Launch H (°),Launch V (°),Low Point (ftin),DescentV (°),Curve Dist (yds),Lateral Impact (in),Vertical Impact (in),Mode,Location,Temperature (°F),Humidity (%),Air Pressure (psi),Altitude (ft),Wind Relative Direction,Wind Speed (mph)
+Driver,1,102.1,76.6,1.33,121.7,140.9,19.3,1.2 L,2728,35.6,3.4,-1.9,26.2,43.3,31.5 L,19.7 L,Pull/Draw,8.1 L,7.3 L,23.1,0.8 R,5.5 L,17.2,1.6″,24.7,-8,-0.31,0.75,Outdoor,N/A,-,-,-,-,-,-
+Driver,2,83,78.3,1.06,90.1,101.3,11.2,7.8 R,4261,33.9,3.1,4,24.8,46.5,45 L,4.9 L,Draw,4.3 L,0.3 L,28.5,4 R,0.6 R,23,-3.6″,29.6,-5.7,0.79,0.75,Outdoor,N/A,-,-,-,-,-,-
+Driver,3,99.7,75.5,1.32,131.7,140.8,9,4.3 L,3530,48.1,4.2,-6.3,30.1,43.5,11 L,1.6 R,Draw,0.3 R,2.6 R,23.7,2.4 R,3.1 R,18.9,6.7″,32.2,-5.5,-,-,Outdoor,N/A,-,-,-,-,-,-
+Driver,Avg,100,76.2,1.31,133.4,143.1,9.7,2.2 R,3828,54.4,4.2,0.4,27.8,44.2,11.7 L,4.7 L,-,3.3 L,1.4 L,27.8,1.9 R,0.5 L,21.5,-0.3″,33.3,-3.7,-0.27,0.44,-,-,-,-,-,-,-,-
+Driver,Dev,6.3,2.3,0.08,16.1,15.9,4.5,4.4,1221,12.7,0.5,2.7,3.8,1.9,17.2,11,-,3.7,3.4,4.8,2.9,2.9,3.3,2.7″,5.1,6.4,0.65,0.35,-,-,-,-,-,-,-,-

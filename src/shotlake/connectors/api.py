@@ -134,6 +134,10 @@ class ApiConnector(ABC):
     def fetch(self, cursor: str | None) -> Iterator[FetchPage]:
         """Seiten ab `cursor` liefern (None: von Anfang). Transiente Fehler wirft die Quelle."""
 
+    def stable_payload(self, record: RawRecord) -> dict[str, object]:
+        """Dokument ohne flüchtige Felder (z. B. Änderungszeitstempel) für den raw-Hash."""
+        return record.payload
+
     @abstractmethod
     def parse_record(self, record: RawRecord) -> ParsedSession | ParsedRound:
         """Rohdokument ins Canonical-Modell; `SchemaDriftError` bei geänderter Form."""

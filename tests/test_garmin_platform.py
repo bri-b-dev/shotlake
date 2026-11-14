@@ -10,7 +10,7 @@ from shotlake.connectors.errors import SchemaDriftError
 from shotlake.connectors.garmin_platform import GarminPlatformConnector, parse_round
 from shotlake.db import open_db
 from shotlake.ingest import ImportReport
-from shotlake.ingest_api import get_cursor, sync_api
+from shotlake.ingest_api import get_cursor, reprocess_raw, sync_api
 from shotlake.ingest_round import write_round
 from shotlake.model import HoleRecord
 
@@ -253,3 +253,34 @@ def test_unknown_lie_is_null_and_missing_hole_shots_is_not_drift():
     r = parse_round(p)
     assert r.shots == [] and r.holes_played == 2
     assert any("Keine Schlagdaten" in w for w in r.warnings)
+
+
+def test_volatile_club_timestamp_does_not_create_new_raw_object(tmp_path: Path):
+    con = open_db(tmp_path / "t.duckdb")
+    rounds = [(1, "2026-10-23T10:00:00.000Z")]
+
+    class Touchy(FakeClient):
+        n = 0
+
+        def get_golf_shot_data(self, scorecard_id: int) -> dict[str, Any]:
+            Touchy.n += 1
+            d = shot_data()
+            d["clubDetails"][0]["lastModifiedTime"] = f"t{Touchy.n}"
+            return d
+
+    sync_api(con, connector(Touchy(rounds)), tmp_path / "raw")
+    con.execute("delete from sync_state")  # erzwingt erneuten Abruf
+    rep = sync_api(con, connector(Touchy(rounds)), tmp_path / "raw")
+    assert scalar(con, "select count(*) from raw_object") == 1
+    assert rep.rounds_new == 0 and rep.course_shots_new == 0
+
+
+def test_reprocess_rebuilds_canonical_from_raw(tmp_path: Path):
+    con = open_db(tmp_path / "t.duckdb")
+    sync_api(con, connector(FakeClient([(1, "2026-10-23T10:00:00.000Z")])), tmp_path / "raw")
+    con.execute("update round set handicap_relevant = true")
+    con.execute("update course_shot set end_lie = 'kaputt', content_hash = 'alter-parser'")
+    rep = reprocess_raw(con, connector(FakeClient([])))
+    assert rep.status == "ok"
+    assert scalar(con, "select count(*) from course_shot where end_lie = 'kaputt'") == 0
+    assert scalar(con, "select handicap_relevant from round") is True

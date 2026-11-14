@@ -280,5 +280,16 @@ class GarminPlatformConnector(ApiConnector):
             if last:
                 return
 
+    def stable_payload(self, record: RawRecord) -> dict[str, object]:
+        """`clubDetails[].lastModifiedTime` ändert sich bei jedem Abruf und zählt nicht."""
+        shot = record.payload.get("shot_data")
+        if not isinstance(shot, dict) or "clubDetails" not in shot:
+            return record.payload
+        clubs = [
+            {k: v for k, v in c.items() if k != "lastModifiedTime"} if isinstance(c, dict) else c
+            for c in shot["clubDetails"]
+        ]
+        return {**record.payload, "shot_data": {**shot, "clubDetails": clubs}}
+
     def parse_record(self, record: RawRecord) -> ParsedRound:
         return parse_round(record.payload)

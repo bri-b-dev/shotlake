@@ -12,7 +12,7 @@ from .analytics.distance import club_stats, gapping
 from .connectors.registry import API_CONNECTORS, CONNECTORS
 from .db import open_db
 from .ingest import sync_location
-from .ingest_api import sync_api
+from .ingest_api import reprocess_raw, sync_api
 
 M_TO_YD = 1 / 0.9144
 
@@ -36,6 +36,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     syn = sub.add_parser("sync", help="API-Quelle inkrementell abrufen")
     syn.add_argument("source", choices=sorted(API_CONNECTORS))
+
+    rep_p = sub.add_parser("reprocess", help="Canonical aus gespeicherten Rohdaten neu aufbauen")
+    rep_p.add_argument("source", choices=sorted(API_CONNECTORS))
 
     sub.add_parser("sources", help="Verfügbare Quellen und Risiko anzeigen")
 
@@ -69,6 +72,10 @@ def main(argv: list[str] | None = None) -> int:
                 a = factory()
                 print(f"{a.id:<16}{a.mode:<6}{a.risk:<22}{a.description}")
             return 0
+        if args.cmd == "reprocess":
+            rep = reprocess_raw(con, API_CONNECTORS[args.source]())
+            print(rep.as_text())
+            return 0 if rep.status == "ok" else 2
         if args.cmd == "sync":
             rep = sync_api(con, API_CONNECTORS[args.source](), raw_dir=data / "raw")
             print(rep.as_text())

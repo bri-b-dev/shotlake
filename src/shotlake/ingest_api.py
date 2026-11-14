@@ -38,7 +38,8 @@ def _process(
     started: datetime,
 ) -> None:
     data = record.to_bytes()
-    digest = hashlib.sha256(data).hexdigest()
+    stable = RawRecord(record.external_id, connector.stable_payload(record), record.kind)
+    digest = hashlib.sha256(stable.to_bytes()).hexdigest()
     if con.execute(
         "select 1 from raw_object where source = ? and content_hash = ?", [connector.id, digest]
     ).fetchone():
@@ -106,5 +107,40 @@ def sync_api(
     except TransientError as exc:
         rep.status = "error"
         rep.errors.append(f"Quelle nicht erreichbar: {exc}")
+    _record_run(con, rep, started)
+    return rep
+
+
+def reprocess_raw(con: duckdb.DuckDBPyConnection, connector: ApiConnector) -> ImportReport:
+    """Canonical aus den gespeicherten Rohdokumenten neu aufbauen (kein Netzzugriff).
+
+    Pro Dokument gilt die zuletzt importierte Fassung. Nutzereingaben (`handicap_relevant`)
+    bleiben erhalten, unveränderte Zeilen werden per Inhalts-Hash übersprungen.
+    """
+    import json
+
+    started = _now()
+    rep = ImportReport(run_id=uuid.uuid4().hex, source=connector.id, filename="(reprocess)")
+    rows = con.execute(
+        "select filename, content_hash, stored_path from raw_object "
+        "where source = ? and stored_path is not null order by imported_at",
+        [connector.id],
+    ).fetchall()
+    latest: dict[str, tuple[str, str]] = {}
+    for external_id, digest, path in rows:
+        latest[external_id] = (digest, path)  # später importiert überschreibt früher
+    try:
+        for external_id, (digest, path) in latest.items():
+            payload = json.loads(Path(path).read_text())
+            parsed = connector.parse_record(RawRecord(external_id, payload))
+            rep.errors.extend(parsed.errors)
+            rep.warnings.extend(parsed.warnings)
+            if isinstance(parsed, ParsedRound):
+                write_round(con, parsed, digest, rep)
+            else:
+                _write(con, parsed, digest, rep)
+    except SchemaDriftError as exc:
+        rep.status = "drift_detected"
+        rep.errors.append(str(exc))
     _record_run(con, rep, started)
     return rep

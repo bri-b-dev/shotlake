@@ -1,0 +1,16 @@
+# Zuordnung quellenspezifischer Schläger auf kanonische Typen (siehe shotlake.clubs).
+# Maßgeblich: wird bei jedem Aufruf in die Datenbank übernommen; `shotlake club-set` ändert diese Datei.
+# Garmin-Platz meldet nur Typ-Nummern, keine Namen; Zuordnung laut Bag des Nutzers.
+
+[garmin_platform]
+garmin_clubtype_1 = "driver"
+garmin_clubtype_3 = "wood_5"
+garmin_clubtype_9 = "hybrid_6"
+garmin_clubtype_16 = "iron_7"
+garmin_clubtype_17 = "iron_8"
+garmin_clubtype_18 = "iron_9"
+garmin_clubtype_19 = "wedge_pitching"
+garmin_clubtype_20 = "wedge_gap"
+garmin_clubtype_21 = "wedge_sand"
+garmin_clubtype_22 = "wedge_lob"
+garmin_clubtype_23 = "putter"

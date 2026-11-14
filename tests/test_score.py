@@ -31,7 +31,9 @@ def test_differential_examples_from_spec():
 def test_nine_hole_scaled_to_18():
     # 9 Löcher: AGS 46 verdoppelt (92) gegen 2 * 35.8 = 71.6, Slope 125: 113/125 * 20.4 = 18.4
     assert differential_18(2 * 46, 2 * 35.8, 125) == 18.4
-    assert differential_18(2 * 46, 2 * 35.8, 125, pcc=1.0) == 17.5  # 113/125 * 19.4: PCC voll, skaliert mit
+    assert (
+        differential_18(2 * 46, 2 * 35.8, 125, pcc=1.0) == 17.5
+    )  # 113/125 * 19.4: PCC voll, skaliert mit
 
 
 def test_rounding_is_half_up_not_bankers():

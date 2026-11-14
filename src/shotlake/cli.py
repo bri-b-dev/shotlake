@@ -20,6 +20,7 @@ from .analytics.distance import club_stats, gapping
 from .analytics.score import PCC_MAX, PCC_MIN, RoundScore, round_scores
 from .analytics.trend import differential_trend
 from .clubs import CANONICAL_CLUBS
+from .config import default_club_map_path, load_club_map, save_club_map, sync_club_map
 from .connectors.registry import API_CONNECTORS, CONNECTORS
 from .db import open_db
 from .ingest import sync_location
@@ -38,6 +39,12 @@ def build_parser() -> argparse.ArgumentParser:
         "--data-dir",
         default=os.environ.get("SHOTLAKE_DATA_DIR", "data"),
         help="Verzeichnis für DB und raw-Dateien (Standard: ./data)",
+    )
+    ap.add_argument(
+        "--club-map",
+        type=Path,
+        default=default_club_map_path(),
+        help="Schlägerzuordnung (TOML, Standard: config/club_map.toml oder SHOTLAKE_CLUB_MAP)",
     )
     sub = ap.add_subparsers(dest="cmd", required=True)
 
@@ -209,6 +216,7 @@ def main(argv: list[str] | None = None) -> int:
     data = Path(args.data_dir)
     con = open_db(data / "shotlake.duckdb")
     try:
+        sync_club_map(con, args.club_map)
         if args.cmd == "sources":
             for c in CONNECTORS.values():
                 print(f"{c.id:<16}{c.mode:<6}{c.risk:<22}{c.description}")
@@ -220,11 +228,11 @@ def main(argv: list[str] | None = None) -> int:
             _print_rounds(round_scores(con, only_relevant=args.relevant))
             return 0
         if args.cmd == "club-set":
-            con.execute(
-                "insert or replace into club_map values (?,?,?)",
-                [args.source, args.club_ref, args.club_type],
-            )
-            print(f"{args.source}/{args.club_ref} -> {args.club_type}")
+            mapping = load_club_map(args.club_map)
+            mapping.setdefault(args.source, {})[args.club_ref] = args.club_type
+            save_club_map(args.club_map, mapping)
+            sync_club_map(con, args.club_map)
+            print(f"{args.source}/{args.club_ref} -> {args.club_type}  ({args.club_map})")
             return 0
         if args.cmd == "course-shots":
             _print_course_shots(con, args)

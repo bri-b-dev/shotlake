@@ -179,6 +179,7 @@ def strokes_gained(
     since: date | None = None,
     until: date | None = None,
     round_ref: str | None = None,
+    source: str | None = None,
 ) -> SGResult:
     where = ["1=1"]
     params: list[object] = []
@@ -191,6 +192,9 @@ def strokes_gained(
     if round_ref:
         where.append("(r.round_id = ? or r.round_key = ?)")
         params += [round_ref, round_ref]
+    if source:
+        where.append("r.source = ?")
+        params.append(source)
     holes_rows = con.execute(
         f"""select h.round_id, h.hole_number, h.par, h.strokes, h.putts, h.penalties,
                    h.pin_lat, h.pin_lon

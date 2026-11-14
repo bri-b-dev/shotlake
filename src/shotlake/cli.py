@@ -64,9 +64,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     rd = sub.add_parser("rounds", help="Runden mit Score, Statistik und Score Differential")
     rd.add_argument("--relevant", action="store_true", help="nur handicap-relevante Runden")
+    rd.add_argument("--source", help="nur eine Quelle (Runden können in mehreren Quellen stehen)")
 
     cc = sub.add_parser("course-shots", help="Schläge auf dem Platz: Distanzen, Lagen, Treffer")
     cc.add_argument("--round", dest="round_ref")
+    cc.add_argument("--source", help="nur eine Quelle (ohne Dedup zählen doppelte Runden doppelt)")
     cc.add_argument("--since", type=date.fromisoformat)
     cc.add_argument("--until", type=date.fromisoformat)
     cc.add_argument("--min-n", type=int, default=5)
@@ -74,6 +76,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     sg = sub.add_parser("sg", help="Strokes Gained (selbst berechnet, Handicap-Band-Baseline)")
     sg.add_argument("--round", dest="round_ref")
+    sg.add_argument("--source", help="nur eine Quelle (ohne Dedup zählen doppelte Runden doppelt)")
     sg.add_argument("--since", type=date.fromisoformat)
     sg.add_argument("--until", type=date.fromisoformat)
     sg.add_argument("--baseline", type=Path, default=default_baseline_path())
@@ -87,6 +90,7 @@ def build_parser() -> argparse.ArgumentParser:
     tr = sub.add_parser("trend", help="Verlauf des Score Differentials (gleitender Durchschnitt)")
     tr.add_argument("--window", type=int, default=5, help="Fenstergröße in Runden (Standard 5)")
     tr.add_argument("--relevant", action="store_true", help="nur handicap-relevante Runden")
+    tr.add_argument("--source", help="nur eine Quelle (Runden können in mehreren Quellen stehen)")
 
     rs = sub.add_parser("round-set", help="Eingaben zu einer Runde setzen")
     rs.add_argument("round", help="Runden-ID oder Schlüssel")
@@ -234,7 +238,9 @@ def _arccos_check(cache_dir: Path) -> int:
 
 def _print_sg(con: duckdb.DuckDBPyConnection, args: argparse.Namespace) -> None:
     base = load_baseline(args.baseline)
-    res = strokes_gained(con, base, since=args.since, until=args.until, round_ref=args.round_ref)
+    res = strokes_gained(
+        con, base, since=args.since, until=args.until, round_ref=args.round_ref, source=args.source
+    )
     n_all = len(res.holes)
     print(f"Strokes Gained (computed), Baseline {base.id} [{base.status}]")
     print(f"Vollständig erfasste Löcher: {res.complete_holes} von {n_all}")
@@ -266,7 +272,12 @@ def _print_sg(con: duckdb.DuckDBPyConnection, args: argparse.Namespace) -> None:
 
 def _print_course_shots(con: duckdb.DuckDBPyConnection, args: argparse.Namespace) -> None:
     f = M_TO_YD if args.units == "yd" else 1.0
-    kw = {"since": args.since, "until": args.until, "round_ref": args.round_ref}
+    kw = {
+        "since": args.since,
+        "until": args.until,
+        "round_ref": args.round_ref,
+        "source": args.source,
+    }
     print(f"Schlagdistanz je Schläger ({args.units}, GPS Start-Ende inkl. Rollen, kein Carry)")
     print(f"{'Schläger':<22}{'n':>4} {'Median':>7} {'P10':>6} {'P90':>6} {'Max':>6}  Hinweis")
     for c in club_distances(con, min_n=args.min_n, **kw):
@@ -300,7 +311,7 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"{a.id:<16}{a.mode:<6}{a.risk:<22}{a.description}")
             return 0
         if args.cmd == "rounds":
-            _print_rounds(round_scores(con, only_relevant=args.relevant))
+            _print_rounds(round_scores(con, only_relevant=args.relevant, source=args.source))
             return 0
         if args.cmd == "club-set":
             mapping = load_club_map(args.club_map)
@@ -316,7 +327,9 @@ def main(argv: list[str] | None = None) -> int:
             _print_course_shots(con, args)
             return 0
         if args.cmd == "trend":
-            points = differential_trend(round_scores(con), args.window, args.relevant)
+            points = differential_trend(
+                round_scores(con, source=args.source), args.window, args.relevant
+            )
             print(f"{'Datum':<11}{'Diff':>6} {'Ø' + str(args.window):>6}  Rel")
             for p in points:
                 avg = "-" if p.moving_avg is None else f"{p.moving_avg:.1f}"

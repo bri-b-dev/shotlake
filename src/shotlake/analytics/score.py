@@ -280,10 +280,17 @@ def round_scores(
     *,
     only_relevant: bool = False,
     round_ref: str | None = None,
+    source: str | None = None,
 ) -> list[RoundScore]:
-    where, params = "", []
+    conditions: list[str] = []
+    params: list[object] = []
     if round_ref:
-        where, params = "where r.round_id = ? or r.round_key = ?", [round_ref, round_ref]
+        conditions.append("(r.round_id = ? or r.round_key = ?)")
+        params += [round_ref, round_ref]
+    if source:
+        conditions.append("r.source = ?")
+        params.append(source)
+    where = "where " + " and ".join(conditions) if conditions else ""
     rounds = _dicts(
         con.execute(
             f"select r.*, c.name as course_name from round r join course c using (course_id) "

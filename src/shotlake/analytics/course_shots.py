@@ -22,7 +22,7 @@ _BASE = """
 
 
 def _filters(
-    since: date | None, until: date | None, round_ref: str | None
+    since: date | None, until: date | None, round_ref: str | None, source: str | None = None
 ) -> tuple[str, list[object]]:
     where = ""
     params: list[object] = []
@@ -35,6 +35,9 @@ def _filters(
     if round_ref:
         where += " and (r.round_id = ? or r.round_key = ?)"
         params += [round_ref, round_ref]
+    if source:
+        where += " and r.source = ?"
+        params.append(source)
     return where, params
 
 
@@ -57,9 +60,10 @@ def club_distances(
     since: date | None = None,
     until: date | None = None,
     round_ref: str | None = None,
+    source: str | None = None,
 ) -> list[ClubDistance]:
     """Schlagdistanz je Schläger; Schläge ohne Schläger und vom Grün (Putts) bleiben außen vor."""
-    extra, params = _filters(since, until, round_ref)
+    extra, params = _filters(since, until, round_ref, source)
     rows = con.execute(
         f"""
         select coalesce(m.club_type, s.club_raw) club, bool_and(m.club_type is not null),
@@ -104,9 +108,10 @@ def start_lies(
     since: date | None = None,
     until: date | None = None,
     round_ref: str | None = None,
+    source: str | None = None,
 ) -> list[LieShare]:
     """Verteilung der Lagen, aus denen geschlagen wurde (ohne Putts auf dem Grün)."""
-    extra, params = _filters(since, until, round_ref)
+    extra, params = _filters(since, until, round_ref, source)
     rows = con.execute(
         f"select s.start_lie, count(*) {_BASE} and coalesce(s.start_lie,'') <> 'green' {extra} "
         "group by 1 order by 2 desc",
@@ -121,9 +126,10 @@ def tee_shot_outcomes(
     since: date | None = None,
     until: date | None = None,
     round_ref: str | None = None,
+    source: str | None = None,
 ) -> list[LieShare]:
     """Wo Abschläge (shot_type TEE) landen; NULL = Lage unbekannt."""
-    extra, params = _filters(since, until, round_ref)
+    extra, params = _filters(since, until, round_ref, source)
     rows = con.execute(
         f"select s.end_lie, count(*) {_BASE} and s.shot_type = 'TEE' {extra} "
         "group by 1 order by 2 desc",
@@ -138,9 +144,10 @@ def approach_green_rate(
     since: date | None = None,
     until: date | None = None,
     round_ref: str | None = None,
+    source: str | None = None,
 ) -> dict[str, tuple[int, int]]:
     """Grüntreffer nach Annäherungsschlägen je Start-Lage: Lage -> (Treffer, Schläge)."""
-    extra, params = _filters(since, until, round_ref)
+    extra, params = _filters(since, until, round_ref, source)
     rows = con.execute(
         f"""select coalesce(s.start_lie, 'unbekannt'), count(*) filter (where s.end_lie = 'green'),
                    count(*)

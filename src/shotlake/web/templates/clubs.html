@@ -5,7 +5,7 @@
 <div class="grid">
   <section class="card wide" aria-labelledby="h-course">
     <h2 id="h-course">Auf dem Platz – Schlagdistanz</h2>
-    {% set path = '/clubs' %}{% set allow_all = False %}
+    {% set path = '/clubs' %}{% set allow_all = True %}
     {% include "_chips.html" %}
     <div class="scroll"><table>
       <thead><tr><th>Schläger</th><th>n</th><th>Median ({{ unit }})</th><th>P10</th><th>P90</th><th>Max</th><th class="left">Hinweis</th></tr></thead>
@@ -18,7 +18,7 @@
       {% endfor %}
       </tbody>
     </table></div>
-    <p class="muted">GPS-Strecke von Start bis Ende inkl. Rollen, <strong>kein Carry</strong>; mit Range-Werten nicht vergleichbar. Putts sind ausgeschlossen. Quelle {{ source or '–' }}.</p>
+    <p class="muted">GPS-Strecke von Start bis Ende inkl. Rollen, <strong>kein Carry</strong>; mit Range-Werten nicht vergleichbar. Putts sind ausgeschlossen. {{ 'Quelle ' ~ source if source else 'Alle Quellen, dedupliziert (führende Quelle für Schläge).' }}</p>
   </section>
 
   <section class="card wide" aria-labelledby="h-range">

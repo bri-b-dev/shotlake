@@ -20,6 +20,7 @@ from .analytics.sg import CATEGORIES, strokes_gained
 from .analytics.stats import STATS, Interval, bootstrap_ci, compare
 from .baseline import Baseline
 from .clubs import CANONICAL_CLUBS
+from .dedup import Scope
 from .service import source_statuses
 
 NOTE_TYPES = ("equipment", "swing", "coach", "round", "general")
@@ -117,8 +118,8 @@ def _metric(metric_id: str, f: Filters) -> Metric:
     return metric
 
 
-def _mix_warnings(sources: list[str]) -> list[str]:
-    if len(sources) > 1:
+def _mix_warnings(sources: list[str], deduplicated: bool = False) -> list[str]:
+    if len(sources) > 1 and not deduplicated:
         return [
             "mixed_sources: mehrere Quellen gemischt; ohne Dedup können Runden doppelt zählen, "
             "besser mit source filtern"
@@ -128,14 +129,15 @@ def _mix_warnings(sources: list[str]) -> list[str]:
 
 def stats_report(
     con: duckdb.DuckDBPyConnection, baseline: Baseline, metric_id: str, f: Filters,
-    min_n: int | None = None,
+    min_n: int | None = None, scope: Scope | None = None,
 ) -> dict[str, Any]:  # fmt: skip
     metric = _metric(metric_id, f)
-    obs = observations(con, metric_id, f, baseline)
+    deduped = scope is not None and f.source is None
+    obs = observations(con, metric_id, f, baseline, Context(scope))
     values = [o.value for o in obs]
     sources = sorted({o.source for o in obs})
     limit = min_n if min_n is not None else metric.min_n
-    warnings = _mix_warnings(sources)
+    warnings = _mix_warnings(sources, deduped)
     if len(values) < limit:
         warnings.insert(0, "insufficient_data")
     return {
@@ -144,7 +146,7 @@ def stats_report(
         "value": STATS[metric.stat](values) if values else None,
         "n": len(values), "min_n": limit,
         "ci": _ci(bootstrap_ci(values, metric.stat)),
-        "sources": sources,
+        "sources": sources, "deduplicated": deduped,
         "filters": {"source": f.source, "since": _iso(f.since), "until": _iso(f.until),
                     "only_relevant": f.only_relevant, "club": f.club, "window": f.last_n},
         "series": [{"date": _iso(o.when), "value": o.value} for o in obs[-SERIES_LIMIT:]],
@@ -154,7 +156,7 @@ def stats_report(
 
 def compare_report(
     con: duckdb.DuckDBPyConnection, baseline: Baseline, a: dict[str, Any], b: dict[str, Any],
-    metrics: list[str], base: Filters, min_n: int | None = None,
+    metrics: list[str], base: Filters, min_n: int | None = None, scope: Scope | None = None,
 ) -> dict[str, Any]:  # fmt: skip
     def period(spec: dict[str, Any]) -> Filters:
         return Filters(
@@ -167,7 +169,8 @@ def compare_report(
         )  # fmt: skip
 
     fa, fb = period(a), period(b)
-    ctx = Context()  # Runden und SG einmal berechnen, für alle Kennzahlen und beide Zeiträume
+    ctx = Context(scope)  # Runden und SG einmal berechnen, für alle Kennzahlen und Zeiträume
+    deduped = scope is not None and base.source is None
     results = []
     for metric_id in metrics:
         metric = _metric(metric_id, fa)
@@ -178,8 +181,8 @@ def compare_report(
             stat=metric.stat, better=metric.better, min_n=limit,
         )  # fmt: skip
         sa, sb = sorted({o.source for o in oa}), sorted({o.source for o in ob})
-        warnings = list(cmp.warnings) + _mix_warnings(sorted(set(sa) | set(sb)))
-        if oa and ob and sa != sb:
+        warnings = list(cmp.warnings) + _mix_warnings(sorted(set(sa) | set(sb)), deduped)
+        if oa and ob and sa != sb and not deduped:
             warnings.append(
                 "different_sources: die Zeiträume stammen aus unterschiedlichen Quellen"
             )
@@ -239,7 +242,7 @@ def gapping_report(
 
 def sg_report(
     con: duckdb.DuckDBPyConnection, baseline: Baseline, f: Filters, round_id: str | None = None,
-    min_coverage: float = MIN_SG_COVERAGE,
+    min_coverage: float = MIN_SG_COVERAGE, scope: Scope | None = None,
 ) -> dict[str, Any]:  # fmt: skip
     base = {"kind": "computed", "baseline": {"id": baseline.id, "status": baseline.status}}
     if round_id:
@@ -254,9 +257,11 @@ def sg_report(
                 reason = "Range-Sessions haben keine Lage/Fahne: SG nicht anwendbar"
                 return {**base, "applicable": False, "reason": reason}
             raise ValueError(f"Runde {round_id!r} nicht gefunden")
+    dropped = scope.exclude("shots") if scope is not None and f.source is None else None
     res = strokes_gained(
-        con, baseline, since=f.since, until=f.until, round_ref=round_id, source=f.source
-    )
+        con, baseline, since=f.since, until=f.until, round_ref=round_id, source=f.source,
+        exclude_rounds=dropped,
+    )  # fmt: skip
     total = len(res.holes)
     complete = res.complete_holes
     coverage = complete / total if total else 0.0
@@ -277,9 +282,10 @@ def sg_report(
                 "top_incomplete_reasons": [{"reason": r, "holes": n} for r, n in top]}  # fmt: skip
     totals = res.totals()
     categories = {}
+    ctx = Context(scope)
     for cat in CATEGORIES:
         per_round = (
-            [o.value for o in observations(con, f"sg_{cat}_per_hole", f, baseline)]
+            [o.value for o in observations(con, f"sg_{cat}_per_hole", f, baseline, ctx)]
             if not round_id
             else []
         )
@@ -312,18 +318,20 @@ def insight_dict(i: Insight) -> dict[str, Any]:
 
 def insights_report(
     con: duckdb.DuckDBPyConnection, baseline: Baseline, source: str | None = None,
-    include_uncertain: bool = False, limit: int | None = None,
+    include_uncertain: bool = False, limit: int | None = None, scope: Scope | None = None,
 ) -> dict[str, Any]:  # fmt: skip
     if limit is not None and limit < 1:
         raise ValueError("limit muss mindestens 1 sein")
     found = generate_insights(
-        con, baseline, source=source, include_uncertain=include_uncertain, limit=limit
-    )
+        con, baseline, source=source, include_uncertain=include_uncertain, limit=limit,
+        scope=scope,
+    )  # fmt: skip
     return {
         "insights": [insight_dict(i) for i in found],
         "baseline": {"id": baseline.id, "status": baseline.status},
         "include_uncertain": include_uncertain,
-        "note": "Regelbasiert und deterministisch aus den Daten abgeleitet, je Quelle getrennt. "
+        "note": "Regelbasiert und deterministisch aus den Daten abgeleitet; ohne Quellenfilter "
+                "über alle Quellen dedupliziert (führende Quelle je Runde), sonst je Quelle. "
                 "Unsichere Hinweise (Intervall schließt 0 ein) sind standardmäßig ausgeblendet. "
                 "SG-Effekte beziehen sich auf eine Näherungs-Baseline.",
     }  # fmt: skip

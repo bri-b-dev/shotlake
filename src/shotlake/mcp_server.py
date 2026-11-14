@@ -134,8 +134,12 @@ def create_server(
         club: str | None = None,
         only_relevant: bool = False,
         min_n: int | None = None,
+        include_duplicates: bool = False,
     ) -> dict[str, Any]:
         """Kennzahl mit Wert, n, 95-%-Bootstrap-Intervall, Quellen und Warnungen.
+
+        Ohne `source` über alle Quellen **dedupliziert**: dieselbe Runde zählt einmal, die führende
+        Quelle je Feldgruppe gewinnt (`include_duplicates=true` zählt alles, `source` filtert).
 
         Kennzahlen: differential, gross, to_par_per_hole, putts_per_hole, fir_rate, gir_rate,
         scramble_rate, sg_total_per_hole und sg_<kategorie>_per_hole (kategorie: tee, approach,
@@ -144,7 +148,8 @@ def create_server(
         """
         f = reports.make_filters(source, since, until, only_relevant, club, window)
         with workspace.session() as con:
-            return reports.stats_report(con, workspace.baseline, metric, f, min_n)
+            scope = None if include_duplicates else workspace.scope(con)
+            return reports.stats_report(con, workspace.baseline, metric, f, min_n, scope)
 
     @server.tool(annotations=READ)
     @guarded
@@ -156,6 +161,7 @@ def create_server(
         club: str | None = None,
         only_relevant: bool = False,
         min_n: int | None = None,
+        include_duplicates: bool = False,
     ) -> dict[str, Any]:
         """Zeitraum A gegen B: Differenz (A minus B), 95-%-Intervall, n und Einschätzung.
 
@@ -164,8 +170,9 @@ def create_server(
         """
         base = reports.make_filters(source, None, None, only_relevant, club)
         with workspace.session() as con:
+            scope = None if include_duplicates else workspace.scope(con)
             return reports.compare_report(
-                con, workspace.baseline, a.model_dump(), b.model_dump(), metrics, base, min_n
+                con, workspace.baseline, a.model_dump(), b.model_dump(), metrics, base, min_n, scope
             )
 
     @server.tool(annotations=READ)
@@ -200,7 +207,12 @@ def create_server(
         f = reports.make_filters(source, since, until)
         with workspace.session() as con:
             return reports.sg_report(
-                con, workspace.find_baseline(baseline), f, round_id, min_coverage
+                con,
+                workspace.find_baseline(baseline),
+                f,
+                round_id,
+                min_coverage,
+                workspace.scope(con),
             )
 
     @server.tool(annotations=READ)
@@ -233,7 +245,7 @@ def create_server(
         """
         with workspace.session() as con:
             return reports.insights_report(
-                con, workspace.baseline, source, include_uncertain, limit
+                con, workspace.baseline, source, include_uncertain, limit, workspace.scope(con)
             )
 
     if read_only:
@@ -268,6 +280,7 @@ def create_server(
                 if mode == "full":
                     con.execute("delete from sync_state where source = ?", [connector.id])
                 rep = sync_api(con, connector, workspace.data_dir / "raw")
+                workspace.run_dedup(con)  # neue Runden sofort mit anderen Quellen abgleichen
         finally:
             sync_lock.release()
         auth_failed = any(e.startswith("Auth:") or "Zugangsdaten" in e for e in rep.errors)

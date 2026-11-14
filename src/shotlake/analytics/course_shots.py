@@ -8,6 +8,7 @@ die Quellenbezeichnung stehen.
 
 from __future__ import annotations
 
+from collections.abc import Collection
 from dataclasses import dataclass
 from datetime import date, datetime, time, timedelta
 
@@ -22,7 +23,11 @@ _BASE = """
 
 
 def _filters(
-    since: date | None, until: date | None, round_ref: str | None, source: str | None = None
+    since: date | None,
+    until: date | None,
+    round_ref: str | None,
+    source: str | None = None,
+    exclude_rounds: Collection[str] | None = None,
 ) -> tuple[str, list[object]]:
     where = ""
     params: list[object] = []
@@ -38,6 +43,9 @@ def _filters(
     if source:
         where += " and r.source = ?"
         params.append(source)
+    if exclude_rounds:  # nicht führende Dubletten (Dedup)
+        where += " and not list_contains(?, r.round_id)"
+        params.append(list(exclude_rounds))
     return where, params
 
 
@@ -61,9 +69,10 @@ def club_distances(
     until: date | None = None,
     round_ref: str | None = None,
     source: str | None = None,
+    exclude_rounds: Collection[str] | None = None,
 ) -> list[ClubDistance]:
     """Schlagdistanz je Schläger; Schläge ohne Schläger und vom Grün (Putts) bleiben außen vor."""
-    extra, params = _filters(since, until, round_ref, source)
+    extra, params = _filters(since, until, round_ref, source, exclude_rounds)
     rows = con.execute(
         f"""
         select coalesce(m.club_type, s.club_raw) club, bool_and(m.club_type is not null),
@@ -109,9 +118,10 @@ def start_lies(
     until: date | None = None,
     round_ref: str | None = None,
     source: str | None = None,
+    exclude_rounds: Collection[str] | None = None,
 ) -> list[LieShare]:
     """Verteilung der Lagen, aus denen geschlagen wurde (ohne Putts auf dem Grün)."""
-    extra, params = _filters(since, until, round_ref, source)
+    extra, params = _filters(since, until, round_ref, source, exclude_rounds)
     rows = con.execute(
         f"select s.start_lie, count(*) {_BASE} and coalesce(s.start_lie,'') <> 'green' {extra} "
         "group by 1 order by 2 desc",
@@ -127,9 +137,10 @@ def tee_shot_outcomes(
     until: date | None = None,
     round_ref: str | None = None,
     source: str | None = None,
+    exclude_rounds: Collection[str] | None = None,
 ) -> list[LieShare]:
     """Wo Abschläge (shot_type TEE) landen; NULL = Lage unbekannt."""
-    extra, params = _filters(since, until, round_ref, source)
+    extra, params = _filters(since, until, round_ref, source, exclude_rounds)
     rows = con.execute(
         f"select s.end_lie, count(*) {_BASE} and s.shot_type = 'TEE' {extra} "
         "group by 1 order by 2 desc",
@@ -145,9 +156,10 @@ def approach_green_rate(
     until: date | None = None,
     round_ref: str | None = None,
     source: str | None = None,
+    exclude_rounds: Collection[str] | None = None,
 ) -> dict[str, tuple[int, int]]:
     """Grüntreffer nach Annäherungsschlägen je Start-Lage: Lage -> (Treffer, Schläge)."""
-    extra, params = _filters(since, until, round_ref, source)
+    extra, params = _filters(since, until, round_ref, source, exclude_rounds)
     rows = con.execute(
         f"""select coalesce(s.start_lie, 'unbekannt'), count(*) filter (where s.end_lie = 'green'),
                    count(*)

@@ -10,6 +10,7 @@ geschätzt. Quellen-SG (z. B. Arccos) ist `source_provided` und wird hier nicht 
 from __future__ import annotations
 
 from collections import defaultdict
+from collections.abc import Collection
 from dataclasses import dataclass
 from datetime import date, datetime, time, timedelta
 
@@ -180,6 +181,7 @@ def strokes_gained(
     until: date | None = None,
     round_ref: str | None = None,
     source: str | None = None,
+    exclude_rounds: Collection[str] | None = None,
 ) -> SGResult:
     where = ["1=1"]
     params: list[object] = []
@@ -195,6 +197,9 @@ def strokes_gained(
     if source:
         where.append("r.source = ?")
         params.append(source)
+    if exclude_rounds:
+        where.append("not list_contains(?, r.round_id)")
+        params.append(list(exclude_rounds))
     holes_rows = con.execute(
         f"""select h.round_id, h.hole_number, h.par, h.strokes, h.putts, h.penalties,
                    h.pin_lat, h.pin_lon

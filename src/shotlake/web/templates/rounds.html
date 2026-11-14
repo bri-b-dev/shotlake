@@ -4,10 +4,11 @@
 <h1>Runden</h1>
 {% set path = '/rounds' %}{% set allow_all = True %}
 {% include "_chips.html" %}
+{% if proposals %}<p class="notice">{{ proposals }} mögliche Dubletten offen. <a href="{{ link(request, '/dedup') }}">Prüfen</a></p>{% endif %}
 <p class="chips"><a href="{{ link(request, '/rounds') }}" {% if not only_relevant %}aria-current="true"{% endif %}>alle</a>
   <a href="{{ link(request, '/rounds', relevant='1') }}" {% if only_relevant %}aria-current="true"{% endif %}>nur handicap-relevant</a></p>
 <div class="card scroll"><table>
-  <thead><tr><th>Datum</th><th>Quelle</th><th>L</th><th>Brutto</th><th>±Par</th><th>Putts</th><th>FIR</th><th>GIR</th><th>Diff</th><th>Rel.</th><th class="left">Hinweis</th></tr></thead>
+  <thead><tr><th>Datum</th><th>Quelle</th><th>L</th><th>Brutto</th><th>±Par</th><th>Putts</th><th>FIR</th><th>GIR</th><th>Diff</th><th>Rel.</th><th class="left">Quellen</th><th class="left">Hinweis</th></tr></thead>
   <tbody>
   {% for r in rows %}
     <tr><td><a href="{{ link(request, '/rounds/' ~ (r.round_id|urlq)) }}">{{ r.start_utc.strftime('%d.%m.%Y') }}</a></td>
@@ -21,10 +22,12 @@
           <input type="hidden" name="relevant" value="{{ 'no' if r.relevant_effective else 'yes' }}">
           <input type="hidden" name="back" value="{{ request.url.path }}{% if request.url.query %}?{{ request.url.query }}{% endif %}">
           <button type="submit" title="Klicken zum Wechseln" aria-label="Handicap-relevant: {{ 'ja' if r.relevant_effective else 'nein' }}, wechseln">{{ 'ja' if r.relevant_effective else 'nein' }}</button></form></td>
-        <td class="left muted">{{ r.reason or '' }}</td></tr>
-  {% else %}<tr><td colspan="11" class="muted">Keine Runden.</td></tr>
+        <td class="left muted">{% if partners.get(r.round_id) %}{{ partners[r.round_id]|join(', ') }}{% else %}{{ r.round_id.split('|')[0] }}{% endif %}</td>
+        <td class="left muted">{{ r.reason or '' }}{% if r.rating_source %} Rating von {{ r.rating_source }}{% endif %}</td></tr>
+  {% else %}<tr><td colspan="12" class="muted">Keine Runden.</td></tr>
   {% endfor %}
   </tbody>
 </table></div>
+<p class="muted">Verknüpfte Dubletten sind {{ 'eingeblendet' if show_dups else 'ausgeblendet (führende Quelle je Runde)' }}: <a href="{{ link(request, '/rounds', dups=('1' if not show_dups else None)) }}">{{ 'ausblenden' if show_dups else 'alle Quellen einzeln zeigen' }}</a>.</p>
 <p class="muted">Rel. = handicap-relevant: Standard ist nein, ein Klick auf den Knopf wechselt. ˣ = 9 Löcher auf 18 hochgerechnet. – = nicht erfasst.</p>
 {% endblock %}

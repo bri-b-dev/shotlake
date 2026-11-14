@@ -15,6 +15,7 @@ from typing import Any
 import duckdb
 
 from ..baseline import Baseline
+from ..dedup import Scope
 from ..quality import EXCLUDE_FLAGS
 from .distance import gapping
 from .metrics import Context, Filters, Observation, observations, sg_round_observations
@@ -79,6 +80,17 @@ def _status(ci: Interval | None) -> str:
     return "belegt"
 
 
+COMBINED = "alle Quellen, dedupliziert"
+
+
+def _label(source: str | None) -> str:
+    return source or COMBINED
+
+
+def _args(source: str | None, **extra: Any) -> dict[str, Any]:
+    return {**extra, **({"source": source} if source else {})}
+
+
 def _sources(con: duckdb.DuckDBPyConnection) -> list[str]:
     return [r[0] for r in con.execute("select distinct source from round order by 1").fetchall()]
 
@@ -87,7 +99,10 @@ def _sources(con: duckdb.DuckDBPyConnection) -> list[str]:
 
 
 def sg_insights(
-    baseline: Baseline, source: str, res: SGResult, sg_obs: dict[str, list[Observation]]
+    baseline: Baseline,
+    source: str | None,
+    res: SGResult,
+    sg_obs: dict[str, list[Observation]],
 ) -> list[Insight]:
     total = len(res.holes)
     if total < 20:
@@ -96,12 +111,12 @@ def sg_insights(
     if coverage < MIN_COVERAGE:
         return [
             Insight(
-                f"data_quality:sg:{source}", "data_quality", "hinweis", 30,
-                f"Strokes Gained für {source} ist nur eingeschränkt belastbar: Nur "
+                f"data_quality:sg:{source or 'alle'}", "data_quality", "hinweis", 30,
+                f"Strokes Gained für {_label(source)} ist nur eingeschränkt belastbar: Nur "
                 f"{coverage:.0%} der Löcher ({res.complete_holes} von {total}) sind vollständig "
                 "erfasst, deshalb gibt es dazu keine Hinweise.",
                 coverage, "Anteil", None, total, source,
-                {"tool": "get_strokes_gained", "args": {"source": source}},
+                {"tool": "get_strokes_gained", "args": _args(source)},
             )
         ]  # fmt: skip
     out: list[Insight] = []
@@ -113,20 +128,20 @@ def sg_insights(
         ci = bootstrap_ci(values)
         per18, ci18 = mean * HOLES, _scaled(ci, HOLES)
         status = _status(ci)
-        link = {"tool": "get_stats", "args": {"metric": f"sg_{cat}_per_hole", "source": source}}
+        link = {"tool": "get_stats", "args": _args(source, metric=f"sg_{cat}_per_hole")}
         name, plural = CATEGORY_NAMES[cat]
         if mean < 0:
             text = (
                 f"{name} {'kosten' if plural else 'kostet'} ca. {_de(-per18)} Schläge pro "
                 f"18 Löcher (Verlust gegenüber Baseline {baseline.id}, {_ci_text(ci18, -1.0)}, "
-                f"n = {len(values)} Runden, {source})."
+                f"n = {len(values)} Runden, {_label(source)})."
             )
             if status == "unsicher":
                 text += " Unsicher: Das Intervall schließt 0 ein."
             priority = (100 + 10 * -per18) if status == "belegt" else 10 + 5 * -per18
             out.append(
                 Insight(
-                    f"sg_loss:{cat}:{source}",
+                    f"sg_loss:{cat}:{source or 'alle'}",
                     "sg_loss",
                     status,
                     priority,
@@ -143,11 +158,11 @@ def sg_insights(
             text = (
                 f"{name} {'bringen' if plural else 'bringt'} ca. {_de(per18)} Schläge pro "
                 f"18 Löcher gegenüber Baseline {baseline.id} ({_ci_text(ci18)}, "
-                f"n = {len(values)} Runden, {source})."
+                f"n = {len(values)} Runden, {_label(source)})."
             )
             out.append(
                 Insight(
-                    f"sg_strength:{cat}:{source}",
+                    f"sg_strength:{cat}:{source or 'alle'}",
                     "sg_strength",
                     status,
                     20 + per18,
@@ -169,7 +184,7 @@ def sg_insights(
 def trend_insights(
     con: duckdb.DuckDBPyConnection,
     baseline: Baseline,
-    source: str,
+    source: str | None,
     sg_obs: dict[str, list[Observation]],
     ctx: Context | None = None,
 ) -> list[Insight]:
@@ -196,13 +211,13 @@ def trend_insights(
         text = (
             f"{label} sind in den letzten {len(recent)} Runden wahrscheinlich {direction} als in "
             f"den {len(before)} davor (Differenz {delta18:+.1f}".replace(".", ",")
-            + f" Schläge pro 18 Löcher, {_ci_text(ci18)}, {source})."
+            + f" Schläge pro 18 Löcher, {_ci_text(ci18)}, {_label(source)})."
         )
         out.append(Insight(
-            f"trend:{metric}:{source}", "trend", "belegt", 60 + abs(delta18) * 5, text,
+            f"trend:{metric}:{source or 'alle'}", "trend", "belegt", 60 + abs(delta18) * 5, text,
             delta18, "Schläge/18 Löcher", ci18, len(recent) + len(before), source,
-            {"tool": "compare_periods", "args": {"metrics": [metric], "source": source,
-                                                  "a": {"window": len(recent)}}},
+            {"tool": "compare_periods",
+             "args": _args(source, metrics=[metric], a={"window": len(recent)})},
         ))  # fmt: skip
     return out
 
@@ -299,10 +314,15 @@ def generate(
     source: str | None = None,
     include_uncertain: bool = False,
     limit: int | None = None,
+    scope: Scope | None = None,
 ) -> list[Insight]:
-    sources = [source] if source else _sources(con)
+    """Hinweise erzeugen. Mit `scope` (Dedup) und ohne Quelle: ein gemeinsamer Bereich über alle
+    Quellen mit führender Quelle je Runde; ohne `scope`: je Quelle getrennt (nie gemischt)."""
+    sources: list[str | None] = (
+        [source] if source else ([None] if scope is not None else list(_sources(con)))
+    )
     found: list[Insight] = []
-    ctx = Context()
+    ctx = Context(scope)
     for s in sources:
         res = ctx.sg(con, baseline, s)
         sg_obs = sg_round_observations(con, Filters(source=s), baseline, res, ctx)

@@ -127,9 +127,33 @@
     {% include "_note_form.html" %}
   </section>
 
+  <section class="card wide" id="dedup" aria-labelledby="h-dd">
+    <h2 id="h-dd">Dubletten und führende Quelle</h2>
+    {% if dedup_group %}
+      <p>Diese Runde ist mit {{ dedup_group|length - 1 }} weiteren Quelle(n) verknüpft. Führend: Score <strong>{{ dedup_leaders.score }}</strong>, Schläge <strong>{{ dedup_leaders.shots }}</strong>, Rating <strong>{{ dedup_leaders.rating }}</strong>.</p>
+      {% if dedup_conflict %}<p class="notice">Die Quellen melden unterschiedliche Scores. Es gilt der Wert der führenden Quelle, die anderen bleiben erhalten.</p>{% endif %}
+      <div class="scroll"><table>
+        <thead><tr><th class="left">Quelle</th><th>Löcher</th><th>Brutto</th><th class="left">Runde</th></tr></thead>
+        <tbody>
+        {% for f in dedup_group %}
+          <tr><td class="left">{{ f.source }}</td><td>{{ f.holes }}</td><td>{{ f.gross if f.gross is not none else '–' }}</td>
+              <td class="left">{% if f.round_id == s.round_id %}diese Runde{% else %}<a href="{{ link(request, '/rounds/' ~ (f.round_id|urlq)) }}">anzeigen</a>{% endif %}</td></tr>
+        {% endfor %}
+        </tbody></table></div>
+    {% else %}
+      <p class="muted">Diese Runde ist mit keiner anderen Quelle verknüpft.</p>
+    {% endif %}
+    {% for m in dedup_links if m.status == 'proposed' %}
+      <p class="notice">Mögliche Dublette: {{ (m.b if m.a.round_id == s.round_id else m.a).source }} am {{ (m.b if m.a.round_id == s.round_id else m.a).start.strftime('%d.%m.%Y') }}
+        ({{ (m.b if m.a.round_id == s.round_id else m.a).gross if (m.b if m.a.round_id == s.round_id else m.a).gross is not none else '–' }} Schläge, {{ m.confidence }}, {{ m.rule }}).
+        <a href="{{ link(request, '/dedup') }}">Entscheiden</a></p>
+    {% endfor %}
+    <p class="muted">Quellen werden nie überschrieben: alle Rohwerte bleiben erhalten. Auswertungen ohne Quellenfilter nutzen je Feldgruppe die führende Quelle.</p>
+  </section>
+
   <section class="card wide" aria-labelledby="h-prov">
     <h2 id="h-prov">Provenienz</h2>
-    <p class="muted">Quelle {{ d.source }} · Rohdaten-Hash {{ d.raw_hash[:16] }}… · Importlauf {{ d.import_run_id[:8] }}… · Dedup-Status: noch nicht verknüpft (Dedup folgt).</p>
+    <p class="muted">Quelle {{ d.source }} · Rohdaten-Hash {{ d.raw_hash[:16] }}… · Importlauf {{ d.import_run_id[:8] }}…</p>
   </section>
 </div>
 {% endblock %}

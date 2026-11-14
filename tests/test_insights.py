@@ -255,7 +255,8 @@ def test_mcp_get_insights(ws: Workspace):
     assert "get_insights" in names
     r: dict[str, Any] = structured(server, {})
     assert r["baseline"]["id"] == "hcp18w-approx-v1" and r["include_uncertain"] is False
-    putting = next(i for i in r["insights"] if i["id"] == "sg_loss:putting:arccos")
+    # über die Dedup-Sicht ohne Quellenfilter: ein gemeinsamer Bereich ("alle")
+    putting = next(i for i in r["insights"] if i["id"] == "sg_loss:putting:alle")
     assert (
         putting["ci"]["high"] < 0 and putting["n"] == 8 and putting["links"]["tool"] == "get_stats"
     )

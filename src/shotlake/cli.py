@@ -27,6 +27,7 @@ from .config import default_club_map_path, load_club_map, save_club_map, sync_cl
 from .connectors.arccos import ArccosConnector, HarArccosClient
 from .connectors.registry import API_CONNECTORS, CONNECTORS
 from .db import open_db
+from .dedup import Scope, default_dedup_config_path, load_config
 from .ingest import sync_location
 from .ingest_api import reprocess_raw, sync_api
 
@@ -50,6 +51,12 @@ def build_parser() -> argparse.ArgumentParser:
         default=default_club_map_path(),
         help="Schlägerzuordnung (TOML, Standard: config/club_map.toml oder SHOTLAKE_CLUB_MAP)",
     )
+    ap.add_argument(
+        "--dedup-config",
+        type=Path,
+        default=default_dedup_config_path(),
+        help="Dedup-Regeln (TOML, Standard: config/dedup.toml oder SHOTLAKE_DEDUP_CONFIG)",
+    )
     sub = ap.add_subparsers(dest="cmd", required=True)
 
     imp = sub.add_parser("import", help="Dateien einer Quelle importieren")
@@ -65,11 +72,17 @@ def build_parser() -> argparse.ArgumentParser:
 
     rd = sub.add_parser("rounds", help="Runden mit Score, Statistik und Score Differential")
     rd.add_argument("--relevant", action="store_true", help="nur handicap-relevante Runden")
-    rd.add_argument("--source", help="nur eine Quelle (Runden können in mehreren Quellen stehen)")
+    rd.add_argument("--source", help="nur eine Quelle")
+    rd.add_argument(
+        "--include-duplicates", action="store_true", help="auch nicht führende Dubletten"
+    )
 
     cc = sub.add_parser("course-shots", help="Schläge auf dem Platz: Distanzen, Lagen, Treffer")
     cc.add_argument("--round", dest="round_ref")
-    cc.add_argument("--source", help="nur eine Quelle (ohne Dedup zählen doppelte Runden doppelt)")
+    cc.add_argument("--source", help="nur eine Quelle")
+    cc.add_argument(
+        "--include-duplicates", action="store_true", help="auch nicht führende Dubletten"
+    )
     cc.add_argument("--since", type=date.fromisoformat)
     cc.add_argument("--until", type=date.fromisoformat)
     cc.add_argument("--min-n", type=int, default=5)
@@ -77,7 +90,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     sg = sub.add_parser("sg", help="Strokes Gained (selbst berechnet, Handicap-Band-Baseline)")
     sg.add_argument("--round", dest="round_ref")
-    sg.add_argument("--source", help="nur eine Quelle (ohne Dedup zählen doppelte Runden doppelt)")
+    sg.add_argument("--source", help="nur eine Quelle")
+    sg.add_argument(
+        "--include-duplicates", action="store_true", help="auch nicht führende Dubletten"
+    )
     sg.add_argument("--since", type=date.fromisoformat)
     sg.add_argument("--until", type=date.fromisoformat)
     sg.add_argument("--baseline", type=Path, default=default_baseline_path())
@@ -91,7 +107,10 @@ def build_parser() -> argparse.ArgumentParser:
     tr = sub.add_parser("trend", help="Verlauf des Score Differentials (gleitender Durchschnitt)")
     tr.add_argument("--window", type=int, default=5, help="Fenstergröße in Runden (Standard 5)")
     tr.add_argument("--relevant", action="store_true", help="nur handicap-relevante Runden")
-    tr.add_argument("--source", help="nur eine Quelle (Runden können in mehreren Quellen stehen)")
+    tr.add_argument("--source", help="nur eine Quelle")
+    tr.add_argument(
+        "--include-duplicates", action="store_true", help="auch nicht führende Dubletten"
+    )
 
     rs = sub.add_parser("round-set", help="Eingaben zu einer Runde setzen")
     rs.add_argument("round", help="Runden-ID oder Schlüssel")
@@ -127,8 +146,23 @@ def build_parser() -> argparse.ArgumentParser:
     mc.add_argument("--baseline-path", type=Path, default=default_baseline_path())
     ins = sub.add_parser("insights", help="Regelbasierte Hinweise, wo Schläge verloren gehen")
     ins.add_argument("--source")
+    ins.add_argument(
+        "--include-duplicates", action="store_true", help="je Quelle statt dedupliziert"
+    )
     ins.add_argument("--all", action="store_true", help="auch unsichere Hinweise zeigen")
     ins.add_argument("--baseline-path", type=Path, default=default_baseline_path())
+    dd = sub.add_parser("dedup", help="Runden aus mehreren Quellen abgleichen und verknüpfen")
+    dds = dd.add_subparsers(dest="dedup_cmd")
+    dds.add_parser("run", help="Treffer neu berechnen (Standard) und Vorschläge anzeigen")
+    dds.add_parser("list", help="verknüpfte Runden und offene Vorschläge anzeigen")
+    for name, text in (
+        ("confirm", "zwei Runden als dieselbe Runde bestätigen oder zusammenführen"),
+        ("reject", "zwei Runden als verschieden festlegen (trennt bestehende Verknüpfung)"),
+    ):
+        p = dds.add_parser(name, help=text)
+        p.add_argument("round_a")
+        p.add_argument("round_b")
+    dds.add_parser("accept-all", help="alle offenen Vorschläge bestätigen")
     sub.add_parser("sources", help="Verfügbare Quellen und Risiko anzeigen")
 
     for name in ("clubs", "gapping"):
@@ -226,6 +260,28 @@ def _tee_set(con: duckdb.DuckDBPyConnection, args: argparse.Namespace) -> int:
     return 0
 
 
+def _dedup_command(con: duckdb.DuckDBPyConnection, args: argparse.Namespace) -> int:
+    from . import dedup as dd
+
+    action = args.dedup_cmd or "run"
+    try:
+        if action in ("confirm", "reject"):
+            a, b = dd.resolve(con, args.round_a), dd.resolve(con, args.round_b)
+            (dd.confirm if action == "confirm" else dd.reject)(con, a, b)
+            print(f"{a} / {b}: {'bestätigt' if action == 'confirm' else 'getrennt (abgelehnt)'}")
+            return 0
+        if action == "accept-all":
+            done, skipped = dd.accept_proposed(con)
+            print(f"{done} Vorschläge bestätigt")
+            for line in skipped:
+                print(f"  übersprungen: {line}")
+            return 0
+    except ValueError as exc:
+        print(f"Fehler: {exc}", file=sys.stderr)
+        return 2
+    return _print_dedup(con, args, run_first=action == "run")
+
+
 def _arccos_check(cache_dir: Path) -> int:
     """Kontrollierter Erstkontakt: Login, Hash-Suche, Jahre, Rundenzahl. Speichert nichts."""
     from .connectors.api import AuthError, TransientError
@@ -258,7 +314,13 @@ def _arccos_check(cache_dir: Path) -> int:
 def _print_sg(con: duckdb.DuckDBPyConnection, args: argparse.Namespace) -> None:
     base = load_baseline(args.baseline)
     res = strokes_gained(
-        con, base, since=args.since, until=args.until, round_ref=args.round_ref, source=args.source
+        con,
+        base,
+        since=args.since,
+        until=args.until,
+        round_ref=args.round_ref,
+        source=args.source,
+        exclude_rounds=_excluded(_scope(con, args), args, "shots"),
     )
     n_all = len(res.holes)
     print(f"Strokes Gained (computed), Baseline {base.id} [{base.status}]")
@@ -296,6 +358,7 @@ def _print_course_shots(con: duckdb.DuckDBPyConnection, args: argparse.Namespace
         "until": args.until,
         "round_ref": args.round_ref,
         "source": args.source,
+        "exclude_rounds": _excluded(_scope(con, args), args, "shots"),
     }
     print(f"Schlagdistanz je Schläger ({args.units}, GPS Start-Ende inkl. Rollen, kein Carry)")
     print(f"{'Schläger':<22}{'n':>4} {'Median':>7} {'P10':>6} {'P90':>6} {'Max':>6}  Hinweis")
@@ -316,6 +379,52 @@ def _print_course_shots(con: duckdb.DuckDBPyConnection, args: argparse.Namespace
         print(f"  {lie_name:<10}{hits:>3}/{n:<3} {hits / n:.0%}")
 
 
+def _scope(con: duckdb.DuckDBPyConnection, args: argparse.Namespace) -> Scope | None:
+    """Dedup-Sicht; `--include-duplicates` schaltet sie ab."""
+    if getattr(args, "include_duplicates", False):
+        return None
+    return Scope.build(con, load_config(args.dedup_config))
+
+
+def _excluded(scope: Scope | None, args: argparse.Namespace, group: str) -> frozenset[str] | None:
+    """Nicht führende Runden einer Feldgruppe, nur ohne Quellenfilter."""
+    if scope is None or getattr(args, "source", None):
+        return None
+    return scope.exclude(group)
+
+
+def _print_dedup(con: duckdb.DuckDBPyConnection, args: argparse.Namespace, run_first: bool) -> int:
+    from . import dedup as dd
+
+    cfg = load_config(args.dedup_config)
+    if run_first:
+        print(dd.run(con, cfg).as_text())
+    groups = dd.cluster_facts(con)
+    print(f"\nVerknüpfte Runden: {len(groups)}")
+    for g in groups:
+        lead = dd.leaders_of(g, cfg)
+        parts = ", ".join(f"{f.source} ({f.gross if f.gross is not None else '-'})" for f in g)
+        lead_text = f"führend: Score {lead['score']}, Schläge {lead['shots']}"
+        print(f"  {g[0].start:%Y-%m-%d %H:%M}  {g[0].holes:>2} L  {parts}  {lead_text}")
+    proposals = dd.list_matches(con, ("proposed",))
+    print(f"\nOffene Vorschläge: {len(proposals)}")
+    for m in proposals:
+        print(
+            f"  {m.a.start:%Y-%m-%d %H:%M}  {m.a.round_id} ({m.a.holes}L, {m.a.gross}) <-> "
+            f"{m.b.round_id} ({m.b.holes}L, {m.b.gross})  {m.confidence}: {m.rule}, "
+            f"{m.minutes_apart:.0f} min"
+        )
+    if proposals:
+        print("\nBestätigen: shotlake dedup confirm A B | alle: shotlake dedup accept-all")
+    return 0
+
+
+def _auto_dedup(con: duckdb.DuckDBPyConnection, args: argparse.Namespace) -> None:
+    from . import dedup as dd
+
+    print(dd.run(con, load_config(args.dedup_config)).as_text())
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     data = Path(args.data_dir)
@@ -330,7 +439,16 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"{a.id:<16}{a.mode:<6}{a.risk:<22}{a.description}")
             return 0
         if args.cmd == "rounds":
-            _print_rounds(round_scores(con, only_relevant=args.relevant, source=args.source))
+            scope = _scope(con, args)
+            _print_rounds(
+                round_scores(
+                    con,
+                    only_relevant=args.relevant,
+                    source=args.source,
+                    exclude=_excluded(scope, args, "score"),
+                    donors=scope.donors if scope else None,
+                )
+            )
             return 0
         if args.cmd == "club-set":
             mapping = load_club_map(args.club_map)
@@ -346,15 +464,22 @@ def main(argv: list[str] | None = None) -> int:
             _print_course_shots(con, args)
             return 0
         if args.cmd == "trend":
-            points = differential_trend(
-                round_scores(con, source=args.source), args.window, args.relevant
+            scope = _scope(con, args)
+            scores = round_scores(
+                con,
+                source=args.source,
+                exclude=_excluded(scope, args, "score"),
+                donors=scope.donors if scope else None,
             )
+            points = differential_trend(scores, args.window, args.relevant)
             print(f"{'Datum':<11}{'Diff':>6} {'Ø' + str(args.window):>6}  Rel")
             for p in points:
                 avg = "-" if p.moving_avg is None else f"{p.moving_avg:.1f}"
                 mark = "ja" if p.relevant else ""
                 print(f"{p.start_utc:%Y-%m-%d} {p.differential:>6.1f} {avg:>6}  {mark}")
             return 0
+        if args.cmd == "dedup":
+            return _dedup_command(con, args)
         if args.cmd == "round-set":
             return _round_set(con, args)
         if args.cmd == "tee-set":
@@ -379,7 +504,9 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.cmd == "insights":
             base = load_baseline(args.baseline_path)
-            found = generate_insights(con, base, source=args.source, include_uncertain=args.all)
+            found = generate_insights(
+                con, base, source=args.source, include_uncertain=args.all, scope=_scope(con, args)
+            )
             if not found:
                 print("Keine belegten Hinweise (zu wenige Daten oder keine eindeutigen Effekte).")
             for i in found:
@@ -400,6 +527,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.cmd == "reprocess":
             rep = reprocess_raw(con, API_CONNECTORS[args.source]())
             print(rep.as_text())
+            _auto_dedup(con, args)
             return 0 if rep.status == "ok" else 2
         if args.cmd == "sync":
             connector = API_CONNECTORS[args.source]()
@@ -412,6 +540,7 @@ def main(argv: list[str] | None = None) -> int:
                 connector.client = HarArccosClient(args.har)
             rep = sync_api(con, connector, raw_dir=data / "raw")
             print(rep.as_text())
+            _auto_dedup(con, args)
             return 0 if rep.status == "ok" else 2
         if args.cmd == "import":
             code = 0
@@ -420,6 +549,7 @@ def main(argv: list[str] | None = None) -> int:
                     print(rep.as_text())
                     if rep.status in ("drift_detected", "error"):
                         code = 2
+            _auto_dedup(con, args)
             return code
 
         factor, unit = (M_TO_YD, "yd") if args.units == "yd" else (1.0, "m")

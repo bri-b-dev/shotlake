@@ -144,6 +144,19 @@ create table if not exists note (
     scope varchar not null,
     created_at timestamp not null
 );
+create table if not exists round_match (
+    round_a varchar not null,
+    round_b varchar not null,
+    status varchar not null,  -- auto | proposed | confirmed | rejected
+    confidence varchar not null,
+    rule varchar not null,
+    minutes_apart double,
+    score_delta integer,
+    hole_diff integer,
+    decided_by varchar not null,  -- auto | user
+    decided_at timestamp not null,
+    primary key (round_a, round_b)
+);
 create table if not exists hole (
     round_id varchar not null,
     hole_number integer not null,

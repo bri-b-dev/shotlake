@@ -7,7 +7,8 @@ Fehlende Eingaben ergeben NULL mit Grund, nie einen geschätzten Wert.
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass
+from collections.abc import Collection
+from dataclasses import dataclass, replace
 from datetime import datetime
 from decimal import ROUND_HALF_UP, Decimal
 
@@ -106,6 +107,7 @@ class RoundScore:
     reason: str | None  # Grund, falls kein Differential
     relevant: bool | None  # Nutzerentscheidung
     relevant_suggestion: bool  # nur Hinweis: formale Kriterien erfüllt; ändert nichts am Standard
+    rating_source: str | None = None  # Quelle, falls Rating/Slope von einer verknüpften Runde kommt
 
     @property
     def relevant_effective(self) -> bool:
@@ -293,7 +295,11 @@ def round_scores(
     only_relevant: bool = False,
     round_ref: str | None = None,
     source: str | None = None,
+    exclude: Collection[str] | None = None,
+    donors: dict[str, tuple[float, int, str]] | None = None,
 ) -> list[RoundScore]:
+    """Runden mit Score und Differential. `exclude`: nicht führende Dubletten auslassen;
+    `donors`: Rating/Slope einer verknüpften Runde für Runden, deren Quelle keines liefert."""
     conditions: list[str] = []
     params: list[object] = []
     if round_ref:
@@ -311,8 +317,18 @@ def round_scores(
         )
     )
     out: list[RoundScore] = []
+    skip = set(exclude or ())
     for row in rounds:
         rid = row["round_id"]
+        if rid in skip:
+            continue
+        rating_from: str | None = None
+        if (
+            donors
+            and rid in donors
+            and (row.get("tee_rating") is None or row.get("tee_slope") is None)
+        ):
+            row["tee_rating"], row["tee_slope"], rating_from = donors[str(rid)]
         holes = [
             HoleRecord(*h)
             for h in con.execute(
@@ -333,6 +349,8 @@ def round_scores(
             ).fetchall()
         }
         score = compute_round(row, holes, inputs, tee9)
+        if rating_from:
+            score = replace(score, rating_source=rating_from)
         if only_relevant and not score.relevant_effective:
             continue
         out.append(score)

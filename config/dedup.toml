@@ -1,0 +1,23 @@
+# Dedup: Runden aus mehreren Quellen derselben Runde zuordnen.
+# Wird bei jedem Lauf von `shotlake dedup` gelesen; Nutzerentscheidungen (bestätigt/abgelehnt)
+# liegen in der Datenbank und haben immer Vorrang vor den Regeln hier.
+
+[settings]
+max_minutes = 90               # größter Abstand der Startzeiten
+max_hole_difference = 1        # 0 = Lochzahl muss gleich sein; 1 erlaubt z. B. 8 gegen 9 (nur Vorschlag)
+auto_score_tolerance = 0       # automatisch verknüpfen nur bei so kleinem Score-Unterschied (0 = gleich)
+proposal_score_tolerance = 10  # darüber gilt es nicht mehr als dieselbe Runde
+geo_radius_m = 2000            # Plätze mit Koordinaten innerhalb dieses Radius gelten als derselbe Club
+
+# Führende Quelle je Feldgruppe (erste Quelle mit Daten gewinnt; nicht-führende Werte bleiben erhalten)
+[priority]
+score  = ["bebrassie", "garmin_platform", "arccos"]   # Brutto-Score und Lochscores
+shots  = ["arccos", "bebrassie", "garmin_platform"]    # Schläge, Lagen, Putts, Strokes Gained
+rating = ["bebrassie", "garmin_platform", "arccos"]    # Rating/Slope des Tees
+
+# Plätze: gleicher Club unter verschiedenen Namen (Quellen nennen Plätze unterschiedlich). Ein Club
+# kann mehrere Plätze haben (z. B. 9- und 18-Loch-Platz in BeBrassie); die Lochzahl der gespielten
+# Runde entscheidet beim Abgleich, nicht der Platz.
+[[club]]
+name = "Golfclub Neumarkt"
+aliases = ["Golfclub Herrnhof", "Neumarkt Front-9"]   # Herrnhof ist der alte Name

@@ -2,9 +2,16 @@
 {% block title %}Übersicht · Shotlake{% endblock %}
 {% block content %}
 <h1>Übersicht</h1>
-{% set path = '/' %}{% set allow_all = False %}
+{% set path = '/' %}{% set allow_all = True %}
 {% include "_chips.html" %}
-<p class="notice">Ohne Dedup können dieselben Runden in mehreren Quellen stehen. Die Auswertung gilt deshalb je Quelle ({{ source or '–' }}).</p>
+{% if source %}
+<p class="notice">Nur Quelle {{ source }}. Dieselbe Runde kann in mehreren Quellen stehen; „alle" zeigt sie dedupliziert.</p>
+{% else %}
+<p class="muted">Alle Quellen, dedupliziert: Dieselbe Runde zählt einmal, die führende Quelle je Feldgruppe gewinnt (Score, Schläge).</p>
+{% endif %}
+{% if proposals %}
+<p class="notice"><strong>{{ proposals }}</strong> mögliche Dubletten warten auf deine Entscheidung. Solange sie offen sind, zählen diese Runden doppelt. <a href="{{ link(request, '/dedup') }}">Jetzt prüfen</a></p>
+{% endif %}
 
 <div class="grid">
   <section class="card wide" aria-labelledby="h-diff">
@@ -21,7 +28,7 @@
       <p class="legend">Fenster:
         {% for w in (3, 5, 10) %}<a href="{{ link(request, '/', w=w|string) }}" {% if w == window %}aria-current="true"{% endif %}>{{ w }}</a> {% endfor %}</p>
     {% else %}
-      <p class="muted">Keine Differentials für „{{ source or '–' }}": Rating/Slope fehlen oder zu wenige gewertete Runden ({{ n_scores }} Runden).</p>
+      <p class="muted">Keine Differentials für „{{ source or 'alle Quellen' }}": Rating/Slope fehlen oder zu wenige gewertete Runden ({{ n_scores }} Runden).</p>
     {% endif %}
   </section>
 
@@ -33,7 +40,7 @@
       <p class="muted">Basis: {{ sg.complete_holes }} von {{ sg.holes|length }} Löchern vollständig erfasst.
         Baseline {{ baseline.id }} ({{ baseline.status }}): eigene Näherung für Handicap 18, nur für Vergleiche aussagekräftig.</p>
     {% else %}
-      <p class="muted">Keine vollständig erfassten Löcher für „{{ source or '–' }}".</p>
+      <p class="muted">Keine vollständig erfassten Löcher für „{{ source or 'alle Quellen' }}".</p>
     {% endif %}
   </section>
 

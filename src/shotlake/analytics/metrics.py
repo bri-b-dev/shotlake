@@ -14,6 +14,7 @@ from datetime import date, datetime, time, timedelta
 import duckdb
 
 from ..baseline import Baseline
+from ..dedup import Scope
 from ..quality import EXCLUDE_FLAGS
 from .score import RoundScore, round_scores
 from .sg import CATEGORIES, SGResult, strokes_gained
@@ -53,6 +54,9 @@ class Metric:
     note: str = ""
     stat: str = "mean"
     sources_hint: tuple[str, ...] = field(default=())
+    group: str = (
+        "score"  # Dedup-Feldgruppe: score (Brutto/Differential) oder shots (Lochdetails/SG)
+    )
 
 
 class Context:
@@ -62,22 +66,36 @@ class Context:
     Anfrage (kein globaler Cache, keine veralteten Werte).
     """
 
-    def __init__(self) -> None:
+    def __init__(self, scope: Scope | None = None) -> None:
+        """`scope`: Dedup-Sicht. Ohne Quellenfilter zählen nur führende Runden je Feldgruppe."""
+        self.scope = scope
         self._rounds: dict[tuple[str | None, bool], list[RoundScore]] = {}
         self._sg: dict[tuple[int, str | None], SGResult] = {}
 
-    def rounds(self, con: duckdb.DuckDBPyConnection, f: Filters) -> list[RoundScore]:
+    def rounds(
+        self, con: duckdb.DuckDBPyConnection, f: Filters, group: str = "score"
+    ) -> list[RoundScore]:
         key = (f.source, f.only_relevant)
         if key not in self._rounds:
-            self._rounds[key] = round_scores(con, source=f.source, only_relevant=f.only_relevant)
-        return [r for r in self._rounds[key] if _in_range(r.start_utc, f)]
+            self._rounds[key] = round_scores(
+                con,
+                source=f.source,
+                only_relevant=f.only_relevant,
+                donors=self.scope.donors if self.scope else None,
+            )
+        rows = self._rounds[key]
+        if self.scope is not None and f.source is None:
+            dropped = self.scope.exclude(group)
+            rows = [r for r in rows if r.round_id not in dropped]
+        return [r for r in rows if _in_range(r.start_utc, f)]
 
     def sg(
         self, con: duckdb.DuckDBPyConnection, baseline: Baseline, source: str | None
     ) -> SGResult:
         key = (id(baseline), source)
         if key not in self._sg:
-            self._sg[key] = strokes_gained(con, baseline, source=source)
+            dropped = self.scope.exclude("shots") if self.scope and source is None else None
+            self._sg[key] = strokes_gained(con, baseline, source=source, exclude_rounds=dropped)
         return self._sg[key]
 
 
@@ -87,12 +105,14 @@ def _in_range(when: datetime, f: Filters) -> bool:
     return not (f.until and when >= datetime.combine(f.until + timedelta(days=1), time.min))
 
 
-def _from_rounds(pick: Callable[[RoundScore], float | None]) -> Callable[..., list[Observation]]:
+def _from_rounds(
+    pick: Callable[[RoundScore], float | None], group: str = "score"
+) -> Callable[..., list[Observation]]:
     def extract(
         con: duckdb.DuckDBPyConnection, f: Filters, _b: Baseline, ctx: Context
     ) -> list[Observation]:
         out = []
-        for r in ctx.rounds(con, f):
+        for r in ctx.rounds(con, f, group):
             value = pick(r)
             if value is not None:
                 out.append(Observation(value, r.start_utc, r.round_id.split("|")[0], r.round_id))
@@ -119,7 +139,8 @@ def sg_round_observations(
     ctx = ctx or Context()
     res = res or ctx.sg(con, baseline, f.source)
     rounds = {
-        r.round_id: r for r in ctx.rounds(con, Filters(f.source, f.since, f.until, f.only_relevant))
+        r.round_id: r
+        for r in ctx.rounds(con, Filters(f.source, f.since, f.until, f.only_relevant), "shots")
     }
     totals: dict[str, list[float]] = defaultdict(list)
     sums: dict[str, dict[str, float]] = defaultdict(lambda: defaultdict(float))
@@ -186,21 +207,25 @@ METRICS: dict[str, Metric] = {
                )),
         Metric("putts_per_hole", "Putts pro Loch", "Putts/Loch", "round", "lower", 5,
                _from_rounds(
-                   lambda r: r.putts / r.holes_played if r.putts is not None else None
-               )),
+                   lambda r: r.putts / r.holes_played if r.putts is not None else None, "shots"
+               ), group="shots"),
         Metric("fir_rate", "Fairways getroffen", "Anteil", "round", "higher", 5,
-               _from_rounds(lambda r: _rate(r.fir_hits, r.fir_recorded))),
+               _from_rounds(lambda r: _rate(r.fir_hits, r.fir_recorded), "shots"),
+               group="shots"),
         Metric("gir_rate", "Grüns in Regulation", "Anteil", "round", "higher", 5,
-               _from_rounds(lambda r: _rate(r.gir_hits, r.gir_recorded))),
+               _from_rounds(lambda r: _rate(r.gir_hits, r.gir_recorded), "shots"),
+               group="shots"),
         Metric("scramble_rate", "Scrambling", "Anteil", "round", "higher", 5,
-               _from_rounds(lambda r: _rate(r.scrambles, r.scramble_chances))),
+               _from_rounds(lambda r: _rate(r.scrambles, r.scramble_chances), "shots"),
+               group="shots"),
         Metric("sg_total_per_hole", "Strokes Gained gesamt pro Loch", "Schläge/Loch", "round",
                "higher", 5, _sg_extract(None),
-               "selbst berechnet (computed), Näherungs-Baseline; nur vollständig erfasste Löcher"),
+               "selbst berechnet (computed), Näherungs-Baseline; nur vollständig erfasste Löcher",
+               group="shots"),
         *(
             Metric(f"sg_{cat}_per_hole", f"Strokes Gained {cat} pro Loch", "Schläge/Loch",
                    "round", "higher", 5, _sg_extract(cat),
-                   "selbst berechnet (computed), Näherungs-Baseline")
+                   "selbst berechnet (computed), Näherungs-Baseline", group="shots")
             for cat in CATEGORIES
         ),
         Metric("carry", "Carry (Range, je Schläger)", "m", "shot", None, 20, _carry,

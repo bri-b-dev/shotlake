@@ -48,3 +48,17 @@ Example of an MCP configuration:
 `secrets/arccos.env`) within the process that launches the server. Responses do not contain
 credentials or file paths; notes and text extracted from sources are treated as data, not
 as instructions. 
+
+## Dedup (dieselbe Runde in mehreren Quellen)
+
+    uv run shotlake dedup                 # abgleichen, verknüpfte Runden und Vorschläge zeigen
+    uv run shotlake dedup accept-all      # alle offenen Vorschläge bestätigen
+    uv run shotlake dedup confirm A B     # zwei Runden als dieselbe festlegen (auch zusammenführen)
+    uv run shotlake dedup reject A B      # zwei Runden als verschieden festlegen (trennt)
+
+Regeln, Platz-Aliasse (z. B. alter und neuer Clubname) und die führende Quelle je Feldgruppe stehen in
+`config/dedup.toml`. Automatisch verknüpft wird nur bei eindeutigem Treffer mit gleichem Club, ähnlicher
+Startzeit, gleicher Lochzahl und gleichem Score; alles andere ist ein Vorschlag. Entscheidungen bleiben
+bei jedem Abgleich bestehen. Nach `import`, `sync` und `reprocess` läuft der Abgleich automatisch. Ohne
+`--source` zählen alle Auswertungen jede Runde einmal (`--include-duplicates` schaltet das ab). Die
+Weboberfläche hat dafür die Seite „Dubletten".

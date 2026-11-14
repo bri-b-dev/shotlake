@@ -2,7 +2,7 @@
 {% block title %}Vergleich · Shotlake{% endblock %}
 {% block content %}
 <h1>Vergleich{% if at %}: vorher/nachher am {{ at[8:10] }}.{{ at[5:7] }}.{{ at[0:4] }}{% else %} A gegen B{% endif %}</h1>
-{% set path = '/compare' %}{% set allow_all = False %}
+{% set path = '/compare' %}{% set allow_all = True %}
 {% include "_chips.html" %}
 {% for n in notes %}<p class="notice"><strong>{{ n.type }}</strong> {{ n.date }}: {{ n.text }}</p>{% endfor %}
 {% for e in errors %}<p class="error" role="alert">{{ e }}</p>{% endfor %}
@@ -31,7 +31,7 @@
   </tbody>
 </table></div>
 <p class="muted">A = {% if at %}ab {{ at }}{% else %}{{ a.since or '…' }} bis {{ a.until or '…' }}{% endif %}, B = {% if at %}bis zum Vortag{% else %}{{ b.since or '…' }} bis {{ b.until or '…' }}{% endif %}.
-  Δ = A minus B. Eine Richtung (besser/schlechter) gibt es nur ab 5 Beobachtungen je Zeitraum und wenn das Intervall die 0 nicht einschließt. Nur Quelle {{ source }}.</p>
+  Δ = A minus B. Eine Richtung (besser/schlechter) gibt es nur ab 5 Beobachtungen je Zeitraum und wenn das Intervall die 0 nicht einschließt. {{ 'Nur Quelle ' ~ source ~ '.' if source else 'Alle Quellen, dedupliziert.' }}</p>
 {% elif not errors %}
 <p class="muted">Zeiträume A und B wählen, oder in der Übersicht auf einen Notiz-Marker klicken.</p>
 {% endif %}

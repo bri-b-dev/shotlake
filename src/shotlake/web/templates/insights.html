@@ -6,7 +6,7 @@
 {% include "_chips.html" %}
 <p class="chips"><a href="{{ link(request, '/insights', uncertain=None) }}" {% if not uncertain %}aria-current="true"{% endif %}>nur belegte</a>
   <a href="{{ link(request, '/insights', uncertain='1') }}" {% if uncertain %}aria-current="true"{% endif %}>auch unsichere</a></p>
-<p class="muted">Regelbasiert aus deinen Daten abgeleitet, je Quelle getrennt (ohne Dedup würden gemeinsame Runden doppelt zählen).
+<p class="muted">Regelbasiert aus deinen Daten abgeleitet. Ohne Quellenwahl über alle Quellen dedupliziert (dieselbe Runde zählt einmal).
   Jeder Hinweis nennt Effekt, 95-%-Intervall und n. „Unsicher" heißt: Das Intervall schließt 0 ein. Strokes Gained bezieht sich auf die Näherungs-Baseline {{ baseline.id }}.</p>
 {% for i in insights %}
   <article class="card" style="margin-bottom:12px">

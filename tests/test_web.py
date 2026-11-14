@@ -43,7 +43,7 @@ def test_dashboard_shows_trend_and_honesty_notes(client: TestClient):
     assert "<svg" in html and "gleitender Durchschnitt" in html
     assert "Kein Handicap-Index" in html
     assert "n = 6 von 6" in html
-    assert "Dedup" in html  # Hinweis auf doppelte Runden zwischen Quellen
+    assert "dedupliziert" in html  # Standard: alle Quellen, dieselbe Runde zählt einmal
 
 
 def test_empty_database_renders(tmp_path: Path):

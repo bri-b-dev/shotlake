@@ -12,6 +12,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+from .. import dedup as dedup_mod
 from .. import reports
 from ..analytics.course_shots import club_distances
 from ..analytics.distance import club_stats
@@ -23,7 +24,6 @@ from ..analytics.trend import differential_trend
 from ..baseline import Baseline
 from ..clubs import CANONICAL_CLUBS
 from ..service import (
-    default_source,
     round_detail,
     round_sources,
     set_round_inputs,
@@ -46,11 +46,13 @@ SG_NAMES = {
 }
 
 
-def create_app(data_dir: Path, club_map: Path, baseline_path: Path) -> FastAPI:
+def create_app(
+    data_dir: Path, club_map: Path, baseline_path: Path, dedup_config: Path | None = None
+) -> FastAPI:
     app = FastAPI(title="Shotlake", docs_url=None, redoc_url=None, openapi_url=None)
     app.mount("/static", StaticFiles(directory=HERE / "static"), name="static")
     templates = Jinja2Templates(directory=HERE / "templates")
-    workspace = Workspace(data_dir, club_map, baseline_path)
+    workspace = Workspace(data_dir, club_map, baseline_path, dedup_config)
     session = workspace.session
     baseline: Baseline = workspace.baseline
 
@@ -93,14 +95,20 @@ def create_app(data_dir: Path, club_map: Path, baseline_path: Path) -> FastAPI:
     def dashboard(request: Request) -> HTMLResponse:
         with session() as con:
             sources = round_sources(con)
-            source = request.query_params.get("source") or default_source(con)
+            source = request.query_params.get("source") or None  # leer = alle, dedupliziert
+            scope = workspace.scope(con)
             window = int(request.query_params.get("w", "5") or 5)
-            scores = round_scores(con, source=source) if source else []
+            scores = round_scores(
+                con,
+                source=source,
+                exclude=None if source else scope.exclude("score"),
+                donors=scope.donors,
+            )
             trend = differential_trend(scores, max(window, 1))
             notes = [
                 n
                 for n in reports.list_notes(con, limit=500)
-                if n["scope"] == "global" or n["scope"] == f"source:{source}"
+                if n["scope"] == "global" or (source and n["scope"] == f"source:{source}")
             ]
             markers = [
                 Marker(
@@ -116,7 +124,12 @@ def create_app(data_dir: Path, club_map: Path, baseline_path: Path) -> FastAPI:
             outside = sum(
                 1 for m in markers if first is None or not first <= m.when <= (last or m.when)
             )
-            sg = strokes_gained(con, baseline, source=source) if source else None
+            sg = strokes_gained(
+                con,
+                baseline,
+                source=source,
+                exclude_rounds=None if source else scope.exclude("shots"),
+            )
             totals = sg.totals() if sg else {}
             bars = bars_svg(
                 [
@@ -137,6 +150,7 @@ def create_app(data_dir: Path, club_map: Path, baseline_path: Path) -> FastAPI:
                 n_markers=len(markers) - outside,
                 n_markers_outside=outside,
                 n_scores=len(scores),
+                proposals=dedup_mod.open_proposals(con),
                 recent=list(reversed(scores))[:8],
                 sg=sg,
                 sg_totals=totals,
@@ -150,7 +164,20 @@ def create_app(data_dir: Path, club_map: Path, baseline_path: Path) -> FastAPI:
         with session() as con:
             source = request.query_params.get("source") or None
             only_relevant = request.query_params.get("relevant") == "1"
-            rows = round_scores(con, source=source, only_relevant=only_relevant)
+            show_dups = request.query_params.get("dups") == "1"
+            scope = workspace.scope(con)
+            rows = round_scores(
+                con,
+                source=source,
+                only_relevant=only_relevant,
+                exclude=None if source or show_dups else scope.exclude("score"),
+                donors=scope.donors,
+            )
+            partners = {
+                f.round_id: sorted(m.source for m in group)
+                for group in dedup_mod.cluster_facts(con)
+                for f in group
+            }
             return page(
                 request,
                 "rounds.html",
@@ -158,7 +185,26 @@ def create_app(data_dir: Path, club_map: Path, baseline_path: Path) -> FastAPI:
                 sources=round_sources(con),
                 rows=list(reversed(rows)),
                 only_relevant=only_relevant,
+                show_dups=show_dups,
+                partners=partners,
+                proposals=dedup_mod.open_proposals(con),
             )
+
+    def round_dedup(con: Any, round_id: str) -> dict[str, Any]:
+        """Dedup-Abschnitt der Rundenseite: Verknüpfungen, Gruppe, führende Quelle je Feldgruppe."""
+        links = dedup_mod.links_of(con, round_id)
+        group = next(
+            (g for g in dedup_mod.cluster_facts(con) if any(f.round_id == round_id for f in g)),
+            None,
+        )
+        scores = {f.round_id: f.gross for f in group} if group else {}
+        return {
+            "dedup_links": [m for m in links if m.status != "rejected"],
+            "dedup_rejected": [m for m in links if m.status == "rejected"],
+            "dedup_group": group,
+            "dedup_leaders": dedup_mod.leaders_of(group, workspace.dedup_cfg) if group else None,
+            "dedup_conflict": len({v for v in scores.values() if v is not None}) > 1,
+        }
 
     @app.get("/rounds/{round_id:path}", response_class=HTMLResponse)
     def round_page(request: Request, round_id: str) -> HTMLResponse:
@@ -174,6 +220,7 @@ def create_app(data_dir: Path, club_map: Path, baseline_path: Path) -> FastAPI:
                 tee_errors=[],
                 round_notes=reports.list_notes(con, scope=f"round:{detail.score.round_id}"),
                 today=date.today().isoformat(),
+                **round_dedup(con, detail.score.round_id),
             )
 
     def back_to_round(request: Request, round_id: str, anchor: str) -> RedirectResponse:
@@ -205,7 +252,14 @@ def create_app(data_dir: Path, club_map: Path, baseline_path: Path) -> FastAPI:
                 },
             )
             if errors:
-                response = page(request, "round.html", d=detail, errors=[], tee_errors=errors)
+                response = page(
+                    request,
+                    "round.html",
+                    d=detail,
+                    errors=[],
+                    tee_errors=errors,
+                    **round_dedup(con, detail.score.round_id),
+                )
                 response.status_code = 400
                 return response
         return back_to_round(request, detail.score.round_id, "#platzwerte")
@@ -254,7 +308,14 @@ def create_app(data_dir: Path, club_map: Path, baseline_path: Path) -> FastAPI:
                 con, detail.score.round_id, relevant=relevant, hi=hi, pcc=pcc, ags=ags
             )
             if errors:
-                response = page(request, "round.html", d=detail, errors=errors, tee_errors=[])
+                response = page(
+                    request,
+                    "round.html",
+                    d=detail,
+                    errors=errors,
+                    tee_errors=[],
+                    **round_dedup(con, detail.score.round_id),
+                )
                 response.status_code = 400
                 return response
         return back_to_round(request, detail.score.round_id, "#eingaben")
@@ -262,13 +323,19 @@ def create_app(data_dir: Path, club_map: Path, baseline_path: Path) -> FastAPI:
     @app.get("/clubs", response_class=HTMLResponse)
     def clubs(request: Request) -> HTMLResponse:
         with session() as con:
-            source = request.query_params.get("source") or default_source(con)
+            source = request.query_params.get("source") or None
+            scope = workspace.scope(con)
             return page(
                 request,
                 "clubs.html",
                 source=source,
                 sources=round_sources(con),
-                course=club_distances(con, min_n=5, source=source) if source else [],
+                course=club_distances(
+                    con,
+                    min_n=5,
+                    source=source,
+                    exclude_rounds=None if source else scope.exclude("shots"),
+                ),
                 range_stats=club_stats(con, min_n=10),
             )
 
@@ -277,7 +344,13 @@ def create_app(data_dir: Path, club_map: Path, baseline_path: Path) -> FastAPI:
         with session() as con:
             source = request.query_params.get("source") or None
             uncertain = request.query_params.get("uncertain") == "1"
-            found = generate_insights(con, baseline, source=source, include_uncertain=uncertain)
+            found = generate_insights(
+                con,
+                baseline,
+                source=source,
+                include_uncertain=uncertain,
+                scope=workspace.scope(con),
+            )
             return page(
                 request,
                 "insights.html",
@@ -419,7 +492,7 @@ def create_app(data_dir: Path, club_map: Path, baseline_path: Path) -> FastAPI:
     def compare(request: Request) -> HTMLResponse:
         q = request.query_params
         with session() as con:
-            source = q.get("source") or default_source(con)
+            source = q.get("source") or None
             at = q.get("at") or ""
             errors: list[str] = []
             a: dict[str, Any] = {
@@ -444,6 +517,7 @@ def create_app(data_dir: Path, club_map: Path, baseline_path: Path) -> FastAPI:
                     result = reports.compare_report(
                         con, baseline, a, b, metrics,
                         reports.make_filters(source=source),
+                        scope=workspace.scope(con),
                     )  # fmt: skip
                 except ValueError as exc:
                     errors.append(str(exc))
@@ -461,6 +535,71 @@ def create_app(data_dir: Path, club_map: Path, baseline_path: Path) -> FastAPI:
                 all_metrics=METRICS,
                 notes=[n for n in reports.list_notes(con, limit=100) if n["date"] == at],
             )
+
+    # --- Dedup ----------------------------------------------------------------------------------
+
+    def dedup_redirect(request: Request, message: str = "") -> RedirectResponse:
+        target = link(request, "/dedup")
+        if message:
+            target += ("&" if "?" in target else "?") + urlencode({"msg": message})
+        return RedirectResponse(target, status_code=303)
+
+    @app.get("/dedup", response_class=HTMLResponse)
+    def dedup_page(request: Request) -> HTMLResponse:
+        with session() as con:
+            matches = dedup_mod.list_matches(con)
+            groups = dedup_mod.cluster_facts(con)
+            linked_ids = {f.round_id for g in groups for f in g}
+            all_rounds = con.execute(
+                "select r.round_id, r.source, r.start_utc, r.holes_played, r.gross_strokes "
+                "from round r where not r.in_progress order by r.start_utc desc limit 300"
+            ).fetchall()
+            return page(
+                request,
+                "dedup.html",
+                proposals=[m for m in matches if m.status == "proposed"],
+                rejected=[m for m in matches if m.status == "rejected"],
+                groups=[(g, dedup_mod.leaders_of(g, workspace.dedup_cfg)) for g in groups],
+                n_rounds=len(all_rounds),
+                n_unlinked=sum(1 for r in all_rounds if r[0] not in linked_ids),
+                round_choices=all_rounds,
+                cfg=workspace.dedup_cfg,
+                msg=request.query_params.get("msg", ""),
+            )
+
+    @app.post("/dedup/run")
+    def dedup_run(request: Request) -> RedirectResponse:
+        with session() as con:
+            report = workspace.run_dedup(con)
+        return dedup_redirect(request, report.as_text())
+
+    @app.post("/dedup/accept-all")
+    def dedup_accept_all(request: Request) -> RedirectResponse:
+        with session() as con:
+            done, skipped = dedup_mod.accept_proposed(con)
+        suffix = f"; {len(skipped)} übersprungen (Konflikt)" if skipped else ""
+        return dedup_redirect(request, f"{done} Vorschläge bestätigt{suffix}")
+
+    def dedup_decision(request: Request, action: str, a: str, b: str) -> RedirectResponse:
+        with session() as con:
+            try:
+                ra, rb = dedup_mod.resolve(con, a), dedup_mod.resolve(con, b)
+                (dedup_mod.confirm if action == "confirm" else dedup_mod.reject)(con, ra, rb)
+            except ValueError as exc:
+                return dedup_redirect(request, f"Fehler: {exc}")
+        return dedup_redirect(request, "bestätigt" if action == "confirm" else "getrennt")
+
+    @app.post("/dedup/confirm")
+    def dedup_confirm(
+        request: Request, a: Annotated[str, Form()], b: Annotated[str, Form()]
+    ) -> RedirectResponse:
+        return dedup_decision(request, "confirm", a, b)
+
+    @app.post("/dedup/reject")
+    def dedup_reject(
+        request: Request, a: Annotated[str, Form()], b: Annotated[str, Form()]
+    ) -> RedirectResponse:
+        return dedup_decision(request, "reject", a, b)
 
     @app.get("/sources", response_class=HTMLResponse)
     def sources_page(request: Request) -> HTMLResponse:

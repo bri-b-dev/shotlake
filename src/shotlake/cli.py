@@ -12,6 +12,7 @@ import duckdb
 
 from .analytics.distance import club_stats, gapping
 from .analytics.score import PCC_MAX, PCC_MIN, RoundScore, round_scores
+from .analytics.trend import differential_trend
 from .connectors.registry import API_CONNECTORS, CONNECTORS
 from .db import open_db
 from .ingest import sync_location
@@ -45,6 +46,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     rd = sub.add_parser("rounds", help="Runden mit Score, Statistik und Score Differential")
     rd.add_argument("--relevant", action="store_true", help="nur handicap-relevante Runden")
+
+    tr = sub.add_parser("trend", help="Verlauf des Score Differentials (gleitender Durchschnitt)")
+    tr.add_argument("--window", type=int, default=5, help="Fenstergröße in Runden (Standard 5)")
+    tr.add_argument("--relevant", action="store_true", help="nur handicap-relevante Runden")
 
     rs = sub.add_parser("round-set", help="Eingaben zu einer Runde setzen")
     rs.add_argument("round", help="Runden-ID oder Schlüssel")
@@ -171,6 +176,14 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.cmd == "rounds":
             _print_rounds(round_scores(con, only_relevant=args.relevant))
+            return 0
+        if args.cmd == "trend":
+            points = differential_trend(round_scores(con), args.window, args.relevant)
+            print(f"{'Datum':<11}{'Diff':>6} {'Ø' + str(args.window):>6}  Rel")
+            for p in points:
+                avg = "-" if p.moving_avg is None else f"{p.moving_avg:.1f}"
+                mark = "ja" if p.relevant else ""
+                print(f"{p.start_utc:%Y-%m-%d} {p.differential:>6.1f} {avg:>6}  {mark}")
             return 0
         if args.cmd == "round-set":
             return _round_set(con, args)

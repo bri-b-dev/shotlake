@@ -66,10 +66,6 @@ def _need(obj: object, *path: str) -> Any:
     return cur
 
 
-def _opt_float(value: object) -> float | None:
-    return float(value) if isinstance(value, int | float) and not isinstance(value, bool) else None
-
-
 def _opt_int(value: object) -> int | None:
     return value if isinstance(value, int) and not isinstance(value, bool) else None
 
@@ -130,7 +126,6 @@ def parse_round(payload: dict[str, Any]) -> ParsedRound:
         tee_slope=_opt_int(card.get("teeBoxSlope")),
         in_progress=bool(card.get("inProgress")),
         exclude_from_stats=bool(card.get("excludeFromStats")),
-        source_handicap_index=_opt_float(card.get("playerHandicap")),
     )
 
     pars, index = _par_and_index(snap, card.get("teeBox"), card.get("handicapType"))

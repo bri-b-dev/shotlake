@@ -106,7 +106,6 @@ create table if not exists round (
     tee_slope integer,
     in_progress boolean not null,
     exclude_from_stats boolean not null,
-    source_handicap_index double,
     simulated boolean not null default false,
     content_hash varchar not null,
     raw_hash varchar not null,
@@ -197,7 +196,7 @@ def _migrate(con: duckdb.DuckDBPyConnection) -> None:
             "where handicap_relevant is not null"
         )
         con.execute("alter table round drop column handicap_relevant")
-    if "source_handicap_index" not in cols:
-        con.execute("alter table round add column source_handicap_index double")
+    if "source_handicap_index" in cols:  # Handicap-Angaben der Quelle werden nicht übernommen
+        con.execute("alter table round drop column source_handicap_index")
     if "simulated" not in cols:
         con.execute("alter table round add column simulated boolean default false")

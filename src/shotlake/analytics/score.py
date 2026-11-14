@@ -104,11 +104,10 @@ class RoundScore:
     scrambles: int
     scramble_chances: int
     hi: float | None
-    hi_source: str | None  # user | source
     course_hcp: int | None
     net: int | None
     ags: int | None
-    ags_source: str | None  # computed | manual
+    ags_source: str | None  # computed | manual | gross (unbereinigt, ohne Höchstscore)
     pcc: float
     differential: float | None
     reason: str | None  # Grund, falls kein Differential
@@ -175,15 +174,8 @@ def compute_round(
             chances += 1
             scrambles += 1 if h.strokes <= h.par else 0
 
-    user_hi = inputs.get("handicap_index_at_play")
-    src_hi = row.get("source_handicap_index")
-    hi: float | None
-    if isinstance(user_hi, int | float):
-        hi, hi_source = float(user_hi), "user"
-    elif isinstance(src_hi, int | float):
-        hi, hi_source = float(src_hi), "source"
-    else:
-        hi, hi_source = None, None
+    user_hi = inputs.get("handicap_index_at_play")  # nur manuelle Eingabe, nie aus einer Quelle
+    hi = float(user_hi) if isinstance(user_hi, int | float) else None
     pcc_raw = inputs.get("pcc")
     pcc = float(pcc_raw) if isinstance(pcc_raw, int | float) else 0.0
     ags_override = inputs.get("ags_override")
@@ -217,13 +209,17 @@ def compute_round(
             ags_source = "computed"
         if isinstance(ags_override, int):
             ags, ags_source = ags_override, "manual"
-        if ags is None:
-            reason = "AGS nicht ermittelbar (Handicap-Index, Par oder Lochindex fehlen)"
+        if ags is None and not nine and gross is not None:
+            # ohne Handicap-Index kein Höchstscore: unbereinigtes Brutto (für den Verlauf nutzbar)
+            ags, ags_source = gross, "gross"
+        if nine and hi is None:
+            reason = "9-Loch-Formel braucht den Index zum Spielzeitpunkt (round-set --hi)"
+            ags, ags_source = None, None
+        elif ags is None:
+            reason = "AGS nicht ermittelbar (Par oder Lochindex fehlen)"
         elif nine:
-            if hi is None:
-                reason = "Handicap-Index zum Spielzeitpunkt fehlt (9-Loch-Formel)"
-            else:
-                diff = differential_9(ags, rating, slope, hi, pcc)
+            assert hi is not None
+            diff = differential_9(ags, rating, slope, hi, pcc)
         else:
             diff = differential_18(ags, rating, slope, pcc)
 
@@ -253,7 +249,6 @@ def compute_round(
         scrambles=scrambles,
         scramble_chances=chances,
         hi=hi,
-        hi_source=hi_source,
         course_hcp=ch,
         net=net,
         ags=ags,

@@ -11,15 +11,15 @@ Das System SHALL je Runde berechnen: Brutto-Score, Netto-Score, Schläge relativ
 - WHEN eine Quelle FIR nicht liefert
 - THEN ist FIR NULL, nicht 0 %
 
-### Requirement: Handicap-Index zum Spielzeitpunkt als Eingabe
-Eine Runde SHALL ein optionales Feld `handicap_index_at_play` tragen, das aus der Quelle (z. B. `playerHandicap` in Garmin-Scorecards, Handicap-Angaben aus Trackman) übernommen oder manuell eingetragen wird. Shotlake SHALL diesen Wert nur als Eingabe für Course Handicap, 9-Loch-Anteil und Netto-Doppelbogey verwenden und SHALL daraus keinen Index-Verlauf ableiten.
+### Requirement: Handicap-Index zum Spielzeitpunkt nur als manuelle Eingabe
+Eine Runde SHALL ein optionales, **manuell gesetztes** Feld `handicap_index_at_play` tragen. Handicap-Angaben aus Quellen (z. B. `playerHandicap` in Garmin-Scorecards, Trackman-Handicap) SHALL NOT übernommen oder ausgewertet werden. Der Wert dient nur als Eingabe für Course Handicap, Netto-Höchstscore, 9-Loch-Anteil und Netto-Score; Shotlake SHALL daraus keinen Index-Verlauf ableiten.
 
-#### Scenario: Wert aus Quelle
-- WHEN eine Garmin-Scorecard `playerHandicap` liefert
-- THEN wird er als `handicap_index_at_play` mit Quellenangabe gespeichert und bleibt manuell überschreibbar
+#### Scenario: Quelle liefert ein Handicap
+- WHEN eine Garmin-Scorecard `playerHandicap` enthält
+- THEN wird der Wert ignoriert und `handicap_index_at_play` bleibt NULL, bis der Nutzer ihn setzt
 
 ### Requirement: Adjusted Gross Score
-Der AGS SHALL aus Lochscores mit Höchstscore Netto-Doppelbogey (Par + 2 + erhaltene Vorgabeschläge) berechnet werden. Die Vorgabeschläge SHALL aus dem Course Handicap (`HI × Slope / 113 + (Course Rating − Par)`, gerundet) und dem Lochindex abgeleitet werden; dafür sind `handicap_index_at_play`, Rating, Slope, Par und Lochindizes nötig. Fehlt eine dieser Angaben, SHALL der AGS manuell eingebbar sein; ohne AGS ist das Differential nicht berechenbar.
+Der AGS SHALL aus Lochscores mit Höchstscore Netto-Doppelbogey (Par + 2 + erhaltene Vorgabeschläge) berechnet werden. Die Vorgabeschläge SHALL aus dem Course Handicap (`HI × Slope / 113 + (Course Rating − Par)`, gerundet) und dem Lochindex abgeleitet werden; dafür sind `handicap_index_at_play`, Rating, Slope, Par und Lochindizes nötig. Fehlt `handicap_index_at_play`, SHALL bei 18-Loch-Runden das **unbereinigte Brutto** als AGS dienen (Kennzeichnung `ags_source = gross`), damit ein Verlauf möglich bleibt; der AGS SHALL außerdem manuell eingebbar sein. Fehlen Par oder Lochindizes, ist das Differential nicht berechenbar.
 
 #### Scenario: Zu hoher Lochscore
 - WHEN ein Spieler auf einem Par 4 ohne Vorgabeschlag 9 spielt
@@ -28,6 +28,10 @@ Der AGS SHALL aus Lochscores mit Höchstscore Netto-Doppelbogey (Par + 2 + erhal
 #### Scenario: Fehlende Lochscores
 - WHEN für eine Runde Lochscores fehlen und kein manueller AGS vorliegt
 - THEN steht `score_differential` auf NULL mit Grund „AGS nicht ermittelbar"
+
+#### Scenario: Kein Index gesetzt
+- WHEN bei einer 18-Loch-Runde kein `handicap_index_at_play` gesetzt ist
+- THEN wird das Differential aus dem unbereinigten Brutto berechnet und als `gross` gekennzeichnet
 
 ### Requirement: Score Differential
 Das Score Differential SHALL nach der offiziellen Formel `(113 / Slope) × (AGS − Course Rating − PCC)` berechnet und auf eine Dezimalstelle gerundet werden. Course Rating und Slope SHALL aus dem gespielten Tee stammen (z. B. `teeBoxRating`/`teeBoxSlope` bei Garmin). Das PCC ist Default 0 und manuell setzbar (Bereich −1,0 bis +3,0). Runden ohne Rating/Slope SHALL kein Differential erhalten und als solche angezeigt werden. Die abweichende Rechenweise der „handycap"-App (`(AGS − CR) × 113/Slope − PCC`) SHALL NOT übernommen werden.
@@ -71,11 +75,15 @@ Jede Runde SHALL ein Feld `handicap_relevant` (ja/nein) besitzen, das der Nutzer
 - THEN erscheinen ausschließlich Runden mit `handicap_relevant=true`
 
 ### Requirement: Differential-Verlauf
-Das System SHALL Differentials als Zeitreihe bereitstellen (alle Runden, handicap-relevante hervorgehoben) und für Auswertungen aus `analytics-trends` verfügbar machen.
+Das System SHALL Differentials als Zeitreihe bereitstellen (alle Runden, handicap-relevante hervorgehoben) und einen **gleitenden Durchschnitt** über die letzten N Runden mit Differential berechnen (Standard N = 5, konfigurierbar, optional nur handicap-relevante Runden). Vor Erreichen von N Werten SHALL der Durchschnitt NULL sein. Ein Handicap-Index wird daraus nicht abgeleitet. Die Zeitreihe SHALL für Auswertungen aus `analytics-trends` verfügbar sein.
 
 #### Scenario: Verlauf
 - WHEN der Nutzer den Differential-Verlauf öffnet
-- THEN sieht er alle Runden mit Differential, relevante hervorgehoben, nicht berechenbare mit Grund
+- THEN sieht er alle Runden mit Differential, relevante hervorgehoben, nicht berechenbare mit Grund, und den gleitenden Durchschnitt
+
+#### Scenario: Zu wenige Runden
+- WHEN erst 3 Differentials vorliegen und N = 5 gilt
+- THEN ist der gleitende Durchschnitt NULL
 
 ### Requirement: Golden-Tests Differential
 Differential-, AGS-, PCC- und 9-Loch-Berechnung SHALL durch Golden-Tests mit handgerechneten Beispielen abgesichert sein; die Rechenfälle der „handycap"-App SHALL als Vorlage dienen, wobei die PCC-Skalierung bewusst offiziell umgesetzt ist.

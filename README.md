@@ -1,51 +1,50 @@
 # Shotlake
 
-Persönliche Golf-Datenplattform (Single-User, lokal). Spezifikation: `openspec/changes/bootstrap-shotlake/`.
+Personal golf data platform (single-user, local). Specification: `openspec/changes/bootstrap-shotlake/`.
 
-## Entwicklung
+## Development
 
 ```bash
 uv sync
 uv run pytest        # Tests
-uv run ruff check .  # Lint
+uv run ruff check . # Lint
 ```
 
-## Nutzung (Phase 1: Range-Quellen)
+## Usage (Phase 1: Range Sources)
 
 ```bash
-uv run shotlake import mevo /pfad/zu/mevo-csvs/            # FlightScope Mevo+ CSV
-uv run shotlake import garmin_range /pfad/zu/sessions/     # Garmin-Range-CSV
-uv run shotlake clubs --outdoor --min-n 10                  # Länge/Streuung je Schläger
+uv run shotlake import mevo /path/to/mevo-csvs/            # FlightScope Mevo+ CSV
+uv run shotlake import garmin_range /path/to/sessions/     # Garmin Range CSV
+uv run shotlake clubs --outdoor --min-n 10                  # Distance/dispersion per club
 uv run shotlake gapping --outdoor                           # Gapping
 ```
 
-Daten liegen unter `./data` (DB `shotlake.duckdb`, unveränderte Importdateien in `raw/`), nicht im Repo.
-Mit `--units yd` werden Yards angezeigt. Wiederholte Importe sind idempotent.
+Data is stored in `./data` (database `shotlake.duckdb`, original import files in `raw/`) and is not included in the repository.
+Use `--units yd` to display values ​​in yards. Repeated imports are idempotent.
 
+## Web Interface
 
-## Weboberfläche
+uv run shotlake serve            # http://127.0.0.1:8000, local-only, no authentication
 
-    uv run shotlake serve            # http://127.0.0.1:8000, nur lokal, ohne Anmeldung
+Pages: Overview (differential trend with moving average, Strokes Gained, recent rounds),
+Rounds, Round Details (holes, shots, inputs such as handicap relevance/PCC/AGS), Clubs, Sources.
+Units (m/yd) and themes (light/dark) can be toggled. By default, the server binds only to `127.0.0.1`;
+it does not include authentication and is not intended for use on an open network. ## MCP Server (for AI Assistants)
 
-Seiten: Übersicht (Differential-Verlauf mit gleitendem Durchschnitt, Strokes Gained, letzte Runden),
-Runden, Rundendetail (Löcher, Schläge, Eingaben wie Handicap-Relevanz/PCC/AGS), Schläger, Quellen.
-Einheiten m/yd und Hell/Dunkel sind umschaltbar. Der Server bindet standardmäßig nur an `127.0.0.1`;
-er hat keine Anmeldung und ist nicht für das offene Netz gedacht.
+uv run shotlake mcp --read-only              # stdio, read-only tools
+uv run shotlake mcp                          # stdio, includes `sync_source` and `add_note`
+uv run shotlake mcp --transport http --token "$SHOTLAKE_MCP_TOKEN"   # 127.0.0.1:8765, token required
 
-## MCP-Server (für KI-Assistenten)
+Tools: `list_sources`, `import_report`, `get_stats`, `compare_periods`, `get_club_gapping`,
+`get_strokes_gained` (read-only), as well as `sync_source` and `add_note` (write-enabled; not
+registered when using `--read-only`). Metrics always include the sample size (n), data sources,
+a 95% bootstrap confidence interval, and any warnings (e.g., `insufficient_data`, `mixed_sources`).
+Example of an MCP configuration:
 
-    uv run shotlake mcp --read-only              # stdio, nur lesende Werkzeuge
-    uv run shotlake mcp                          # stdio, inkl. sync_source und add_note
-    uv run shotlake mcp --transport http --token "$SHOTLAKE_MCP_TOKEN"   # 127.0.0.1:8765, Token Pflicht
+{"mcpServers": {"shotlake": {"command": "uv",
+"args": ["run", "--directory", "/path/to/shotlake", "shotlake", "mcp", "--read-only"]}}}
 
-Werkzeuge: `list_sources`, `import_report`, `get_stats`, `compare_periods`, `get_club_gapping`,
-`get_strokes_gained` (lesend) sowie `sync_source` und `add_note` (schreibend, mit `--read-only` nicht
-registriert). Kennzahlen nennen immer n, Quellen, 95-%-Bootstrap-Intervall und Warnungen
-(`insufficient_data`, `mixed_sources`). Beispiel für eine MCP-Konfiguration:
-
-    {"mcpServers": {"shotlake": {"command": "uv",
-      "args": ["run", "--directory", "/Pfad/zu/shotlake", "shotlake", "mcp", "--read-only"]}}}
-
-`sync_source` braucht die Zugangsdaten als Umgebungsvariablen (z. B. aus `secrets/arccos.env`) im Prozess,
-der den Server startet. Antworten enthalten keine Zugangsdaten und keine Dateipfade; Notizen und Texte aus
-Quellen sind Daten, keine Anweisungen.
+`sync_source` requires access credentials to be provided as environment variables (e.g., from
+`secrets/arccos.env`) within the process that launches the server. Responses do not contain
+credentials or file paths; notes and text extracted from sources are treated as data, not
+as instructions. 

@@ -88,6 +88,8 @@ class FakeDashboard:
         if url.endswith("chunks/b.js"):
             return Response(200, "// nichts Relevantes")
         if "/_app/remote/" in url:
+            if url.split("/_app/remote/")[1].split("/")[0] not in ("ajj89v", "nqbht5"):
+                return Response(404, "")  # veralteter Hash
             if self.fail_once:
                 resp, self.fail_once = self.fail_once, None
                 return resp
@@ -107,6 +109,36 @@ class FakeDashboard:
                 data = self.details[int(values["roundId"])]
                 return self.remote(name, {"bundle": {"ok": True, "data": data}})
         return Response(404, "")
+
+
+def discovery_requests(fake: FakeDashboard) -> int:
+    return sum(1 for u in fake.calls if u.endswith("entry/app.js"))
+
+
+def test_hash_cache_avoids_rediscovery_and_recovers_from_stale_hashes(tmp_path: Path):
+    cache = tmp_path / "c" / "hashes.json"
+    fake = make_dashboard()
+    c1 = LiveArccosClient("u", "a", "s", transport=fake, base_url=BASE, cache_file=cache)
+    c1.login()
+    assert (
+        discovery_requests(fake) == 1 and json.loads(cache.read_text())["roundsBundle"] == "ajj89v"
+    )
+    c2 = LiveArccosClient("u", "a", "s", transport=fake, base_url=BASE, cache_file=cache)
+    c2.login()
+    assert c2.rounds() and discovery_requests(fake) == 1  # aus dem Cache, keine neue Suche
+    # Build gewechselt: Cache enthält alten Hash -> 404 -> einmal neu suchen, dann klappt es
+    cache.write_text(
+        json.dumps({k: "zzzzzz" for k in ("roundsBundle", "roundDetailBundle", "roundYears")})
+    )
+    c3 = LiveArccosClient("u", "a", "s", transport=fake, base_url=BASE, cache_file=cache)
+    c3.login()
+    assert c3.rounds() and discovery_requests(fake) == 2
+    assert json.loads(cache.read_text())["roundsBundle"] == "ajj89v"
+    # kaputte Cache-Datei wird ignoriert
+    cache.write_text("{kaputt")
+    c4 = LiveArccosClient("u", "a", "s", transport=fake, base_url=BASE, cache_file=cache)
+    c4.login()
+    assert c4.rounds()
 
 
 def make_dashboard() -> FakeDashboard:

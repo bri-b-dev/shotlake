@@ -203,12 +203,12 @@ def _tee_set(con: duckdb.DuckDBPyConnection, args: argparse.Namespace) -> int:
     return 0
 
 
-def _arccos_check() -> int:
+def _arccos_check(cache_dir: Path) -> int:
     """Kontrollierter Erstkontakt: Login, Hash-Suche, Jahre, Rundenzahl. Speichert nichts."""
     from .connectors.api import AuthError, TransientError
     from .connectors.errors import SchemaDriftError
 
-    connector = ArccosConnector()
+    connector = ArccosConnector(cache_dir=cache_dir)
     steps = [("Login und Funktions-Hashes", connector.authenticate)]
     try:
         for label, step in steps:
@@ -328,13 +328,15 @@ def main(argv: list[str] | None = None) -> int:
         if args.cmd == "tee-set":
             return _tee_set(con, args)
         if args.cmd == "arccos-check":
-            return _arccos_check()
+            return _arccos_check(data / "cache")
         if args.cmd == "reprocess":
             rep = reprocess_raw(con, API_CONNECTORS[args.source]())
             print(rep.as_text())
             return 0 if rep.status == "ok" else 2
         if args.cmd == "sync":
             connector = API_CONNECTORS[args.source]()
+            if isinstance(connector, ArccosConnector):
+                connector.cache_dir = data / "cache"
             if args.har is not None:
                 if not isinstance(connector, ArccosConnector):
                     print("--har gilt nur für arccos", file=sys.stderr)

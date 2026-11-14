@@ -22,6 +22,7 @@ import urllib.request
 from collections import deque
 from dataclasses import dataclass, field
 from http.cookiejar import CookieJar
+from pathlib import Path
 from typing import Any, Protocol
 
 from ..devalue import DevalueError, encode_remote_arg
@@ -30,6 +31,7 @@ from .api import AuthError, RateLimitedError, TransientError
 from .errors import SchemaDriftError
 
 BASE_URL = "https://dashboard.arccosgolf.com"
+FUNCTIONS = ("roundsBundle", "roundDetailBundle", "roundYears")
 GOAL_HCP = -20  # Wert, den das Dashboard in allen Aufrufen sendet (Bedeutung ungeklärt)
 ROUNDS_LIMIT = 50
 MAX_JS_FILES = 400
@@ -130,7 +132,9 @@ class LiveArccosClient:
     secret: str
     transport: Transport = field(default_factory=UrllibTransport)
     base_url: str = BASE_URL
+    cache_file: Path | None = None  # Funktions-Hashes zwischenspeichern (kein Geheimnis)
     _hashes: dict[str, str] = field(default_factory=dict, repr=False)
+    _from_cache: bool = field(default=False, repr=False)
 
     def __repr__(self) -> str:  # Zugangsdaten nie in Reprs
         return f"LiveArccosClient(base_url={self.base_url!r})"
@@ -143,11 +147,38 @@ class LiveArccosClient:
         if resp.status in (401, 403, 404) or "/login" in resp.headers.get("x-final-url", ""):
             raise AuthError("Anmeldung mit gespeicherten Zugangsdaten abgelehnt (neu einloggen)")
         _raise_for_status(resp)
-        self._hashes = discover_remote_hashes(
-            self.transport, self.base_url, {"roundsBundle", "roundDetailBundle", "roundYears"}
-        )
+        self._hashes, self._from_cache = self._cached_hashes(), True
+        if not self._hashes:
+            self._discover()
+
+    def _discover(self) -> None:
+        self._hashes = discover_remote_hashes(self.transport, self.base_url, set(FUNCTIONS))
+        self._from_cache = False
+        if self.cache_file is not None:
+            self.cache_file.parent.mkdir(parents=True, exist_ok=True)
+            self.cache_file.write_text(json.dumps(self._hashes))
+
+    def _cached_hashes(self) -> dict[str, str]:
+        if self.cache_file is None or not self.cache_file.exists():
+            return {}
+        try:
+            cached = json.loads(self.cache_file.read_text())
+        except (OSError, ValueError):
+            return {}
+        ok = isinstance(cached, dict) and set(FUNCTIONS) <= set(cached)
+        return {k: str(v) for k, v in cached.items()} if ok else {}
 
     def _call(self, name: str, args: dict[str, str | int | float | bool | None]) -> Any:
+        try:
+            return self._call_once(name, args)
+        except SchemaDriftError:
+            if not self._from_cache:
+                raise
+            # zwischengespeicherter Hash veraltet (neuer Build): einmal neu suchen und wiederholen
+            self._discover()
+            return self._call_once(name, args)
+
+    def _call_once(self, name: str, args: dict[str, str | int | float | bool | None]) -> Any:
         if not self._hashes:
             raise AuthError("Nicht angemeldet (login() zuerst)")
         payload = encode_remote_arg(args)

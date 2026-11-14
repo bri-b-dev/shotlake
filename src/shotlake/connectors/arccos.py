@@ -234,6 +234,7 @@ def decode_payload_argument(payload: str) -> Any:
 @dataclass
 class ArccosConnector(ApiConnector):
     client: ArccosClient | None = None
+    cache_dir: Path | None = None  # Ablage für zwischengespeicherte Funktions-Hashes
 
     id: ClassVar[str] = "arccos"
     risk: ClassVar[str] = "unofficial_tos_risk"  # type: ignore[assignment]
@@ -253,6 +254,7 @@ class ArccosConnector(ApiConnector):
                 user_id=load_secret("arccos", "user_id", sops),
                 access_key=load_secret("arccos", "access_key", sops),
                 secret=load_secret("arccos", "secret", sops),
+                cache_file=self.cache_dir / "arccos_hashes.json" if self.cache_dir else None,
             )
         login = getattr(self.client, "login", None)
         if callable(login):

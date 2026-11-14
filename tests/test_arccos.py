@@ -268,10 +268,13 @@ def test_missing_detail_is_reported_and_cursor_held_back(tmp_path: Path):
     assert get_cursor(con, "arccos") is None  # Cursor bleibt stehen, damit nichts verloren geht
 
 
-def test_no_client_reports_auth_error(tmp_path: Path):
+def test_no_client_reports_auth_error(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    for var in ("ACCESS_KEY", "SECRET", "USER_ID"):
+        monkeypatch.delenv(f"SHOTLAKE_ARCCOS_{var}", raising=False)
+    monkeypatch.setenv("SHOTLAKE_SOPS_FILE", str(tmp_path / "nix.json"))
     con = open_db(tmp_path / "t.duckdb")
     rep = sync_api(con, ArccosConnector(sleep=lambda _s: None), None)
-    assert rep.status == "error" and "HAR" in rep.errors[0]
+    assert rep.status == "error" and "Zugangsdaten" in rep.errors[0]
 
 
 def test_sg_uses_recorded_putts_of_arccos_round(tmp_path: Path):

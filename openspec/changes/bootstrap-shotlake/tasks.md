@@ -28,7 +28,7 @@ Vorab ausgewertet: `phase0-findings.md` (aus `../analytics-platform`, `../arccos
 ## Phase 2 – Platzquellen, Dedup, Score/Handicap
 - [ ] 2.1 Garmin, Arccos, BeBrassie (oder Fallback)
 - [ ] 2.2 Course-Stammdaten (Rating/Slope/Tees)
-- [ ] 2.3 Dedup-Matching + manuelle Korrektur
+- [ ] 2.3 Dedup-Matching + manuelle Korrektur (zurückgestellt 2026-11-14: erst mit BeBrassie und Trackman, dann Garmin/Arccos/BeBrassie/Trackman gemeinsam; Garmin- und Arccos-Runden liegen bis dahin getrennt vor)
 - [ ] 2.4 Score, FIR/GIR/Scrambling/Putts, AGS und Score Differential (offizielle PCC-Skalierung, 9-Loch-Formel) mit Golden-Tests; Handicap-Relevanz-Kennzeichen (Vorschlag + Nutzerentscheidung); kein Handicap-Index
 
 ## Phase 3 – Strokes Gained

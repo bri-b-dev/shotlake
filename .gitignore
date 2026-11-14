@@ -1,5 +1,6 @@
 # Rohmitschnitte und Secrets nie committen (HAR enthält User-IDs, Tokens, Standortdaten)
 *.har
+secrets/
 .env
 .env.*
 !.env.template

@@ -102,6 +102,9 @@ def build_parser() -> argparse.ArgumentParser:
     ts.add_argument("--rating", type=float, required=True)
     ts.add_argument("--slope", type=int, required=True)
 
+    sub.add_parser(
+        "arccos-check", help="Arccos-Live-Zugang prüfen (nur Zählwerte, nichts speichern)"
+    )
     sub.add_parser("sources", help="Verfügbare Quellen und Risiko anzeigen")
 
     for name in ("clubs", "gapping"):
@@ -200,6 +203,35 @@ def _tee_set(con: duckdb.DuckDBPyConnection, args: argparse.Namespace) -> int:
     return 0
 
 
+def _arccos_check() -> int:
+    """Kontrollierter Erstkontakt: Login, Hash-Suche, Jahre, Rundenzahl. Speichert nichts."""
+    from .connectors.api import AuthError, TransientError
+    from .connectors.errors import SchemaDriftError
+
+    connector = ArccosConnector()
+    steps = [("Login und Funktions-Hashes", connector.authenticate)]
+    try:
+        for label, step in steps:
+            step()
+            print(f"OK   {label}")
+        client = connector.client
+        assert client is not None
+        rows = client.rounds()
+        ended = sum(1 for r in rows if r.get("ended"))
+        years = sorted({str(r.get("startTime"))[:4] for r in rows})
+        print(f"OK   Rundenliste: {len(rows)} Runden ({ended} beendet), Jahre {', '.join(years)}")
+        if rows:
+            detail = client.round_detail(int(rows[0]["roundId"]))
+            shots = sum(
+                len(h.get("shots", [])) for h in (detail or {}).get("round", {}).get("holes", [])
+            )
+            print(f"OK   Detail der neuesten Runde: {shots} Schläge")
+    except (AuthError, TransientError, SchemaDriftError) as exc:
+        print(f"FEHLER {type(exc).__name__}: {exc}", file=sys.stderr)
+        return 2
+    return 0
+
+
 def _print_sg(con: duckdb.DuckDBPyConnection, args: argparse.Namespace) -> None:
     base = load_baseline(args.baseline)
     res = strokes_gained(con, base, since=args.since, until=args.until, round_ref=args.round_ref)
@@ -295,6 +327,8 @@ def main(argv: list[str] | None = None) -> int:
             return _round_set(con, args)
         if args.cmd == "tee-set":
             return _tee_set(con, args)
+        if args.cmd == "arccos-check":
+            return _arccos_check()
         if args.cmd == "reprocess":
             rep = reprocess_raw(con, API_CONNECTORS[args.source]())
             print(rep.as_text())

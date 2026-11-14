@@ -86,3 +86,18 @@ def parse(data: str | list[Any]) -> Any:
         return result
 
     return hydrate(0)
+
+
+def encode_remote_arg(args: dict[str, str | int | float | bool | None]) -> str:
+    """Argument-Objekt einer Remote-Function als URL-Payload (base64url ohne Padding).
+
+    Format wie im Dashboard: `[["__skrao",1],{"<Schlüssel>":<Index>,...},<Werte>...]`, Schlüssel
+    alphabetisch sortiert, Werte in derselben Reihenfolge angehängt.
+    """
+    import base64
+
+    keys = sorted(args)
+    mapping = {key: 2 + i for i, key in enumerate(keys)}
+    values: list[Any] = [["__skrao", 1], mapping, *(args[key] for key in keys)]
+    raw = json.dumps(values, separators=(",", ":"), ensure_ascii=False)
+    return base64.urlsafe_b64encode(raw.encode()).decode().rstrip("=")

@@ -23,10 +23,11 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, ClassVar, Protocol
 
+from ..config import default_sops_file
 from ..devalue import DevalueError
 from ..devalue import parse as devalue_parse
 from ..model import CourseRecord, CourseShotRecord, HoleRecord, ParsedRound, TeeRecord
-from .api import ApiConnector, AuthError, FetchPage, RawRecord
+from .api import ApiConnector, FetchPage, RawRecord, load_secret
 from .errors import SchemaDriftError
 
 YD = 0.9144
@@ -243,8 +244,19 @@ class ArccosConnector(ApiConnector):
     )
 
     def authenticate(self) -> None:
+        """Ohne Client: Live-Zugang mit Zugangsdaten aus Umgebung/sops (siehe `arccos_live`)."""
         if self.client is None:
-            raise AuthError("Kein Arccos-Zugang: HAR-Export angeben (sync arccos --har DATEI)")
+            from .arccos_live import LiveArccosClient
+
+            sops = default_sops_file()
+            self.client = LiveArccosClient(
+                user_id=load_secret("arccos", "user_id", sops),
+                access_key=load_secret("arccos", "access_key", sops),
+                secret=load_secret("arccos", "secret", sops),
+            )
+        login = getattr(self.client, "login", None)
+        if callable(login):
+            login()
 
     def fetch(self, cursor: str | None) -> Iterator[FetchPage]:
         assert self.client is not None, "authenticate() zuerst aufrufen"

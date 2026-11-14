@@ -17,6 +17,10 @@ HEADER = (
 )
 
 
+def default_sops_file() -> Path:
+    return Path(os.environ.get("SHOTLAKE_SOPS_FILE", "secrets/shotlake.sops.json"))
+
+
 def default_club_map_path() -> Path:
     return Path(os.environ.get("SHOTLAKE_CLUB_MAP", "config/club_map.toml"))
 

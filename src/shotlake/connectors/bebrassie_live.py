@@ -95,7 +95,7 @@ class BeBrassieClient:
         *,
         soft_client_errors: bool = False,
     ) -> Any:
-        """GET mit JSON-Antwort. `soft_client_errors`: 4xx (außer Auth/Rate-Limit) -> (None, ...)."""
+        """GET mit JSON-Antwort; `soft_client_errors`: 4xx (außer Auth/Rate-Limit) -> None."""
         if not self._logged_in:
             raise AuthError("Nicht angemeldet (login() zuerst)")
         url = f"{self.base_url}/{path.lstrip('/')}"

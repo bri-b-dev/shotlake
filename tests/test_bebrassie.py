@@ -28,11 +28,15 @@ def pt(d_south_m: float = 0.0) -> dict[str, Any]:
     return {"type": "Point", "coordinates": [LON, LAT - d_south_m / M_PER_DEG]}
 
 
+SHORTCUTS = {"Driver": "D1", "Eisen 7": "I7", "Eisen 8": "I8", "Putter": "Putter"}
+
+
 def shot(hole_id: str, number: int, club: str, frm: str, to: str, d_from: float, d_to: float):
     return {
         "_id": f"s{hole_id}{number}", "courseHole": hole_id, "number": number,
         "calculatedDistance": abs(d_from - d_to),
-        "club": {"_id": "c1", "clubName": club, "clubShortcut": club[:2], "clubType": "x"},
+        "club": {"_id": "c1", "clubName": f"Modell {club}", "clubShortcut": SHORTCUTS[club],
+                 "clubType": "x"},
         "location": pt(d_from), "destination": pt(d_to), "remainingDistance": d_to,
         "shotFrom": frm, "shotTo": to,
         "shotType": "putt" if club == "Putter" else ("teeShot" if frm == "Tee" else "shotToGreen"),
@@ -93,8 +97,11 @@ def test_parse_round_maps_course_tee_holes_and_shots():
     assert len(r.shots) == 6
     first = r.shots[0]
     assert (first.start_lie, first.end_lie, first.shot_type) == ("tee", "fairway", "TEE")
-    assert first.club_raw == "Driver" and first.club_type == "driver"
-    assert r.shots[1].club_type == "iron_7" and r.shots[2].club_type == "putter"
+    # club_raw ist das Bag-Kürzel (nicht das Modell); die Zuordnung auf Typen läuft über club_map
+    assert (
+        first.club_raw == "D1" and r.shots[1].club_raw == "I7" and r.shots[2].club_raw == "Putter"
+    )
+    assert first.club_type is None
     assert first.distance_m == pytest.approx(200.0) and first.shot_source == "BEBRASSIE"
     assert first.start_lat == pytest.approx(LAT - 300 / M_PER_DEG)
     assert r.warnings == []
@@ -174,12 +181,12 @@ def test_water_penalty_becomes_a_penalty_stroke_and_the_shot_ends_at_the_drop():
     assert r.warnings == []  # `water` ist ein bekannter Wert
 
 
-def test_out_of_bounds_returns_to_the_tee():
+def test_penalty_back_to_the_tee_ends_the_shot_at_the_tee():
     r = parse_round(with_penalty("roughout", "tee", 300))
     tee = next(s for s in r.shots if s.hole_number == 1)
     assert tee.end_lie == "tee" and tee.end_lat == pytest.approx(LAT - 300 / M_PER_DEG)
     assert r.holes[0].penalties == 1 and r.warnings == []
-    assert r.holes[0].fairway_outcome == "miss"  # Abschlag ins Aus: nicht auf dem Fairway
+    assert r.holes[0].fairway_outcome == "miss"  # Abschlag nicht auf dem Fairway
 
 
 def test_sg_counts_penalty_stroke_and_ends_shot_at_drop(tmp_path: Path):
@@ -376,3 +383,24 @@ def test_rounds_and_sg_work_with_bebrassie_data(tmp_path: Path):
     assert score.part is None  # 2 Löcher: weder 9 noch 18, kein Differential
     res = strokes_gained(con, BASELINE, source="bebrassie")
     assert len(res.holes) == 2 and all(h.reason is not None for h in res.holes if not h.complete)
+
+
+def test_reprocess_removes_shots_the_parser_no_longer_produces(tmp_path: Path):
+    con = open_db(tmp_path / "t.duckdb")
+    d = with_penalty("water", "rough", 120)
+    sync_api(con, connector(FakeClient([item("r1", d["startedAt"])], {"r1": d})), tmp_path / "raw")
+    assert con.execute("select count(*) from course_shot").fetchone() == (
+        6,
+    )  # 7 Einträge, der Strafschlag zählt nicht als Schlag
+    # Altlast aus einem früheren Parserstand: Strafschlag-Zeile als eigener Schlag
+    con.execute(
+        "insert into course_shot (shot_id, round_id, hole_number, shot_order, exclude_from_stats, "
+        "content_hash, raw_hash, import_run_id) values "
+        "('bebrassie|r1|1|9', 'bebrassie|r1', 1, 9, false, 'alt', 'r', 'i')"
+    )
+    from shotlake.ingest_api import reprocess_raw
+
+    rep = reprocess_raw(con, connector(None))
+    assert rep.status == "ok"
+    ids = {r[0] for r in con.execute("select shot_id from course_shot").fetchall()}
+    assert "bebrassie|r1|1|9" not in ids and len(ids) == 6

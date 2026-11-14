@@ -138,6 +138,17 @@ def write_round(
             else:
                 rep.rounds_new += 1
 
+        # Schläge, die die Quelle (oder ein korrigierter Parser) nicht mehr liefert, entfernen
+        current = [f"{rid}|{s.hole_number}|{s.shot_order}" for s in parsed.shots]
+        stale = [
+            r[0]
+            for r in con.execute(
+                "select shot_id from course_shot where round_id = ?", [rid]
+            ).fetchall()
+            if r[0] not in set(current)
+        ]
+        for shot_id in stale:
+            con.execute("delete from course_shot where shot_id = ?", [shot_id])
         for s in parsed.shots:
             shot_id = f"{rid}|{s.hole_number}|{s.shot_order}"
             sh = s.content_hash()

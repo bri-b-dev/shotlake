@@ -10,8 +10,9 @@ Aus den echten Daten (18 Runden, 115 Löcher mit Detail) bestätigt:
 - Putts sind Schläge (`shotType = putt`, Start auf dem Grün); die Zahl der Schläge je Loch
   entspricht immer `numShots`. `number` zählt je Loch ab 0.
 - Strafschläge stehen als eigener Schlag (`penalty`). Sie werden nicht als Schlag gespeichert,
-  sondern als Strafschlag des Lochs; der Schlag davor endet am Droppunkt. `roughout` ist Aus
-  (Strafschlag, Rückkehr zum Tee), `water` ein Hindernis.
+  sondern als Strafschlag des Lochs; der Schlag davor endet am Droppunkt (z. B. nach Wasser).
+- Die Lage `roughout` kommt als Start und als Ziel vor (man spielt daraus weiter); ihre Bedeutung
+  ist offen, sie wird wie `water` zu `other` und macht betroffene Löcher für SG unvollständig.
 - Rating/Slope 0 bedeutet „nicht gepflegt" und ist kein Wert.
 - Die Wertung (Damen/Herren) folgt `proPlayerType` bzw. dem Schlüssel in `strokesGained`
   (z. B. WOMEN18); ohne Angabe gibt es kein Rating (nicht geraten).
@@ -34,9 +35,8 @@ from ..model import CourseRecord, CourseShotRecord, HoleRecord, ParsedRound, Tee
 from .api import ApiConnector, AuthError, FetchPage, RawRecord, load_secret
 from .errors import SchemaDriftError
 
-# Lagen (aus den echten Daten abgelesen). `roughout` ist Aus (nach dem Schlag folgt ein Strafschlag
-# mit Rückkehr zum Tee), `water` ein Hindernis; beide sind für Strokes Gained keine Ausgangslage
-# und werden zu `other`. `hole` ist das Einlochen (nur als Ziel eines Schlags).
+# Lagen (aus den echten Daten abgelesen). `water` (Hindernis) und `roughout` (Bedeutung offen)
+# haben keine Baseline-Tabelle und werden zu `other`. `hole` ist das Einlochen (nur als Ziel).
 LIE = {
     "tee": "tee", "teebox": "tee", "fairway": "fairway", "rough": "rough",
     "bunker": "sand", "sand": "sand", "green": "green", "hole": "hole",
@@ -265,7 +265,8 @@ def parse_round(data: dict[str, Any]) -> ParsedRound:
         )
         for order, (s_raw, drop) in enumerate(real, start=1):
             club_info = _dict(s_raw.get("club"))
-            club_raw = club_info.get("clubName") or club_info.get("clubShortcut")
+            # `clubShortcut` ist die Position im Bag (D1, I7, 56°), `clubName` nur das Modell
+            club_raw = club_info.get("clubShortcut") or club_info.get("clubName")
             a = _lonlat(s_raw.get("location"))
             end_src = drop if drop is not None else s_raw
             b = _lonlat(end_src.get("destination"))
@@ -276,7 +277,7 @@ def parse_round(data: dict[str, Any]) -> ParsedRound:
                     hole_number=number,
                     shot_order=order,
                     club_raw=str(club_raw) if club_raw else None,
-                    club_type=canonical_club(str(club_raw)) if club_raw else None,
+                    club_type=canonical_club(str(club_raw)) if club_raw else None,  # sonst club_map
                     shot_type=_shot_type(s_raw.get("shotType"), unknown),
                     shot_source="BEBRASSIE",
                     distance_m=_num(s_raw.get("calculatedDistance")),

@@ -125,6 +125,24 @@ def test_garbled_responses_are_drift():
         c.show_round("r1")
 
 
+def test_client_errors_on_show_round_mean_no_detail_but_auth_errors_still_raise():
+    api = FakeApi(rounds(1), {})
+    c = client(api)
+    c.login()
+    api.fail_next = Response(400, "Bad Request")
+    assert c.show_round("score-only-runde") is None  # kein Abbruch des Syncs
+    api.fail_next = Response(404, "")
+    assert c.show_round("x") is None
+    for status, error in ((401, AuthError), (429, RateLimitedError), (503, TransientError)):
+        api.fail_next = Response(status, "", {"retry-after": "3"})
+        with pytest.raises(error):
+            c.show_round("x")
+    # die Rundenliste bleibt strikt: 400 dort ist ein echter Fehler
+    api.fail_next = Response(400, "")
+    with pytest.raises(SchemaDriftError):
+        c.list_rounds()
+
+
 def test_empty_list_terminates():
     api = FakeApi([], {})
     c = client(api)

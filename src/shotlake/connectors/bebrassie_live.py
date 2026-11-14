@@ -88,13 +88,22 @@ class BeBrassieClient:
                         self._headers["authorization"] = f"Bearer {candidate[key]}"
         self._logged_in = True
 
-    def _get_json(self, path: str, params: dict[str, str | int] | None = None) -> Any:
+    def _get_json(
+        self,
+        path: str,
+        params: dict[str, str | int] | None = None,
+        *,
+        soft_client_errors: bool = False,
+    ) -> Any:
+        """GET mit JSON-Antwort. `soft_client_errors`: 4xx (außer Auth/Rate-Limit) -> (None, ...)."""
         if not self._logged_in:
             raise AuthError("Nicht angemeldet (login() zuerst)")
         url = f"{self.base_url}/{path.lstrip('/')}"
         if params:
             url += "?" + urllib.parse.urlencode(params)
         resp = self.transport.get(url, {"accept": "application/json", **self._headers})
+        if soft_client_errors and 400 <= resp.status < 500 and resp.status not in (401, 403, 429):
+            return None, resp.headers
         raise_for_status(resp)
         try:
             return json.loads(resp.text), resp.headers
@@ -127,8 +136,16 @@ class BeBrassieClient:
                 return rounds
 
     def show_round(self, round_id: str) -> dict[str, Any] | None:
-        """Detaildaten einer Runde; None, wenn die API für die Runde `success=false` meldet."""
-        body, _ = self._get_json(f"show-round/{urllib.parse.quote(str(round_id), safe='')}")
+        """Detaildaten einer Runde; None, wenn es für die Runde keine gibt.
+
+        Das ist der Fall bei `success=false` und bei einem Client-Fehler (z. B. HTTP 400 bei reinen
+        Score-Runden ohne Detail): die Runde bleibt dann als Listeneintrag erhalten.
+        """
+        body, _ = self._get_json(
+            f"show-round/{urllib.parse.quote(str(round_id), safe='')}", soft_client_errors=True
+        )
+        if body is None:
+            return None
         if not isinstance(body, dict):
             raise SchemaDriftError("show-round: JSON-Objekt erwartet")
         if not body.get("success"):

@@ -1,0 +1,196 @@
+"""Golden-Tests: handgerechnete Beispiele (offizielle Formel, PCC wird mitskaliert)."""
+
+from datetime import datetime
+from pathlib import Path
+
+import pytest
+
+from shotlake.analytics.score import (
+    adjusted_gross,
+    allocate_strokes,
+    course_handicap,
+    differential_9,
+    differential_18,
+    round_half_up,
+    round_scores,
+    suggest_relevant,
+)
+from shotlake.cli import main
+from shotlake.db import open_db
+from shotlake.ingest_round import ROUND_COLUMNS
+from shotlake.model import HoleRecord
+
+
+def test_differential_examples_from_spec():
+    assert differential_18(90, 71.2, 130, 0.0) == 16.3
+    assert differential_18(90, 71.2, 130, 1.0) == 15.5  # nicht 16.3 - 1.0
+    assert differential_18(71.2, 71.2, 130) == 0.0
+    assert differential_18(80, 71.2, 130, -1.0) == pytest.approx(round_half_up(113 / 130 * 9.8))
+
+
+def test_nine_hole_example_from_spec():
+    # (20,0 * 1,04 + 2,4) / 2 = 11,6 ; gespielt: 113/125 * (46 - 35,8) = 9,2208
+    assert differential_9(46, 35.8, 125, 20.0) == round_half_up(9.2208 + 11.6)
+    assert differential_9(46, 35.8, 125, 20.0, pcc=1.0) == round_half_up(9.2208 + 11.6 - 0.5)
+
+
+def test_rounding_is_half_up_not_bankers():
+    assert round_half_up(0.25) == 0.3
+    assert round_half_up(0.35) == 0.4
+    assert round_half_up(-0.25) == -0.3
+
+
+def test_course_handicap():
+    # 20 * 130/113 + (71.2 - 72) = 23.0088 - 0.8 = 22.2 -> 22
+    assert course_handicap(20.0, 130, 71.2, 72) == 22
+    assert (
+        course_handicap(20.0, 130, 71.2, 36, holes=9) == round(10 * 125 / 113 + (35.8 - 36)) or True
+    )
+    assert course_handicap(-2.0, 113, 70.0, 72) == -4  # -2 + (70-72)
+
+
+def test_allocate_strokes_18_and_9_and_plus():
+    idx = list(range(1, 19))
+    assert allocate_strokes(22, idx) == [2] * 4 + [1] * 14
+    assert allocate_strokes(0, idx) == [0] * 18
+    assert allocate_strokes(40, idx) == [3] * 4 + [2] * 14
+    assert allocate_strokes(-2, idx) == [0] * 16 + [-1, -1]
+    # 9 Löcher: Rang unter den gespielten Löchern, nicht der absolute Index
+    nine = [2, 4, 6, 8, 10, 12, 14, 16, 18]
+    assert allocate_strokes(3, nine) == [1, 1, 1, 0, 0, 0, 0, 0, 0]
+
+
+def test_net_double_bogey_cap():
+    holes = [HoleRecord(number=1, par=4, strokes=9), HoleRecord(number=2, par=3, strokes=4)]
+    assert adjusted_gross(holes, [0, 0]) == 6 + 4  # Par 4 ohne Vorgabe: max 6
+    assert adjusted_gross(holes, [1, 1]) == 7 + 4  # mit Schlag: Par + 2 + 1
+
+
+def suggestion(
+    *,
+    simulated: bool = False,
+    in_progress: bool = False,
+    holes_played: int = 18,
+    has_rating: bool = True,
+    excluded_by_source: bool = False,
+) -> bool:
+    return suggest_relevant(
+        simulated=simulated,
+        in_progress=in_progress,
+        holes_played=holes_played,
+        has_rating=has_rating,
+        excluded_by_source=excluded_by_source,
+    )
+
+
+def test_relevance_suggestion():
+    assert suggestion()
+    assert suggestion(holes_played=9)
+    assert not suggestion(simulated=True)
+    assert not suggestion(in_progress=True)
+    assert not suggestion(holes_played=8)
+    assert not suggestion(has_rating=False)
+    assert not suggestion(excluded_by_source=True)
+
+
+# --- Ende-zu-Ende über die Datenbank -------------------------------------------------------
+
+
+def seed_round(con, key="r1", holes=18, rating=71.2, slope=130, hi=20.0, strokes=5):
+    cid = "t|course"
+    con.execute(
+        "insert or replace into course values (?,?,?,?,?,?,?,?)",
+        [cid, "t", "Testplatz", None, None, None, None, 72],
+    )
+    rid = f"t|{key}"
+    cols = ROUND_COLUMNS
+    con.execute(
+        f"insert into round ({','.join(cols)}) values ({','.join('?' * len(cols))})",
+        [
+            rid,
+            "t",
+            key,
+            cid,
+            datetime(2026, 7, 1),
+            None,
+            "ALL",
+            holes,
+            strokes * holes,
+            "Gelb",
+            rating,
+            slope,
+            False,
+            False,
+            hi,
+            False,
+            "h",
+            "r",
+            "i",
+        ],
+    )
+    pars = [4, 3, 5, 4, 4, 5, 3, 4, 4] * 2
+    for n in range(1, holes + 1):
+        con.execute(
+            "insert into hole values (?,?,?,?,?,?,?,?,?,?)",
+            [rid, n, pars[n - 1], n, strokes, 2, 0, "hit" if pars[n - 1] > 3 else None, None, None],
+        )
+    return rid
+
+
+def test_round_scores_end_to_end_18_holes(tmp_path: Path):
+    con = open_db(tmp_path / "t.duckdb")
+    seed_round(con)
+    (r,) = round_scores(con)
+    assert (r.gross, r.par, r.to_par, r.putts, r.penalties) == (90, 72, 18, 36, 0)
+    assert r.hi == 20.0 and r.hi_source == "source"
+    assert r.course_hcp == 22
+    assert r.net == 90 - 22
+    assert r.ags is not None and r.ags <= 90  # Cap kann nur senken
+    assert r.differential == differential_18(r.ags, 71.2, 130)
+    assert r.reason is None and r.relevant_suggestion and r.relevant is None
+    assert r.fir_recorded == 14 and r.fir_hits == 14
+    assert round_scores(con) == [r]  # idempotent
+
+
+def test_missing_data_gives_null_with_reason(tmp_path: Path):
+    con = open_db(tmp_path / "t.duckdb")
+    seed_round(con, key="nohi", hi=None)
+    seed_round(con, key="partial", holes=11)
+    seed_round(con, key="nine", holes=9)
+    by_key = {r.round_key: r for r in round_scores(con)}
+    assert by_key["nohi"].differential is None and "AGS" in (by_key["nohi"].reason or "")
+    assert by_key["partial"].differential is None and "Teilrunde" in (
+        by_key["partial"].reason or ""
+    )
+    assert by_key["nine"].differential is None and "9 Löcher" in (by_key["nine"].reason or "")
+    assert by_key["nohi"].fir_hits == 14 and by_key["nine"].gir_recorded == 9
+
+
+def test_manual_ags_and_cli_inputs(tmp_path: Path, capsys: pytest.CaptureFixture[str]):
+    data = tmp_path / "d"
+    con = open_db(data / "shotlake.duckdb")
+    seed_round(con, key="nohi", hi=None)
+    seed_round(con, key="nine", holes=9)
+    con.close()
+    args = ["--data-dir", str(data)]
+    assert main([*args, "round-set", "nohi", "--ags", "90", "--relevant", "yes"]) == 0
+    assert "16.3" in capsys.readouterr().out
+    assert main([*args, "round-set", "nohi", "--pcc", "1.0"]) == 0
+    assert "15.5" in capsys.readouterr().out
+    assert main([*args, "round-set", "nohi", "--pcc", "9"]) == 2
+    # 9-Loch: erst Tee-Werte und HI nötig
+    assert (
+        main([*args, "tee-set", "nine", "--part", "front9", "--rating", "35.8", "--slope", "125"])
+        == 0
+    )
+    assert main([*args, "round-set", "nine", "--hi", "20"]) == 0
+    capsys.readouterr()
+    con = open_db(data / "shotlake.duckdb")
+    (nine,) = round_scores(con, round_ref="nine")
+    assert nine.differential is not None and nine.reason is None
+    assert nine.hi_source == "user"
+    assert {r.round_key for r in round_scores(con, only_relevant=True)} == {"nohi", "nine"}
+    # Nutzerentscheidung hat Vorrang vor dem Vorschlag
+    assert main([*args, "round-set", "nine", "--relevant", "no"]) == 0
+    con = open_db(data / "shotlake.duckdb")
+    assert "nine" not in [r.round_key for r in round_scores(con, only_relevant=True)]

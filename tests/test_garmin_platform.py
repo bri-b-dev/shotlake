@@ -216,13 +216,16 @@ def test_transient_error_retries_whole_fetch_without_losing_rounds(tmp_path: Pat
 def test_handicap_relevant_survives_update(tmp_path: Path):
     con = open_db(tmp_path / "t.duckdb")
     sync_api(con, connector(FakeClient([(1, "2026-10-23T10:00:00.000Z")])), None)
-    con.execute("update round set handicap_relevant = true")
+    con.execute(
+        "insert into round_input (round_id, handicap_relevant, updated_at) "
+        "values ('garmin_platform|1', true, now()::timestamp)"
+    )
     changed = parse_round(payload(1, "2026-10-23T10:00:00.000Z"))
     changed.holes[0] = HoleRecord(number=1, par=4, strokes=6)
     rep = ImportReport("r", "garmin_platform", "x")
     write_round(con, changed, "h2", rep)
     assert rep.rounds_changed == 1
-    assert scalar(con, "select handicap_relevant from round") is True
+    assert scalar(con, "select handicap_relevant from round_input") is True
     assert scalar(con, "select strokes from hole where hole_number = 1") == 6
 
 
@@ -278,9 +281,12 @@ def test_volatile_club_timestamp_does_not_create_new_raw_object(tmp_path: Path):
 def test_reprocess_rebuilds_canonical_from_raw(tmp_path: Path):
     con = open_db(tmp_path / "t.duckdb")
     sync_api(con, connector(FakeClient([(1, "2026-10-23T10:00:00.000Z")])), tmp_path / "raw")
-    con.execute("update round set handicap_relevant = true")
+    con.execute(
+        "insert into round_input (round_id, handicap_relevant, updated_at) "
+        "values ('garmin_platform|1', true, now()::timestamp)"
+    )
     con.execute("update course_shot set end_lie = 'kaputt', content_hash = 'alter-parser'")
     rep = reprocess_raw(con, connector(FakeClient([])))
     assert rep.status == "ok"
     assert scalar(con, "select count(*) from course_shot where end_lie = 'kaputt'") == 0
-    assert scalar(con, "select handicap_relevant from round") is True
+    assert scalar(con, "select handicap_relevant from round_input") is True

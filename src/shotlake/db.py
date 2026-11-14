@@ -106,10 +106,28 @@ create table if not exists round (
     tee_slope integer,
     in_progress boolean not null,
     exclude_from_stats boolean not null,
-    handicap_relevant boolean,
+    source_handicap_index double,
+    simulated boolean not null default false,
     content_hash varchar not null,
     raw_hash varchar not null,
     import_run_id varchar not null
+);
+create table if not exists round_input (
+    round_id varchar primary key,
+    handicap_relevant boolean,
+    handicap_index_at_play double,
+    pcc double,
+    ags_override integer,
+    note varchar,
+    updated_at timestamp not null
+);
+create table if not exists tee_rating (
+    course_id varchar not null,
+    tee_name varchar not null,
+    part varchar not null,  -- front9 | back9
+    rating double not null,
+    slope integer not null,
+    primary key (course_id, tee_name, part)
 );
 create table if not exists hole (
     round_id varchar not null,
@@ -165,4 +183,21 @@ def open_db(path: str | Path) -> duckdb.DuckDBPyConnection:
         Path(path).parent.mkdir(parents=True, exist_ok=True)
     con = duckdb.connect(str(path))
     con.execute(SCHEMA)
+    _migrate(con)
     return con
+
+
+def _migrate(con: duckdb.DuckDBPyConnection) -> None:
+    """Ältere Datenbanken: Nutzerfeld `round.handicap_relevant` nach `round_input` verschieben."""
+    cols = {r[0] for r in con.execute("describe round").fetchall()}
+    if "handicap_relevant" in cols:
+        con.execute(
+            "insert or ignore into round_input (round_id, handicap_relevant, updated_at) "
+            "select round_id, handicap_relevant, now()::timestamp from round "
+            "where handicap_relevant is not null"
+        )
+        con.execute("alter table round drop column handicap_relevant")
+    if "source_handicap_index" not in cols:
+        con.execute("alter table round add column source_handicap_index double")
+    if "simulated" not in cols:
+        con.execute("alter table round add column simulated boolean default false")

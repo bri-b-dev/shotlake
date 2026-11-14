@@ -141,6 +141,8 @@ class ParsedRound:
     tee_slope: int | None = None
     in_progress: bool = False
     exclude_from_stats: bool = False
+    source_handicap_index: float | None = None  # Angabe der Quelle zum Spielzeitpunkt
+    simulated: bool = False
     holes: list[HoleRecord] = field(default_factory=list)
     shots: list[CourseShotRecord] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)

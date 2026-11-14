@@ -12,6 +12,28 @@ from .db import naive_utc
 from .ingest import ImportReport
 from .model import ParsedRound
 
+ROUND_COLUMNS = [
+    "round_id",
+    "source",
+    "round_key",
+    "course_id",
+    "start_utc",
+    "end_utc",
+    "round_type",
+    "holes_played",
+    "gross_strokes",
+    "tee_name",
+    "tee_rating",
+    "tee_slope",
+    "in_progress",
+    "exclude_from_stats",
+    "source_handicap_index",
+    "simulated",
+    "content_hash",
+    "raw_hash",
+    "import_run_id",
+]
+
 
 def round_content_hash(parsed: ParsedRound) -> str:
     payload = {
@@ -57,13 +79,13 @@ def write_round(
             "select content_hash from round where round_id = ?", [rid]
         ).fetchone()
         if existing is None or existing[0] != chash:
-            # handicap_relevant ist eine Nutzereingabe und bleibt bei Aktualisierungen erhalten
-            keep = con.execute(
-                "select handicap_relevant from round where round_id = ?", [rid]
-            ).fetchone()
             con.execute("delete from hole where round_id = ?", [rid])
             con.execute(
-                "insert or replace into round values (" + ",".join("?" * 18) + ")",
+                "insert or replace into round ("
+                + ",".join(ROUND_COLUMNS)
+                + ") values ("
+                + ",".join("?" * len(ROUND_COLUMNS))
+                + ")",
                 [
                     rid,
                     parsed.source,
@@ -79,7 +101,8 @@ def write_round(
                     parsed.tee_slope,
                     parsed.in_progress,
                     parsed.exclude_from_stats,
-                    keep[0] if keep else None,
+                    parsed.source_handicap_index,
+                    parsed.simulated,
                     chash,
                     digest,
                     rep.run_id,

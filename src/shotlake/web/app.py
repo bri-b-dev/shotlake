@@ -2,14 +2,10 @@
 
 from __future__ import annotations
 
-import threading
-from collections.abc import Iterator
-from contextlib import contextmanager
 from pathlib import Path
 from typing import Annotated, Any
 from urllib.parse import quote, urlencode
 
-import duckdb
 from fastapi import FastAPI, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -20,9 +16,7 @@ from ..analytics.distance import club_stats
 from ..analytics.score import round_scores
 from ..analytics.sg import CATEGORIES, strokes_gained
 from ..analytics.trend import differential_trend
-from ..baseline import Baseline, load_baseline
-from ..config import sync_club_map
-from ..db import open_db
+from ..baseline import Baseline
 from ..service import (
     default_source,
     round_detail,
@@ -31,6 +25,7 @@ from ..service import (
     set_tee_values,
     source_statuses,
 )
+from ..workspace import Workspace
 from .charts import bars_svg, trend_svg
 
 HERE = Path(__file__).parent
@@ -50,18 +45,9 @@ def create_app(data_dir: Path, club_map: Path, baseline_path: Path) -> FastAPI:
     app = FastAPI(title="Shotlake", docs_url=None, redoc_url=None, openapi_url=None)
     app.mount("/static", StaticFiles(directory=HERE / "static"), name="static")
     templates = Jinja2Templates(directory=HERE / "templates")
-    lock = threading.Lock()  # DuckDB-Datei: Zugriffe nacheinander, Verbindung je Anfrage
-    baseline: Baseline = load_baseline(baseline_path)
-
-    @contextmanager
-    def session() -> Iterator[duckdb.DuckDBPyConnection]:
-        with lock:
-            con = open_db(data_dir / "shotlake.duckdb")
-            try:
-                sync_club_map(con, club_map)
-                yield con
-            finally:
-                con.close()
+    workspace = Workspace(data_dir, club_map, baseline_path)
+    session = workspace.session
+    baseline: Baseline = workspace.baseline
 
     def unit_of(request: Request) -> str:
         return "yd" if request.query_params.get("u") == "yd" else "m"

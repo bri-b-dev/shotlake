@@ -134,6 +134,14 @@ create table if not exists club_map (
     club_type varchar not null,
     primary key (source, club_ref)
 );
+create table if not exists note (
+    note_id varchar primary key,
+    note_date date not null,
+    type varchar not null,
+    text varchar not null,
+    scope varchar not null,
+    created_at timestamp not null
+);
 create table if not exists hole (
     round_id varchar not null,
     hole_number integer not null,

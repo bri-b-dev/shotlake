@@ -115,6 +115,15 @@ def build_parser() -> argparse.ArgumentParser:
     sv.add_argument("--host", default="127.0.0.1")
     sv.add_argument("--port", type=int, default=8000)
     sv.add_argument("--baseline-path", type=Path, default=default_baseline_path())
+    mc = sub.add_parser("mcp", help="MCP-Server starten (stdio oder lokal gebundenes HTTP)")
+    mc.add_argument("--transport", choices=["stdio", "http"], default="stdio")
+    mc.add_argument(
+        "--read-only", action="store_true", help="sync_source und add_note nicht anbieten"
+    )
+    mc.add_argument("--host", default="127.0.0.1")
+    mc.add_argument("--port", type=int, default=8765)
+    mc.add_argument("--token", default=os.environ.get("SHOTLAKE_MCP_TOKEN", ""))
+    mc.add_argument("--baseline-path", type=Path, default=default_baseline_path())
     sub.add_parser("sources", help="Verfügbare Quellen und Risiko anzeigen")
 
     for name in ("clubs", "gapping"):
@@ -345,6 +354,24 @@ def main(argv: list[str] | None = None) -> int:
             return _round_set(con, args)
         if args.cmd == "tee-set":
             return _tee_set(con, args)
+        if args.cmd == "mcp":
+            con.close()
+            from .mcp_server import create_server, http_app
+            from .workspace import Workspace
+
+            server = create_server(
+                Workspace(data, args.club_map, args.baseline_path), read_only=args.read_only
+            )
+            if args.transport == "stdio":
+                server.run("stdio")  # stdout gehört dem Protokoll: hier nichts ausgeben
+                return 0
+            if not args.token:
+                print("HTTP braucht ein Token (--token oder SHOTLAKE_MCP_TOKEN)", file=sys.stderr)
+                return 2
+            import uvicorn
+
+            uvicorn.run(http_app(server, args.token), host=args.host, port=args.port)
+            return 0
         if args.cmd == "serve":
             con.close()
             import uvicorn

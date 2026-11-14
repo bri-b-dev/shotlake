@@ -51,6 +51,9 @@ _ORDER += [f"iron_{n}" for n in range(2, 10)]
 _ORDER += ["wedge_pitching", "wedge_gap", "wedge_sand", "wedge_lob", "putter"]
 
 
+CANONICAL_CLUBS = tuple(_ORDER)
+
+
 def club_sort_key(club_type: str | None) -> int:
     if club_type in _ORDER:
         return _ORDER.index(club_type)

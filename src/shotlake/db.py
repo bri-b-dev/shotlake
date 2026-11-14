@@ -128,6 +128,12 @@ create table if not exists tee_rating (
     slope integer not null,
     primary key (course_id, tee_name, part)
 );
+create table if not exists club_map (
+    source varchar not null,
+    club_ref varchar not null,
+    club_type varchar not null,
+    primary key (source, club_ref)
+);
 create table if not exists hole (
     round_id varchar not null,
     hole_number integer not null,

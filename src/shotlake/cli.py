@@ -10,9 +10,16 @@ from pathlib import Path
 
 import duckdb
 
+from .analytics.course_shots import (
+    approach_green_rate,
+    club_distances,
+    start_lies,
+    tee_shot_outcomes,
+)
 from .analytics.distance import club_stats, gapping
 from .analytics.score import PCC_MAX, PCC_MIN, RoundScore, round_scores
 from .analytics.trend import differential_trend
+from .clubs import CANONICAL_CLUBS
 from .connectors.registry import API_CONNECTORS, CONNECTORS
 from .db import open_db
 from .ingest import sync_location
@@ -46,6 +53,18 @@ def build_parser() -> argparse.ArgumentParser:
 
     rd = sub.add_parser("rounds", help="Runden mit Score, Statistik und Score Differential")
     rd.add_argument("--relevant", action="store_true", help="nur handicap-relevante Runden")
+
+    cc = sub.add_parser("course-shots", help="Schläge auf dem Platz: Distanzen, Lagen, Treffer")
+    cc.add_argument("--round", dest="round_ref")
+    cc.add_argument("--since", type=date.fromisoformat)
+    cc.add_argument("--until", type=date.fromisoformat)
+    cc.add_argument("--min-n", type=int, default=5)
+    cc.add_argument("--units", choices=["m", "yd"], default="m")
+
+    cs = sub.add_parser("club-set", help="Quell-Schläger einem Schlägertyp zuordnen")
+    cs.add_argument("source")
+    cs.add_argument("club_ref", help="z. B. garmin_clubtype_1")
+    cs.add_argument("club_type", choices=CANONICAL_CLUBS)
 
     tr = sub.add_parser("trend", help="Verlauf des Score Differentials (gleitender Durchschnitt)")
     tr.add_argument("--window", type=int, default=5, help="Fenstergröße in Runden (Standard 5)")
@@ -162,6 +181,28 @@ def _tee_set(con: duckdb.DuckDBPyConnection, args: argparse.Namespace) -> int:
     return 0
 
 
+def _print_course_shots(con: duckdb.DuckDBPyConnection, args: argparse.Namespace) -> None:
+    f = M_TO_YD if args.units == "yd" else 1.0
+    kw = {"since": args.since, "until": args.until, "round_ref": args.round_ref}
+    print(f"Schlagdistanz je Schläger ({args.units}, GPS Start-Ende inkl. Rollen, kein Carry)")
+    print(f"{'Schläger':<22}{'n':>4} {'Median':>7} {'P10':>6} {'P90':>6} {'Max':>6}  Hinweis")
+    for c in club_distances(con, min_n=args.min_n, **kw):
+        note = c.warning or ("" if c.mapped else "nicht zugeordnet (club-set)")
+        print(
+            f"{c.club:<22}{c.n:>4} {_fmt(c.median_m, f):>7} {_fmt(c.p10_m, f):>6} "
+            f"{_fmt(c.p90_m, f):>6} {_fmt(c.max_m, f):>6}  {note}"
+        )
+    print("\nAbschläge: Landelage")
+    for t in tee_shot_outcomes(con, **kw):
+        print(f"  {t.lie or 'unbekannt':<10}{t.n:>4}  {t.share:.0%}")
+    print("\nSchläge nach Ausgangslage (ohne Putts)")
+    for lie in start_lies(con, **kw):
+        print(f"  {lie.lie or 'unbekannt':<10}{lie.n:>4}  {lie.share:.0%}")
+    print("\nGrüntreffer nach Annäherung, je Ausgangslage")
+    for lie_name, (hits, n) in sorted(approach_green_rate(con, **kw).items()):
+        print(f"  {lie_name:<10}{hits:>3}/{n:<3} {hits / n:.0%}")
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     data = Path(args.data_dir)
@@ -176,6 +217,16 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.cmd == "rounds":
             _print_rounds(round_scores(con, only_relevant=args.relevant))
+            return 0
+        if args.cmd == "club-set":
+            con.execute(
+                "insert or replace into club_map values (?,?,?)",
+                [args.source, args.club_ref, args.club_type],
+            )
+            print(f"{args.source}/{args.club_ref} -> {args.club_type}")
+            return 0
+        if args.cmd == "course-shots":
+            _print_course_shots(con, args)
             return 0
         if args.cmd == "trend":
             points = differential_trend(round_scores(con), args.window, args.relevant)

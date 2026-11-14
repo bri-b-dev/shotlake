@@ -89,6 +89,10 @@ class RoundDetail:
     import_run_id: str
     tee_name: str | None
     baseline_id: str
+    course_id: str
+    source_rating: float | None  # Wert der Quelle (z. B. Garmin), kann fehlen
+    source_slope: int | None
+    tee_values: dict[str, tuple[float, int]]  # vom Nutzer hinterlegt: all | front9 | back9
 
 
 def round_detail(
@@ -100,7 +104,9 @@ def round_detail(
     score = found[0]
     rid = score.round_id
     meta = con.execute(
-        "select source, raw_hash, import_run_id, tee_name from round where round_id = ?", [rid]
+        "select source, raw_hash, import_run_id, tee_name, course_id, tee_rating, tee_slope "
+        "from round where round_id = ?",
+        [rid],
     ).fetchone()
     assert meta is not None
 
@@ -131,6 +137,16 @@ def round_detail(
         import_run_id=str(meta[2]),
         tee_name=meta[3],
         baseline_id=baseline.id,
+        course_id=str(meta[4]),
+        source_rating=meta[5],
+        source_slope=meta[6],
+        tee_values={
+            r[0]: (r[1], r[2])
+            for r in con.execute(
+                "select part, rating, slope from tee_rating where course_id = ? and tee_name = ?",
+                [meta[4], meta[3] or ""],
+            ).fetchall()
+        },
     )
 
 
@@ -145,7 +161,7 @@ def set_round_inputs(
 ) -> list[str]:
     """Nutzereingaben zu einer Runde speichern; leere Felder löschen den Wert. Liefert Fehler."""
     errors: list[str] = []
-    choices: dict[str, bool | None] = {"yes": True, "no": False, "auto": None}
+    choices: dict[str, bool | None] = {"yes": True, "no": False, "auto": None}  # auto = nein
     if relevant not in choices:
         errors.append("Handicap-Relevanz: ungültiger Wert")
     rel = choices.get(relevant)
@@ -180,4 +196,60 @@ def set_round_inputs(
         "values (?,?,?,?,?, now()::timestamp)",
         [round_id, rel, hi_value, pcc_value, ags_value],
     )
+    return []
+
+
+# Gültige Bereiche für Platzwerte (Plausibilitätsprüfung, keine Regelwerte)
+RATING_RANGE = {"all": (55.0, 85.0), "front9": (27.0, 43.0), "back9": (27.0, 43.0)}
+SLOPE_RANGE = (55, 155)
+
+
+def set_tee_values(
+    con: duckdb.DuckDBPyConnection, round_id: str, values: dict[str, tuple[str, str]]
+) -> list[str]:
+    """Rating/Slope je Teil (all, front9, back9) für Platz und Tee der Runde speichern.
+
+    Die Werte gelten für alle Runden auf diesem Platz mit diesem Tee. Beide Felder leer löscht
+    den Eintrag; ist nur eines gefüllt, ist das ein Fehler.
+    """
+    row = con.execute(
+        "select course_id, coalesce(tee_name, '') from round where round_id = ?", [round_id]
+    ).fetchone()
+    if row is None:
+        return ["Runde nicht gefunden"]
+    labels = {"all": "18 Löcher", "front9": "Vorderneun", "back9": "Hinterneun"}
+    errors: list[str] = []
+    parsed: dict[str, tuple[float, int] | None] = {}
+    for part, (rating_text, slope_text) in values.items():
+        rating_text, slope_text = rating_text.strip().replace(",", "."), slope_text.strip()
+        if not rating_text and not slope_text:
+            parsed[part] = None
+            continue
+        try:
+            rating, slope = float(rating_text), int(slope_text)
+        except ValueError:
+            errors.append(f"{labels[part]}: Rating als Zahl (z. B. 71,2) und Slope als ganze Zahl")
+            continue
+        lo, hi_ = RATING_RANGE[part]
+        if not lo <= rating <= hi_:
+            errors.append(f"{labels[part]}: Rating erlaubt sind {lo:g} bis {hi_:g}")
+        elif not SLOPE_RANGE[0] <= slope <= SLOPE_RANGE[1]:
+            errors.append(
+                f"{labels[part]}: Slope erlaubt sind {SLOPE_RANGE[0]} bis {SLOPE_RANGE[1]}"
+            )
+        else:
+            parsed[part] = (rating, slope)
+    if errors:
+        return errors
+    for part, value in parsed.items():
+        if value is None:
+            con.execute(
+                "delete from tee_rating where course_id = ? and tee_name = ? and part = ?",
+                [row[0], row[1], part],
+            )
+        else:
+            con.execute(
+                "insert or replace into tee_rating values (?,?,?,?,?)",
+                [row[0], row[1], part, value[0], value[1]],
+            )
     return []

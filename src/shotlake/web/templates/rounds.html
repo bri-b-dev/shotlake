@@ -17,11 +17,14 @@
         <td>{{ (r.fir_hits / r.fir_recorded)|pct if r.fir_recorded else '–' }}</td>
         <td>{{ (r.gir_hits / r.gir_recorded)|pct if r.gir_recorded else '–' }}</td>
         <td>{{ r.differential|num }}{% if r.extrapolated %}<abbr title="9 Löcher auf 18 hochgerechnet">ˣ</abbr>{% endif %}</td>
-        <td>{% if r.relevant is not none %}{{ 'ja' if r.relevant else 'nein' }}{% else %}<span class="muted">{{ 'ja?' if r.relevant_suggestion else 'nein?' }}</span>{% endif %}</td>
+        <td><form method="post" action="{{ link(request, '/rounds/' ~ (r.round_id|urlq) ~ '/relevant') }}">
+          <input type="hidden" name="relevant" value="{{ 'no' if r.relevant_effective else 'yes' }}">
+          <input type="hidden" name="back" value="{{ request.url.path }}{% if request.url.query %}?{{ request.url.query }}{% endif %}">
+          <button type="submit" title="Klicken zum Wechseln" aria-label="Handicap-relevant: {{ 'ja' if r.relevant_effective else 'nein' }}, wechseln">{{ 'ja' if r.relevant_effective else 'nein' }}</button></form></td>
         <td class="left muted">{{ r.reason or '' }}</td></tr>
   {% else %}<tr><td colspan="11" class="muted">Keine Runden.</td></tr>
   {% endfor %}
   </tbody>
 </table></div>
-<p class="muted">Rel.: ohne Stern = Vorschlag (?), „ja/nein" = deine Entscheidung. ˣ = 9 Löcher auf 18 hochgerechnet. – = nicht erfasst.</p>
+<p class="muted">Rel. = handicap-relevant: Standard ist nein, ein Klick auf den Knopf wechselt. ˣ = 9 Löcher auf 18 hochgerechnet. – = nicht erfasst.</p>
 {% endblock %}

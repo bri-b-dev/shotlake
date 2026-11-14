@@ -94,15 +94,17 @@ def build_parser() -> argparse.ArgumentParser:
 
     rs = sub.add_parser("round-set", help="Eingaben zu einer Runde setzen")
     rs.add_argument("round", help="Runden-ID oder Schlüssel")
-    rs.add_argument("--relevant", choices=["yes", "no", "auto"])
+    rs.add_argument("--relevant", choices=["yes", "no", "auto"], help="auto = zurück auf nein")
     rs.add_argument("--hi", type=float, help="Handicap-Index zum Spielzeitpunkt")
     rs.add_argument("--pcc", type=float, help=f"PCC ({PCC_MIN} bis +{PCC_MAX})")
-    rs.add_argument("--ags", type=int, help="Adjusted Gross Score manuell")
+    rs.add_argument("--ags", type=int, help="AGS (bereinigtes Brutto) manuell")
     rs.add_argument("--clear", nargs="+", choices=["hi", "pcc", "ags"], default=[])
 
-    ts = sub.add_parser("tee-set", help="9-Loch-Rating/Slope eines Tees hinterlegen")
+    ts = sub.add_parser(
+        "tee-set", help="Rating/Slope eines Tees hinterlegen (all = 18 Löcher, sonst 9 Löcher)"
+    )
     ts.add_argument("round", help="Runde, aus der Platz und Tee stammen")
-    ts.add_argument("--part", choices=["front9", "back9"], required=True)
+    ts.add_argument("--part", choices=["all", "front9", "back9"], required=True)
     ts.add_argument("--rating", type=float, required=True)
     ts.add_argument("--slope", type=int, required=True)
 
@@ -134,9 +136,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def _flag(r: RoundScore) -> str:
-    if r.relevant is not None:
-        return "ja*" if r.relevant else "nein*"
-    return "ja?" if r.relevant_suggestion else "nein?"
+    return "ja" if r.relevant_effective else "nein"
 
 
 def _pct(hits: int, recorded: int) -> str:
@@ -160,7 +160,8 @@ def _print_rounds(rows: list[RoundScore]) -> None:
             f"{_pct(r.fir_hits, r.fir_recorded):>4} {_pct(r.gir_hits, r.gir_recorded):>4} "
             f"{r.ags if r.ags is not None else '-':>4} {diff:>6} {_flag(r):<6} {r.reason or ''}"
         )
-    print("Rel: * = Nutzerentscheidung, ? = Vorschlag; Diff x = 9 Löcher auf 18 hochgerechnet")
+    print("Rel: ja nur, wenn du es gesetzt hast (Standard nein).")
+    print("Diff x = 9 Löcher auf 18 hochgerechnet.")
 
 
 def _round_set(con: duckdb.DuckDBPyConnection, args: argparse.Namespace) -> int:
@@ -199,10 +200,10 @@ def _tee_set(con: duckdb.DuckDBPyConnection, args: argparse.Namespace) -> int:
         "select course_id, tee_name from round where round_id = ? or round_key = ?",
         [args.round, args.round],
     ).fetchall()
-    if len(row) != 1 or row[0][1] is None:
-        print(f"Runde {args.round!r} nicht eindeutig oder ohne Tee", file=sys.stderr)
+    if len(row) != 1:
+        print(f"Runde {args.round!r} nicht eindeutig", file=sys.stderr)
         return 2
-    course_id, tee = row[0]
+    course_id, tee = row[0][0], row[0][1] or ""  # Quellen ohne Tee-Angabe: Tee "" (unbekannt)
     con.execute(
         "insert or replace into tee_rating values (?,?,?,?,?)",
         [course_id, tee, args.part, args.rating, args.slope],

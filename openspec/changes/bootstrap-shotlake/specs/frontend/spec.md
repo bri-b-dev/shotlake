@@ -38,7 +38,7 @@ Es SHALL eine Vergleichsansicht geben mit Zeitraumwahl A/B, Kennzahlen-Δ, Konfi
 - THEN sind A = neue Daten und B = vorheriger Zeitraum vorbelegt
 
 ### Requirement: Handicap-Relevanz setzen
-Die Runde-Detailansicht SHALL das Kennzeichen „handicap-relevant" (ja/nein) mit Vorschlag und Begründung anzeigen und vom Nutzer änderbar machen; ebenso `handicap_index_at_play` und PCC.
+Die Runde-Detailansicht SHALL das Kennzeichen „handicap-relevant" (ja/nein, Standard nein) mit den formalen Kriterien als Hinweis anzeigen und vom Nutzer änderbar machen, in der Rundenliste mit einem Klick umschaltbar; ebenso `handicap_index_at_play`, PCC, AGS und die Platzwerte Rating/Slope. Fachbegriffe wie AGS SHALL im Klartext erklärt sein.
 
 #### Scenario: Umschalten
 - WHEN der Nutzer den Schalter „handicap-relevant" umlegt

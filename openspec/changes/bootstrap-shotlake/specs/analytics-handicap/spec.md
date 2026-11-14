@@ -64,19 +64,26 @@ Für 9-Loch-Runden SHALL das Differential auf 18 Löcher **hochgerechnet** werde
 - THEN ist sie weder 9- noch 18-Loch-Runde im Sinne der Formel und erhält kein Differential
 
 ### Requirement: Handicap-Relevanz je Runde
-Jede Runde SHALL ein Feld `handicap_relevant` (ja/nein) besitzen, das der Nutzer pro Runde setzen und ändern kann. Ohne Nutzerentscheidung SHALL das System einen **Vorschlag** anzeigen (ja, wenn: reale, abgeschlossene Runde mit mindestens 9 gespielten Löchern, Rating/Slope vorhanden, nicht von der Quelle ausgeschlossen, nicht simuliert; Quellenangaben wie Arccos `includedInLatestHandicap` oder Trackman `isInHcp` SHALL als Hinweis angezeigt werden). Die Nutzerentscheidung hat Vorrang, wird persistiert und bleibt bei Re-Import erhalten. Das Kennzeichen SHALL keinen Einfluss auf die Berechnung des Differentials haben, sondern nur auf Filter, Anzeige und Export.
+Jede Runde SHALL ein Feld `handicap_relevant` (ja/nein) besitzen, das der Nutzer pro Runde setzen und ändern kann. **Standard ist nein**: ohne Nutzerentscheidung gilt eine Runde als nicht handicap-relevant, unabhängig von der Quelle (Entscheidung 2026-11-14). Das System SHALL formale Kriterien nur als **Hinweis** anzeigen (reale, abgeschlossene Runde mit mindestens 9 gespielten Löchern, Rating/Slope vorhanden, nicht von der Quelle ausgeschlossen, nicht simuliert) und SHALL daraus nichts automatisch setzen; Quellenangaben wie Arccos `includedInLatestHandicap` oder Trackman `isInHcp` SHALL höchstens als Hinweis erscheinen. Die Nutzerentscheidung wird persistiert und bleibt bei Re-Import erhalten. Das Kennzeichen SHALL keinen Einfluss auf die Berechnung des Differentials haben, sondern nur auf Filter, Anzeige und Export.
+
+#### Scenario: Neue Runde
+- WHEN eine Runde importiert wird, für die der Nutzer nichts entschieden hat
+- THEN ist sie nicht handicap-relevant, auch wenn die Quelle Rating und Slope liefert
 
 #### Scenario: Nutzer markiert Runde als relevant
-- WHEN der Nutzer eine Runde als handicap-relevant setzt, obwohl der Vorschlag „nein" lautete
+- WHEN der Nutzer eine Runde als handicap-relevant setzt
 - THEN bleibt die Entscheidung gespeichert und ein Re-Import überschreibt sie nicht
-
-#### Scenario: Simulierte Runde
-- WHEN eine Trackman-Course-Sim-Runde vorliegt
-- THEN lautet der Vorschlag „nein", der Nutzer kann ihn überschreiben, und das Differential wird dennoch berechnet
 
 #### Scenario: Filter
 - WHEN die Differential-Ansicht auf „nur handicap-relevant" gefiltert ist
-- THEN erscheinen ausschließlich Runden mit `handicap_relevant=true`
+- THEN erscheinen ausschließlich Runden, die der Nutzer als relevant gesetzt hat
+
+### Requirement: Platzwerte (Rating/Slope) setzen
+Der Nutzer SHALL Course Rating und Slope je Platz und Tee für 18 Löcher sowie optional für Vorder- und Hinterneun hinterlegen können. Hinterlegte Werte SHALL Vorrang vor Quellenwerten haben, für alle Runden auf diesem Platz mit diesem Tee gelten und bei Re-Import erhalten bleiben. Quellen ohne Tee-Angabe SHALL den Tee „unbekannt" verwenden. Eingaben SHALL auf plausible Bereiche geprüft werden.
+
+#### Scenario: Quelle ohne Rating
+- WHEN eine Arccos-Runde kein Rating/Slope liefert und der Nutzer sie für den Platz hinterlegt
+- THEN erhält die Runde ein Score Differential
 
 ### Requirement: Differential-Verlauf
 Das System SHALL Differentials als Zeitreihe bereitstellen (alle Runden, handicap-relevante hervorgehoben) und einen **gleitenden Durchschnitt** über die letzten N Runden mit Differential berechnen (Standard N = 5, konfigurierbar, optional nur handicap-relevante Runden). Vor Erreichen von N Werten SHALL der Durchschnitt NULL sein. Ein Handicap-Index wird daraus nicht abgeleitet. Die Zeitreihe SHALL für Auswertungen aus `analytics-trends` verfügbar sein.

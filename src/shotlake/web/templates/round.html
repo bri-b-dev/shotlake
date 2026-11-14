@@ -16,35 +16,57 @@
       <tr><td>Fairways</td><td>{% if s.fir_recorded %}{{ s.fir_hits }}/{{ s.fir_recorded }}{% else %}–{% endif %}</td></tr>
       <tr><td>Grüns in Regulation</td><td>{% if s.gir_recorded %}{{ s.gir_hits }}/{{ s.gir_recorded }}{% else %}–{% endif %}</td></tr>
       <tr><td>Scrambling</td><td>{% if s.scramble_chances %}{{ s.scrambles }}/{{ s.scramble_chances }}{% else %}–{% endif %}</td></tr>
-      <tr><td>AGS</td><td>{{ s.ags if s.ags is not none else '–' }}{% if s.ags_source %} <span class="muted">({{ {'computed': 'berechnet', 'manual': 'manuell', 'gross': 'unbereinigtes Brutto'}[s.ags_source] }})</span>{% endif %}</td></tr>
+      <tr><td><abbr title="Adjusted Gross Score = bereinigtes Brutto">Bereinigtes Brutto (AGS)</abbr></td><td>{{ s.ags if s.ags is not none else '–' }}{% if s.ags_source %} <span class="muted">({{ {'computed': 'berechnet', 'manual': 'manuell', 'gross': 'unbereinigtes Brutto'}[s.ags_source] }})</span>{% endif %}</td></tr>
       <tr><td>Spielvorgabe / Netto</td><td>{{ s.course_hcp if s.course_hcp is not none else '–' }} / {{ s.net if s.net is not none else '–' }}</td></tr>
       <tr><td>Score Differential</td><td><strong>{{ s.differential|num }}</strong>{% if s.extrapolated %} <abbr title="9 Löcher auf 18 hochgerechnet">ˣ</abbr>{% endif %}</td></tr>
     </tbody></table>
     {% if s.reason %}<p class="notice">Kein Differential: {{ s.reason }}</p>{% endif %}
+    <p class="muted"><strong>AGS</strong> (Adjusted Gross Score, bereinigtes Brutto): dein Brutto-Score, bei dem jedes Loch auf Netto-Doppelbogey
+      (Par + 2 + erhaltene Vorgabeschläge) begrenzt ist. Er ist die Grundlage des Score Differentials. Ohne Handicap-Index gilt dein unbereinigtes Brutto.</p>
   </section>
 
   <section class="card" id="eingaben" aria-labelledby="h-in">
     <h2 id="h-in">Eingaben</h2>
     {% for e in errors %}<p class="error" role="alert">{{ e }}</p>{% endfor %}
-    <p class="muted">Vorschlag für Handicap-Relevanz: <strong>{{ 'ja' if s.relevant_suggestion else 'nein' }}</strong>
-      (echte, beendete Runde mit mind. 9 Löchern, Rating/Slope vorhanden, nicht von der Quelle ausgeschlossen).</p>
+    <p class="muted">Handicap-relevant ist eine Runde nur, wenn du es setzt (Standard: nein).
+      Hinweis: Die formalen Kriterien (echte, beendete Runde mit mind. 9 Löchern, Rating/Slope vorhanden, nicht von der Quelle ausgeschlossen)
+      sind {{ 'erfüllt' if s.relevant_suggestion else 'nicht erfüllt' }}.</p>
     <form class="inputs" method="post" action="{{ link(request, '/rounds/' ~ (s.round_id|urlq)) }}">
-      {% set cur = 'yes' if d.inputs.get('handicap_relevant') is true else ('no' if d.inputs.get('handicap_relevant') is false else 'auto') %}
+      {% set cur = 'yes' if d.inputs.get('handicap_relevant') is true else 'no' %}
       <label>Handicap-relevant
         <select name="relevant">
-          <option value="auto" {{ 'selected' if cur == 'auto' }}>Vorschlag folgen</option>
+          <option value="no" {{ 'selected' if cur == 'no' }}>nein (Standard)</option>
           <option value="yes" {{ 'selected' if cur == 'yes' }}>ja</option>
-          <option value="no" {{ 'selected' if cur == 'no' }}>nein</option>
         </select></label>
       <label>Handicap-Index zum Spielzeitpunkt
         <input name="hi" inputmode="decimal" value="{{ d.inputs.get('handicap_index_at_play') if d.inputs.get('handicap_index_at_play') is not none else '' }}"></label>
       <label>PCC (−1,0 bis +3,0)
         <input name="pcc" inputmode="decimal" value="{{ d.inputs.get('pcc') if d.inputs.get('pcc') is not none else '' }}"></label>
-      <label>AGS manuell
+      <label>AGS manuell (bereinigtes Brutto)
         <input name="ags" inputmode="numeric" value="{{ d.inputs.get('ags_override') if d.inputs.get('ags_override') is not none else '' }}"></label>
       <div><button class="primary" type="submit">Speichern</button></div>
     </form>
-    <p class="muted">Leere Felder löschen den Wert. Ohne Index gilt das unbereinigte Brutto als AGS.</p>
+    <p class="muted">Leere Felder löschen den Wert.</p>
+  </section>
+
+  <section class="card" id="platzwerte" aria-labelledby="h-tee">
+    <h2 id="h-tee">Platzwerte (Rating und Slope)</h2>
+    <p class="muted">Gelten für alle Runden auf {{ s.course_name }} mit Tee „{{ d.tee_name or 'unbekannt' }}". Hinterlegte Werte haben Vorrang vor der Quelle.
+      {% if d.source_rating is not none %}Quelle ({{ d.source }}) liefert: Rating {{ d.source_rating }}, Slope {{ d.source_slope }} (18 Löcher).
+      {% else %}Quelle {{ d.source }} liefert kein Rating/Slope.{% endif %}
+      Für 9-Loch-Runden zählt das doppelte 9-Loch-Rating, falls hinterlegt, sonst das 18-Loch-Rating.</p>
+    {% for e in tee_errors %}<p class="error" role="alert">{{ e }}</p>{% endfor %}
+    <form class="inputs" method="post" action="{{ link(request, '/rounds/' ~ (s.round_id|urlq) ~ '/tee') }}">
+      {% for part, label in (('all', '18 Löcher'), ('front9', 'Vorderneun (1–9)'), ('back9', 'Hinterneun (10–18)')) %}
+        {% set v = d.tee_values.get(part) %}
+        <label>Rating {{ label }}
+          <input name="{{ part }}_rating" inputmode="decimal" value="{{ v[0] if v else '' }}"></label>
+        <label>Slope {{ label }}
+          <input name="{{ part }}_slope" inputmode="numeric" value="{{ v[1] if v else '' }}"></label>
+      {% endfor %}
+      <div><button class="primary" type="submit">Platzwerte speichern</button></div>
+    </form>
+    <p class="muted">Beide Felder leer löschen den Eintrag.</p>
   </section>
 
   <section class="card wide" aria-labelledby="h-holes">

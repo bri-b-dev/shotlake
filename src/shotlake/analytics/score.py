@@ -105,11 +105,12 @@ class RoundScore:
     extrapolated: bool  # 9-Loch-Runde, auf 18 Löcher hochgerechnet
     reason: str | None  # Grund, falls kein Differential
     relevant: bool | None  # Nutzerentscheidung
-    relevant_suggestion: bool
+    relevant_suggestion: bool  # nur Hinweis: formale Kriterien erfüllt; ändert nichts am Standard
 
     @property
     def relevant_effective(self) -> bool:
-        return self.relevant if self.relevant is not None else self.relevant_suggestion
+        """Handicap-relevant ist nur, was der Nutzer so gesetzt hat; Standard ist nein."""
+        return self.relevant is True
 
     @staticmethod
     def rate(hits: int, recorded: int) -> float | None:
@@ -177,6 +178,8 @@ def compute_round(
     # verdoppelt als 18-Loch-Äquivalent dienen. Ohne sie gilt das 18-Loch-Rating des Tees.
     rating = _num(row.get("tee_rating"))
     slope = _int(row.get("tee_slope"))
+    if "all" in tee9:  # vom Nutzer hinterlegte 18-Loch-Werte haben Vorrang vor der Quelle
+        rating, slope = tee9["all"]
     rating9: tuple[float, int] | None = tee9.get(part) if part in ("front9", "back9") else None
     if rating9 is not None:
         rating, slope = 2 * rating9[0], rating9[1]
@@ -256,7 +259,7 @@ def compute_round(
             simulated=bool(row.get("simulated")),
             in_progress=bool(row.get("in_progress")),
             holes_played=holes_n,
-            has_rating=row.get("tee_rating") is not None and row.get("tee_slope") is not None,
+            has_rating=rating is not None and slope is not None,
             excluded_by_source=bool(row.get("exclude_from_stats")),
         ),
     )
@@ -317,7 +320,7 @@ def round_scores(
             r[0]: (r[1], r[2])
             for r in con.execute(
                 "select part, rating, slope from tee_rating where course_id = ? and tee_name = ?",
-                [row["course_id"], row["tee_name"]],
+                [row["course_id"], row["tee_name"] or ""],
             ).fetchall()
         }
         score = compute_round(row, holes, inputs, tee9)

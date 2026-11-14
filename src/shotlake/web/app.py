@@ -28,6 +28,7 @@ from ..service import (
     round_detail,
     round_sources,
     set_round_inputs,
+    set_tee_values,
     source_statuses,
 )
 from .charts import bars_svg, trend_svg
@@ -153,7 +154,68 @@ def create_app(data_dir: Path, club_map: Path, baseline_path: Path) -> FastAPI:
             detail = round_detail(con, round_id, baseline)
             if detail is None:
                 raise HTTPException(404, "Runde nicht gefunden")
-            return page(request, "round.html", d=detail, errors=[], saved=False)
+            return page(request, "round.html", d=detail, errors=[], tee_errors=[])
+
+    def back_to_round(request: Request, round_id: str, anchor: str) -> RedirectResponse:
+        target = link(request, f"/rounds/{quote(round_id, safe='|')}") + anchor
+        return RedirectResponse(target, status_code=303)
+
+    @app.post("/rounds/{round_id:path}/tee")
+    def round_tee(
+        request: Request,
+        round_id: str,
+        all_rating: Annotated[str, Form()] = "",
+        all_slope: Annotated[str, Form()] = "",
+        front9_rating: Annotated[str, Form()] = "",
+        front9_slope: Annotated[str, Form()] = "",
+        back9_rating: Annotated[str, Form()] = "",
+        back9_slope: Annotated[str, Form()] = "",
+    ) -> Any:
+        with session() as con:
+            detail = round_detail(con, round_id, baseline)
+            if detail is None:
+                raise HTTPException(404, "Runde nicht gefunden")
+            errors = set_tee_values(
+                con,
+                detail.score.round_id,
+                {
+                    "all": (all_rating, all_slope),
+                    "front9": (front9_rating, front9_slope),
+                    "back9": (back9_rating, back9_slope),
+                },
+            )
+            if errors:
+                response = page(request, "round.html", d=detail, errors=[], tee_errors=errors)
+                response.status_code = 400
+                return response
+        return back_to_round(request, detail.score.round_id, "#platzwerte")
+
+    @app.post("/rounds/{round_id:path}/relevant")
+    def round_relevant(
+        request: Request,
+        round_id: str,
+        relevant: Annotated[str, Form()],
+        back: Annotated[str, Form()] = "",
+    ) -> Any:
+        with session() as con:
+            detail = round_detail(con, round_id, baseline)
+            if detail is None:
+                raise HTTPException(404, "Runde nicht gefunden")
+            if relevant not in ("yes", "no"):
+                raise HTTPException(400, "ungültiger Wert")
+            con.execute(
+                "insert or ignore into round_input (round_id, updated_at) "
+                "values (?, now()::timestamp)",
+                [detail.score.round_id],
+            )
+            con.execute(
+                "update round_input set handicap_relevant = ?, updated_at = now()::timestamp "
+                "where round_id = ?",
+                [relevant == "yes", detail.score.round_id],
+            )
+        # Rücksprung nur auf lokale Pfade (kein offener Redirect)
+        safe = back if back.startswith("/") and not back.startswith("//") else "/rounds"
+        return RedirectResponse(safe, status_code=303)
 
     @app.post("/rounds/{round_id:path}")
     def round_inputs(
@@ -172,13 +234,10 @@ def create_app(data_dir: Path, club_map: Path, baseline_path: Path) -> FastAPI:
                 con, detail.score.round_id, relevant=relevant, hi=hi, pcc=pcc, ags=ags
             )
             if errors:
-                response = page(request, "round.html", d=detail, errors=errors, saved=False)
+                response = page(request, "round.html", d=detail, errors=errors, tee_errors=[])
                 response.status_code = 400
                 return response
-        return RedirectResponse(
-            link(request, f"/rounds/{quote(detail.score.round_id, safe='|')}") + "#eingaben",
-            status_code=303,
-        )
+        return back_to_round(request, detail.score.round_id, "#eingaben")
 
     @app.get("/clubs", response_class=HTMLResponse)
     def clubs(request: Request) -> HTMLResponse:

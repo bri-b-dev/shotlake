@@ -73,10 +73,10 @@ def test_inputs_are_saved_and_shown(client: TestClient):
     assert 'value="20.0"' in html and 'value="1.0"' in html
     assert '<option value="yes" selected>' in html
     assert "berechnet" in html  # mit Index wird der AGS berechnet
-    # Leere Felder löschen den Wert; Vorschlag folgen
-    client.post("/rounds/t%7Cr2", data={"relevant": "auto"}, follow_redirects=False)
+    # Leere Felder löschen den Wert; "nein" ist der Standard
+    client.post("/rounds/t%7Cr2", data={"relevant": "no"}, follow_redirects=False)
     html = client.get("/rounds/t%7Cr2").text
-    assert 'value="20.0"' not in html and '<option value="auto" selected>' in html
+    assert 'value="20.0"' not in html and '<option value="no" selected>' in html
 
 
 @pytest.mark.parametrize(
@@ -113,3 +113,81 @@ def test_charts_handle_edge_cases():
     assert svg.count("<circle") == 1 and "nan" not in svg.lower()
     svg = bars_svg([("Abschlag", -1.5), ("Putten", 0.0)], "/Loch")
     assert "-1.50/Loch" in svg and "rect" in svg
+
+
+def test_default_is_not_relevant_and_toggle_in_list(client: TestClient):
+    html = client.get("/rounds").text
+    assert html.count('aria-label="Handicap-relevant: nein') == 6  # Standard: nein
+    assert 'aria-label="Handicap-relevant: ja' not in html
+    r = client.post(
+        "/rounds/t%7Cr2/relevant",
+        data={"relevant": "yes", "back": "/rounds?source=t"},
+        follow_redirects=False,
+    )
+    assert r.status_code == 303 and r.headers["location"] == "/rounds?source=t"
+    html = client.get("/rounds").text
+    assert html.count('aria-label="Handicap-relevant: ja') == 1
+    assert client.get("/rounds?relevant=1").text.count("/rounds/t%7Cr") == 2  # Link + Formular
+    assert (
+        client.post("/rounds/t%7Cr2/relevant", data={"relevant": "vielleicht"}).status_code == 400
+    )
+    assert client.post("/rounds/t%7Cnix/relevant", data={"relevant": "yes"}).status_code == 404
+
+
+def test_toggle_redirect_only_to_local_paths(client: TestClient):
+    for evil in ("https://evil.example/x", "//evil.example/x"):
+        r = client.post(
+            "/rounds/t%7Cr2/relevant",
+            data={"relevant": "yes", "back": evil},
+            follow_redirects=False,
+        )
+        assert r.headers["location"] == "/rounds"
+
+
+def test_dashboard_filter_uses_only_user_marked_rounds(client: TestClient):
+    assert '<circle class="dot rel"' not in client.get("/").text  # nichts als relevant gesetzt
+    client.post("/rounds/t%7Cr2/relevant", data={"relevant": "yes"}, follow_redirects=False)
+    assert client.get("/").text.count('class="dot rel"') == 1
+
+
+def test_ags_is_explained_in_plain_language(client: TestClient):
+    html = client.get("/rounds/t%7Cr2").text
+    assert "Adjusted Gross Score" in html and "Netto-Doppelbogey" in html
+    assert "Bereinigtes Brutto (AGS)" in html and "AGS manuell (bereinigtes Brutto)" in html
+
+
+def test_tee_values_can_be_set_and_change_the_differential(client: TestClient):
+    before = client.get("/rounds/t%7Cr2").text
+    assert 'name="all_rating"' in before and "Platzwerte (Rating und Slope)" in before
+    r = client.post(
+        "/rounds/t%7Cr2/tee",
+        data={"all_rating": "65,0", "all_slope": "120", "front9_rating": "", "front9_slope": ""},
+        follow_redirects=False,
+    )
+    assert r.status_code == 303 and r.headers["location"].endswith("#platzwerte")
+    after = client.get("/rounds/t%7Cr2").text
+    assert 'value="65.0"' in after and 'value="120"' in after
+    assert before != after
+    # Wert gilt für alle Runden mit diesem Platz/Tee: auch andere Runde zeigt ihn
+    assert 'value="65.0"' in client.get("/rounds/t%7Cr3").text
+    # beide Felder leer: löschen
+    client.post(
+        "/rounds/t%7Cr2/tee", data={"all_rating": "", "all_slope": ""}, follow_redirects=False
+    )
+    assert 'value="65.0"' not in client.get("/rounds/t%7Cr2").text
+
+
+@pytest.mark.parametrize(
+    ("form", "message"),
+    [
+        ({"all_rating": "abc", "all_slope": "120"}, "Rating als Zahl"),
+        ({"all_rating": "71.2", "all_slope": ""}, "ganze Zahl"),
+        ({"all_rating": "10", "all_slope": "120"}, "Rating erlaubt"),
+        ({"all_rating": "71.2", "all_slope": "300"}, "Slope erlaubt"),
+        ({"front9_rating": "70", "front9_slope": "120"}, "Vorderneun: Rating erlaubt"),
+    ],
+)
+def test_tee_values_validation(client: TestClient, form, message):
+    r = client.post("/rounds/t%7Cr2/tee", data=form)
+    assert r.status_code == 400 and message in r.text
+    assert 'value="120"' not in client.get("/rounds/t%7Cr2").text  # nichts gespeichert

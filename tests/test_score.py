@@ -212,7 +212,13 @@ def test_trend_moving_average(tmp_path: Path):
     diffs = [p.differential for p in pts]
     assert len(pts) == 6 and pts[2].moving_avg == round_half_up(sum(diffs[:3]) / 3)
     assert pts[5].moving_avg == round_half_up(sum(diffs[3:]) / 3)
-    assert differential_trend(round_scores(con), 3, only_relevant=True)  # Vorschlag "ja"
+    # Standard ist "nicht handicap-relevant": ohne Entscheidung bleibt der gefilterte Verlauf leer
+    assert differential_trend(round_scores(con), 3, only_relevant=True) == []
+    con.execute(
+        "insert into round_input (round_id, handicap_relevant, updated_at) "
+        "values ('t|r5', true, now()::timestamp)"
+    )
+    assert len(differential_trend(round_scores(con), 3, only_relevant=True)) == 1
     with pytest.raises(ValueError):
         differential_trend([], 0)
 
@@ -242,8 +248,12 @@ def test_manual_ags_and_cli_inputs(tmp_path: Path, capsys: pytest.CaptureFixture
     (nine,) = round_scores(con, round_ref="nine")
     assert nine.differential is not None and nine.reason is None
     assert nine.hi == 20.0
-    assert {r.round_key for r in round_scores(con, only_relevant=True)} == {"full", "nine"}
+    # nur "full" wurde als relevant gesetzt (Standard: nein)
+    assert {r.round_key for r in round_scores(con, only_relevant=True)} == {"full"}
     # Nutzerentscheidung hat Vorrang vor dem Vorschlag
-    assert main([*args, "round-set", "nine", "--relevant", "no"]) == 0
+    assert main([*args, "round-set", "nine", "--relevant", "yes"]) == 0
     con = open_db(data / "shotlake.duckdb")
-    assert "nine" not in [r.round_key for r in round_scores(con, only_relevant=True)]
+    assert {r.round_key for r in round_scores(con, only_relevant=True)} == {"full", "nine"}
+    assert main([*args, "round-set", "nine", "--relevant", "auto"]) == 0  # zurück auf Standard
+    con = open_db(data / "shotlake.duckdb")
+    assert {r.round_key for r in round_scores(con, only_relevant=True)} == {"full"}

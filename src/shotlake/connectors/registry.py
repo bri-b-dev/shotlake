@@ -7,6 +7,7 @@ from collections.abc import Callable
 from .api import ApiConnector
 from .arccos import ArccosConnector
 from .base import Connector
+from .bebrassie import BeBrassieConnector
 from .garmin_platform import GarminPlatformConnector
 from .garmin_range import GarminRangeConnector
 from .mevo import MevoConnector
@@ -21,4 +22,5 @@ def get_connector(source: str) -> Connector:
 API_CONNECTORS: dict[str, Callable[[], ApiConnector]] = {
     GarminPlatformConnector.id: GarminPlatformConnector,
     ArccosConnector.id: ArccosConnector,
+    BeBrassieConnector.id: BeBrassieConnector,
 }

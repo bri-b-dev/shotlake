@@ -18,6 +18,19 @@ arccos_clubtype_49 = "wedge_gap"
 arccos_clubtype_53 = "wedge_sand"
 arccos_clubtype_56 = "wedge_lob"
 
+[bebrassie]
+D1 = "driver"
+H6 = "hybrid_6"
+I7 = "iron_7"
+I8 = "iron_8"
+I9 = "iron_9"
+LW = "wedge_lob"
+PW = "wedge_pitching"
+UW = "wedge_gap"
+W5 = "wood_5"
+"56°" = "wedge_sand"
+Putter = "putter"
+
 [garmin_platform]
 garmin_clubtype_1 = "driver"
 garmin_clubtype_3 = "wood_5"

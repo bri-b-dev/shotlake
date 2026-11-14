@@ -56,11 +56,22 @@ def test_cli_club_set_writes_file_and_applies(tmp_path: Path, capsys: pytest.Cap
 
 def test_repo_config_is_valid_and_complete():
     mapping = load_club_map(REPO_CONFIG)  # lehnt unbekannte Schlägertypen ab
-    assert set(mapping) == {"garmin_platform", "arccos"}
+    assert set(mapping) == {"garmin_platform", "arccos", "bebrassie"}
     # Arccos: 12 aktive Schläger plus zwei ausgemusterte (Typ 42 = altes SW, Typ 37 = altes 7i)
+    assert len(mapping["bebrassie"]) == 11 and mapping["bebrassie"]["56°"] == "wedge_sand"
     assert len(mapping["garmin_platform"]) == 11 and len(mapping["arccos"]) == 14
     assert mapping["garmin_platform"]["garmin_clubtype_23"] == "putter"
     assert mapping["arccos"]["arccos_clubtype_12"] == "putter"
     for source in mapping.values():  # je Quelle genau ein Putter und ein Driver
         assert list(source.values()).count("putter") == 1
         assert list(source.values()).count("driver") == 1
+
+
+def test_keys_with_special_characters_are_quoted_and_roundtrip(tmp_path: Path):
+    path = tmp_path / "c.toml"
+    mapping = {"bebrassie": {"56°": "wedge_sand", "D1": "driver", "Putter": "putter"}}
+    save_club_map(path, mapping)
+    assert '"56°" = "wedge_sand"' in path.read_text(encoding="utf-8")
+    assert load_club_map(path) == mapping  # war früher ein TOML-Fehler
+    save_club_map(path, load_club_map(path))  # stabil beim erneuten Schreiben
+    assert load_club_map(path) == mapping

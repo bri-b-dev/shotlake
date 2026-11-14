@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import json
 import os
+import re
 import tomllib
 from pathlib import Path
 
@@ -42,12 +44,20 @@ def load_club_map(path: Path) -> dict[str, dict[str, str]]:
     return result
 
 
+_BARE_KEY = re.compile(r"^[A-Za-z0-9_-]+$")
+
+
+def _toml_key(key: str) -> str:
+    """Schlüssel nur ohne Anführungszeichen schreiben, wenn TOML das erlaubt (nicht z. B. `56°`)."""
+    return key if _BARE_KEY.match(key) else json.dumps(key, ensure_ascii=False)
+
+
 def save_club_map(path: Path, mapping: dict[str, dict[str, str]]) -> None:
     lines = [HEADER]
     for source in sorted(mapping):
-        lines.append(f"\n[{source}]")
+        lines.append(f"\n[{_toml_key(source)}]")
         for ref in sorted(mapping[source], key=lambda r: (len(r), r)):
-            lines.append(f'{ref} = "{mapping[source][ref]}"')
+            lines.append(f'{_toml_key(ref)} = "{mapping[source][ref]}"')
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 

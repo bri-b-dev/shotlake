@@ -37,6 +37,7 @@ LIE = {
     "bunker": "sand",
     "green": "green",
 }
+LIE_UNKNOWN = {"unknown", ""}  # Quelle kennt die Lage nicht -> NULL, kein "other"
 FAIRWAY = {"HIT": "hit", "LEFT": "left", "RIGHT": "right"}
 
 
@@ -150,12 +151,21 @@ def parse_round(payload: dict[str, Any]) -> ParsedRound:
             )
         )
 
-    shot_data = _need(payload, "shot_data")
+    shot_data = payload.get("shot_data")
+    if not isinstance(shot_data, dict):
+        raise SchemaDriftError("shot_data fehlt")
+    hole_shots = shot_data.get("holeShots")
+    if not hole_shots:
+        # z. B. Runden ohne Schlagerfassung: Scorecard bleibt gültig, es gibt nur keine Schläge
+        result.warnings.append("Keine Schlagdaten (holeShots) für diese Runde")
+        hole_shots = []
     club_type = {c["id"]: c.get("clubTypeId") for c in shot_data.get("clubDetails", [])}
     unknown_lies: set[str] = set()
 
     def lie(value: object) -> str | None:
         if not isinstance(value, str):
+            return None
+        if value.lower() in LIE_UNKNOWN:
             return None
         mapped = LIE.get(value.lower())
         if mapped is None:
@@ -163,7 +173,7 @@ def parse_round(payload: dict[str, Any]) -> ParsedRound:
             return "other"
         return mapped
 
-    for hole in _need(shot_data, "holeShots"):
+    for hole in hole_shots:
         for s in hole.get("shots", []):
             start_loc, end_loc = s.get("startLoc") or {}, s.get("endLoc") or {}
             ts = s.get("shotTime")

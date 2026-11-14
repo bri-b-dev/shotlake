@@ -240,3 +240,16 @@ def test_error_mapping():
     class GarminConnectAuthenticationError(Exception): ...
 
     assert isinstance(m(GarminConnectAuthenticationError("x")), AuthError)
+
+
+def test_unknown_lie_is_null_and_missing_hole_shots_is_not_drift():
+    p = payload()
+    p["shot_data"]["holeShots"][0]["shots"][1]["endLoc"]["lie"] = "Unknown"
+    r = parse_round(p)
+    assert r.shots[1].end_lie is None
+    assert not any("Unknown" in w for w in r.warnings)
+
+    p["shot_data"] = {}
+    r = parse_round(p)
+    assert r.shots == [] and r.holes_played == 2
+    assert any("Keine Schlagdaten" in w for w in r.warnings)

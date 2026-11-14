@@ -83,7 +83,7 @@ class RoundScore:
     start_utc: datetime
     course_name: str
     holes_played: int
-    part: str | None  # all | front9 | back9 | None (Teilrunde)
+    part: str | None  # all | front9 | back9 | nine (9 Löcher ohne Lochdaten) | None (Teilrunde)
     gross: int | None
     par: int | None
     to_par: int | None
@@ -154,6 +154,13 @@ def compute_round(
     part = _part(played)
     st = _stats(played)
     gross, par = st["gross"], st["par"]
+    # Runde ohne Lochdaten (nur Kopfwerte der Quelle): Score und Differential bleiben möglich,
+    # Statistik (Putts, FIR, GIR) und Höchstscore nicht
+    header_n = _int(row.get("holes_played"))
+    header_only = not played and header_n in (9, 18) and _int(row.get("gross_strokes")) is not None
+    if header_only:
+        part = "all" if header_n == 18 else "nine"
+        gross, par = _int(row.get("gross_strokes")), _int(row.get("par_played"))
 
     fir = [h for h in played if h.par is not None and h.par >= 4 and h.fairway_outcome]
     fir_hits = sum(1 for h in fir if h.fairway_outcome == "hit")
@@ -184,13 +191,15 @@ def compute_round(
     if rating9 is not None:
         rating, slope = 2 * rating9[0], rating9[1]
 
-    holes_n = len(played)
-    nine = part in ("front9", "back9")
+    holes_n = header_n if header_only and header_n else len(played)
+    nine = part in ("front9", "back9", "nine")
     reason: str | None = None
     ch = ags = None
     ags_source: str | None = None
     diff: float | None = None
-    stroke_ok = all(h.par is not None and h.stroke_index is not None for h in played)
+    stroke_ok = bool(played) and all(
+        h.par is not None and h.stroke_index is not None for h in played
+    )
 
     if part is None:
         reason = f"Teilrunde mit {holes_n} Löchern (nur 9 oder 18 Löcher werten)"

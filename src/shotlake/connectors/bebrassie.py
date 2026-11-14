@@ -5,15 +5,19 @@ Gerätekennung. Struktur laut Probe vom 2026-11-14: `playedHoles` (Score je Loch
 (Par und Lochindex je Geschlecht), `shots` (Start `location`, Ziel `destination`, Schläger,
 `shotFrom`/`shotTo` als Lage), `courseTee` (Rating/Slope je Geschlecht), `pinPositions`.
 
-ANNAHMEN (nach dem ersten Import gegen die echten Daten zu prüfen):
-- Koordinaten sind GeoJSON, also `[Längengrad, Breitengrad]`.
-- `calculatedDistance` ist in Metern.
-- Die Wertemengen von `shotFrom`/`shotTo`/`shotType` sind nicht belegt: Unbekanntes wird als
-  Warnung gemeldet (Lage `other`), nicht geraten.
-- Ob Putts als Schläge vorliegen, ist offen: Putts werden nur gezählt, wenn die Schlagzahl eines
-  Lochs zu `numShots` passt; Strafschläge sind nicht belegt (bleiben NULL).
+Aus den echten Daten (18 Runden, 115 Löcher mit Detail) bestätigt:
+- Koordinaten sind GeoJSON `[Länge, Breite]`; `calculatedDistance` ist in Metern.
+- Putts sind Schläge (`shotType = putt`, Start auf dem Grün); die Zahl der Schläge je Loch
+  entspricht immer `numShots`. `number` zählt je Loch ab 0.
+- Strafschläge stehen als eigener Schlag (`penalty`). Sie werden nicht als Schlag gespeichert,
+  sondern als Strafschlag des Lochs; der Schlag davor endet am Droppunkt. `roughout` ist Aus
+  (Strafschlag, Rückkehr zum Tee), `water` ein Hindernis.
+- Rating/Slope 0 bedeutet „nicht gepflegt" und ist kein Wert.
 - Die Wertung (Damen/Herren) folgt `proPlayerType` bzw. dem Schlüssel in `strokesGained`
   (z. B. WOMEN18); ohne Angabe gibt es kein Rating (nicht geraten).
+- Fairway: Treffer, wenn der Abschlag auf dem Fairway endet, sonst `miss` (die Seite ist nicht
+  belegt, deshalb kein links/rechts).
+- Reine Score-Runden liefern nur Kopfwerte (Löcher, Schläge, zu Par); Tee und Rating fehlen dort.
 """
 
 from __future__ import annotations
@@ -30,11 +34,19 @@ from ..model import CourseRecord, CourseShotRecord, HoleRecord, ParsedRound, Tee
 from .api import ApiConnector, AuthError, FetchPage, RawRecord, load_secret
 from .errors import SchemaDriftError
 
+# Lagen (aus den echten Daten abgelesen). `roughout` ist Aus (nach dem Schlag folgt ein Strafschlag
+# mit Rückkehr zum Tee), `water` ein Hindernis; beide sind für Strokes Gained keine Ausgangslage
+# und werden zu `other`. `hole` ist das Einlochen (nur als Ziel eines Schlags).
 LIE = {
     "tee": "tee", "teebox": "tee", "fairway": "fairway", "rough": "rough",
-    "bunker": "sand", "sand": "sand", "green": "green",
+    "bunker": "sand", "sand": "sand", "green": "green", "hole": "hole",
+    "water": "other", "roughout": "other",
 }  # fmt: skip
-SHOT_TYPE = (("tee", "TEE"), ("approach", "APPROACH"), ("putt", "PUTT"), ("chip", "CHIP"))
+SHOT_TYPES = {
+    "teeshot": "TEE", "shottogreen": "APPROACH", "chip": "CHIP", "pitch": "PITCH",
+    "putt": "PUTT", "transport": "TRANSPORT", "bunker": "BUNKER", "recovery": "RECOVERY",
+    "penalty": "PENALTY",
+}  # fmt: skip
 # Rollende Durchschnitte ändern sich bei jedem neuen Lauf und dürfen den raw-Hash nicht ändern
 VOLATILE_KEYS = ("hciAvg10", "firAvg10", "girAvg10", "sgAvg10", "wttAvg10")
 DROP_FOR_STORAGE = ("userAgent", "note", "images", "aiReportId")
@@ -61,6 +73,12 @@ def _int(value: object) -> int | None:
 
 def _dict(value: object) -> dict[str, Any]:
     return value if isinstance(value, dict) else {}
+
+
+def _positive(value: object) -> float | None:
+    """Rating/Slope 0 bedeutet bei BeBrassie „nicht gepflegt" und ist kein Wert."""
+    v = _num(value)
+    return v if v is not None and v > 0 else None
 
 
 def _lonlat(geo: object) -> tuple[float, float] | None:
@@ -100,12 +118,11 @@ def _lie(value: object, unknown: set[str]) -> str | None:
 def _shot_type(value: object, unknown: set[str]) -> str | None:
     if not isinstance(value, str) or not value.strip():
         return None
-    low = value.lower()
-    for needle, label in SHOT_TYPE:
-        if needle in low:
-            return label
-    unknown.add(f"shotType:{value}")
-    return value.upper()
+    label = SHOT_TYPES.get(re.sub(r"[^a-z]", "", value.lower()))
+    if label is None:
+        unknown.add(f"shotType:{value}")
+        return value.upper()
+    return label
 
 
 def parse_round(data: dict[str, Any]) -> ParsedRound:
@@ -125,12 +142,18 @@ def parse_round(data: dict[str, Any]) -> ParsedRound:
     tee_name = str(tee_raw.get("name") or tee_raw.get("colorName") or "") or None
     if tee_name:
         for sex, label in (("Women", "WOMEN"), ("Men", "MEN")):
-            rating, slope = _num(tee_raw.get(f"rating{sex}")), _int(tee_raw.get(f"slope{sex}"))
+            rating, slope = (
+                _positive(tee_raw.get(f"rating{sex}")),
+                _positive(tee_raw.get(f"slope{sex}")),
+            )
             if rating is not None and slope is not None:
-                tees.append(TeeRecord(tee_name, label, rating, slope))
+                tees.append(TeeRecord(tee_name, label, rating, int(slope)))
     rating_key = {"women": "Women", "men": "Men"}.get(gender or "")
-    tee_rating = _num(tee_raw.get(f"rating{rating_key}")) if rating_key else None
-    tee_slope = _int(tee_raw.get(f"slope{rating_key}")) if rating_key else None
+    tee_rating = _positive(tee_raw.get(f"rating{rating_key}")) if rating_key else None
+    slope_value = _positive(tee_raw.get(f"slope{rating_key}")) if rating_key else None
+    tee_slope = int(slope_value) if slope_value is not None else None
+    if tee_rating is None or tee_slope is None:
+        tee_rating = tee_slope = None  # nur gemeinsam gültig
 
     course = CourseRecord(
         source="bebrassie",
@@ -158,6 +181,13 @@ def parse_round(data: dict[str, Any]) -> ParsedRound:
 
     played = data.get("playedHoles")
     if not isinstance(played, list):
+        # nur Listeneintrag (z. B. reine Score-Runde): Kopfwerte reichen für Score/Differential
+        total_holes, total_shots = _int(data.get("totalHoles")), _int(data.get("totalShots"))
+        to_par = _int(data.get("totalToPar"))
+        if total_holes and total_shots is not None:
+            result.holes_total, result.gross_total = total_holes, total_shots
+            if to_par is not None:
+                result.par_played = total_shots - to_par
         result.warnings.append("nur Listeneintrag ohne Lochdaten (show-round fehlte)")
         return result
     course_holes = {
@@ -187,42 +217,75 @@ def parse_round(data: dict[str, Any]) -> ParsedRound:
         if ph.get("isPickup"):
             pickups += 1
             strokes = None  # aufgenommen: kein gültiger Lochscore
-        starts = [_lie(s.get("shotFrom"), unknown) for s in hole_shots]
+
+        # Strafschläge stehen als eigene "Schläge" in der Liste. Für Strokes Gained sind sie ein
+        # Strafschlag auf dem Loch; der Schlag davor endet am Droppunkt (Ziel des Strafschlags).
+        real: list[tuple[dict[str, Any], dict[str, Any] | None]] = []
+        penalties = 0
+        for s_raw in hole_shots:
+            if _shot_type(s_raw.get("shotType"), set()) == "PENALTY" and real:
+                real[-1] = (real[-1][0], s_raw)
+                penalties += 1
+            else:
+                real.append((s_raw, None))
         complete = strokes is not None and len(hole_shots) == strokes
-        putts = sum(1 for lie in starts if lie == "green") if complete else None
-        pin = _lonlat(pins.get(str(ph.get("holeIndex"))) or {}) or _lonlat(ch.get("location"))
+        putts = (
+            sum(1 for sr, _ in real if _lie(sr.get("shotFrom"), set()) == "green")
+            if complete
+            else None
+        )
+        par = _int(ph.get("courseHolePar"))
+        outcome = None
+        if par is not None and par >= 4:
+            tee_end = next(
+                (
+                    _lie(sr.get("shotTo"), set())
+                    for sr, _ in real
+                    if _lie(sr.get("shotFrom"), set()) == "tee"
+                ),
+                None,
+            )
+            if tee_end == "fairway":
+                outcome = "hit"
+            elif tee_end is not None and tee_end != "green":
+                outcome = "miss"  # Seite des Fehlschlags ist nicht belegt
+        pin = _lonlat(pins.get(str(ph.get("holeIndex")))) or _lonlat(ch.get("location"))
         result.holes.append(
             HoleRecord(
                 number=number,
-                par=_int(ph.get("courseHolePar")),
+                par=par,
                 stroke_index=_int(ch.get(hcp_key)) if hcp_key else None,
                 strokes=strokes,
                 putts=putts,
-                penalties=None,
-                fairway_outcome=None,  # Seite des Fehlschlags nicht belegt
+                penalties=penalties if complete else None,
+                fairway_outcome=outcome,
                 pin_lat=pin[0] if pin else None,
                 pin_lon=pin[1] if pin else None,
             )
         )
-        for order, s in enumerate(hole_shots, start=1):
-            club_info = _dict(s.get("club"))
+        for order, (s_raw, drop) in enumerate(real, start=1):
+            club_info = _dict(s_raw.get("club"))
             club_raw = club_info.get("clubName") or club_info.get("clubShortcut")
-            a, b = _lonlat(s.get("location")), _lonlat(s.get("destination"))
+            a = _lonlat(s_raw.get("location"))
+            end_src = drop if drop is not None else s_raw
+            b = _lonlat(end_src.get("destination"))
+            end_lie = _lie(end_src.get("shotTo"), unknown)
+            _lie(s_raw.get("shotTo"), unknown)  # unbekannte Werte des Originalziels melden
             result.shots.append(
                 CourseShotRecord(
                     hole_number=number,
                     shot_order=order,
                     club_raw=str(club_raw) if club_raw else None,
                     club_type=canonical_club(str(club_raw)) if club_raw else None,
-                    shot_type=_shot_type(s.get("shotType"), unknown),
+                    shot_type=_shot_type(s_raw.get("shotType"), unknown),
                     shot_source="BEBRASSIE",
-                    distance_m=_num(s.get("calculatedDistance")),
+                    distance_m=_num(s_raw.get("calculatedDistance")),
                     start_lat=a[0] if a else None,
                     start_lon=a[1] if a else None,
-                    start_lie=_lie(s.get("shotFrom"), unknown),
+                    start_lie=_lie(s_raw.get("shotFrom"), unknown),
                     end_lat=b[0] if b else None,
                     end_lon=b[1] if b else None,
-                    end_lie=_lie(s.get("shotTo"), unknown),
+                    end_lie=end_lie,
                 )
             )
     if pickups:

@@ -118,6 +118,7 @@ def seed_round(con, key="r1", holes=18, rating=71.2, slope=130, strokes=5):
             "ALL",
             holes,
             strokes * holes,
+            None,  # par_played (nur bei Runden ohne Lochdaten)
             "Gelb",
             rating,
             slope,

@@ -101,6 +101,7 @@ create table if not exists round (
     round_type varchar,
     holes_played integer not null,
     gross_strokes integer,
+    par_played integer,
     tee_name varchar,
     tee_rating double,
     tee_slope integer,
@@ -213,6 +214,8 @@ def _migrate(con: duckdb.DuckDBPyConnection) -> None:
             "where handicap_relevant is not null"
         )
         con.execute("alter table round drop column handicap_relevant")
+    if "par_played" not in cols:
+        con.execute("alter table round add column par_played integer")
     note_cols = {r[0] for r in con.execute("describe note").fetchall()}
     if "valid_to" not in note_cols:
         con.execute("alter table note add column valid_to date")

@@ -34,7 +34,8 @@ def shot(hole_id: str, number: int, club: str, frm: str, to: str, d_from: float,
         "calculatedDistance": abs(d_from - d_to),
         "club": {"_id": "c1", "clubName": club, "clubShortcut": club[:2], "clubType": "x"},
         "location": pt(d_from), "destination": pt(d_to), "remainingDistance": d_to,
-        "shotFrom": frm, "shotTo": to, "shotType": "tee" if number == 1 else "approach",
+        "shotFrom": frm, "shotTo": to,
+        "shotType": "putt" if club == "Putter" else ("teeShot" if frm == "Tee" else "shotToGreen"),
     }  # fmt: skip
 
 
@@ -85,10 +86,10 @@ def test_parse_round_maps_course_tee_holes_and_shots():
     assert {(t.handicap_type, t.rating) for t in r.course.tees} == {("WOMEN", 74.3), ("MEN", 70.0)}
     assert r.round_type == "social" and r.holes_played == 2 and r.gross_strokes == 6
     h1, h2 = r.holes
-    assert (h1.par, h1.stroke_index, h1.strokes, h1.putts, h1.penalties) == (4, 7, 4, 2, None)
+    assert (h1.par, h1.stroke_index, h1.strokes, h1.putts, h1.penalties) == (4, 7, 4, 2, 0)
     assert (h2.par, h2.stroke_index, h2.putts) == (3, 13, 1)
     assert h1.pin_lat == pytest.approx(LAT) and h1.pin_lon == pytest.approx(LON)
-    assert h1.fairway_outcome is None  # Seite des Fehlschlags nicht belegt
+    assert h1.fairway_outcome == "hit" and h2.fairway_outcome is None  # Par 3: kein Fairway
     assert len(r.shots) == 6
     first = r.shots[0]
     assert (first.start_lie, first.end_lie, first.shot_type) == ("tee", "fairway", "TEE")
@@ -112,12 +113,131 @@ def test_men_rating_when_player_group_is_men_and_none_when_unknown():
 def test_unknown_values_are_warned_not_guessed():
     d = doc()
     d["shots"][0]["shotFrom"] = "Abschlagbox Plus"
-    d["shots"][1]["shotTo"] = "Wasser"
-    d["shots"][1]["shotType"] = "Strafe"
+    d["shots"][1]["shotTo"] = "Moor"
+    d["shots"][1]["shotType"] = "Zauberschlag"
     r = parse_round(d)
     assert r.shots[0].start_lie == "other" and r.shots[1].end_lie == "other"
-    assert r.shots[1].shot_type == "STRAFE"
-    assert any("Abschlagbox Plus" in w and "Wasser" in w for w in r.warnings)
+    assert r.shots[1].shot_type == "ZAUBERSCHLAG"
+    assert any("Abschlagbox Plus" in w and "Moor" in w for w in r.warnings)
+
+
+def test_known_values_from_real_data_give_no_warning():
+    d = doc()
+    types = ["teeShot", "shotToGreen", "putt", "putt", "transport", "pitch"]
+    for sh, kind in zip(d["shots"], types, strict=True):
+        sh["shotType"] = kind
+    d["shots"][3]["shotTo"] = "hole"
+    r = parse_round(d)
+    assert [x.shot_type for x in r.shots] == [
+        "TEE",
+        "APPROACH",
+        "PUTT",
+        "PUTT",
+        "TRANSPORT",
+        "PITCH",
+    ]
+    assert r.shots[3].end_lie == "hole" and r.warnings == []
+
+
+def with_penalty(lie: str, drop_lie: str, drop_m: float) -> dict[str, Any]:
+    """Loch 1 mit Strafschlag: Abschlag -> `lie`, Strafschlag -> Droppunkt in `drop_m` m.
+
+    Der folgende Schlag startet am Droppunkt, damit die Kette der Positionen lückenlos ist.
+    """
+    d: dict[str, Any] = doc()
+    h1 = [x for x in d["shots"] if x["courseHole"] == "h1"]
+    others = [x for x in d["shots"] if x["courseHole"] != "h1"]
+    tee = shot("h1", 0, "Driver", "Tee", lie, 300, 150)
+    pen = shot("h1", 1, "Driver", lie, drop_lie, 150, drop_m)
+    pen["shotType"] = "penalty"
+    rest = h1[1:]
+    for i, x in enumerate(rest, start=2):
+        x["number"] = i
+    rest[0]["shotFrom"] = drop_lie
+    rest[0]["location"] = pt(drop_m)
+    d["shots"] = [tee, pen, *rest, *others]
+    d["playedHoles"][0]["numShots"] = 5  # Abschlag, Strafe, Approach, 2 Putts
+    return d
+
+
+def test_water_penalty_becomes_a_penalty_stroke_and_the_shot_ends_at_the_drop():
+    r = parse_round(with_penalty("water", "rough", 120))
+    h1 = r.holes[0]
+    assert (h1.strokes, h1.putts, h1.penalties) == (5, 2, 1)
+    holes1 = [s for s in r.shots if s.hole_number == 1]
+    assert len(holes1) == 4 and all(
+        s.shot_type != "PENALTY" for s in holes1
+    )  # kein Strafschlag-Schlag
+    tee = holes1[0]
+    assert tee.end_lie == "rough"  # Droppunkt statt Wasser
+    assert tee.end_lat == pytest.approx(LAT - 120 / M_PER_DEG)
+    assert r.warnings == []  # `water` ist ein bekannter Wert
+
+
+def test_out_of_bounds_returns_to_the_tee():
+    r = parse_round(with_penalty("roughout", "tee", 300))
+    tee = next(s for s in r.shots if s.hole_number == 1)
+    assert tee.end_lie == "tee" and tee.end_lat == pytest.approx(LAT - 300 / M_PER_DEG)
+    assert r.holes[0].penalties == 1 and r.warnings == []
+    assert r.holes[0].fairway_outcome == "miss"  # Abschlag ins Aus: nicht auf dem Fairway
+
+
+def test_sg_counts_penalty_stroke_and_ends_shot_at_drop(tmp_path: Path):
+    con = open_db(tmp_path / "t.duckdb")
+    d = with_penalty("water", "rough", 120)
+    sync_api(con, connector(FakeClient([item("r1", d["startedAt"])], {"r1": d})), None)
+    res = strokes_gained(con, BASELINE, source="bebrassie")
+    hole1 = next(h for h in res.holes if h.hole == 1)
+    assert hole1.complete, hole1.reason
+    assert hole1.by_category["penalty"] == -1.0
+    assert sum(hole1.by_category.values()) == pytest.approx(hole1.total or 0.0, abs=1e-6)
+
+
+def test_fairway_hit_miss_and_no_statement_for_par_3_or_green():
+    d = doc()
+    d["shots"][0]["shotTo"] = "rough"
+    assert parse_round(d).holes[0].fairway_outcome == "miss"
+    d["shots"][0]["shotTo"] = "green"
+    assert parse_round(d).holes[0].fairway_outcome is None  # keine Aussage
+    d["shots"][0]["shotTo"] = "bunker"
+    assert parse_round(d).holes[0].fairway_outcome == "miss"
+
+
+def test_zero_rating_and_slope_mean_not_maintained():
+    d = doc()
+    d["courseTee"].update({"ratingWomen": 0, "slopeWomen": 0})
+    r = parse_round(d)
+    assert r.tee_rating is None and r.tee_slope is None
+    assert {t.handicap_type for t in r.course.tees} == {"MEN"}  # Damenwerte fehlen, Herren da
+    d["courseTee"].update({"ratingWomen": 70.0, "slopeWomen": 0})  # nur gemeinsam gültig
+    assert parse_round(d).tee_rating is None
+
+
+def test_score_only_list_entry_gets_totals_from_header():
+    entry = item("so", "2026-07-05T10:00:00.000Z")
+    entry.update({"totalHoles": 9, "totalShots": 52, "totalToPar": 16, "scoreOnly": True})
+    r = parse_round(entry)
+    assert (r.holes_total, r.gross_total, r.par_played) == (9, 52, 36)
+    assert r.holes == [] and r.holes_played == 9 and r.gross_strokes == 52
+    assert r.tee_rating is None  # Tee fehlt im Listeneintrag
+
+
+def test_score_only_round_scores_and_gets_differential_with_user_platzwerte(tmp_path: Path):
+    con = open_db(tmp_path / "t.duckdb")
+    entry = item("so", "2026-07-05T10:00:00.000Z")
+    entry.update({"totalHoles": 9, "totalShots": 52, "totalToPar": 16, "scoreOnly": True})
+    sync_api(con, connector(FakeClient([entry], {})), None)
+    (s,) = round_scores(con, source="bebrassie")
+    assert (s.gross, s.par, s.to_par, s.holes_played, s.part) == (52, 36, 16, 9, "nine")
+    assert s.putts is None and s.differential is None and "Rating" in (s.reason or "")
+    # Nutzer hinterlegt Platzwerte (Tee unbekannt): hochgerechnet auf 18 Löcher
+    row = con.execute("select course_id from round").fetchone()
+    assert row is not None
+    cid = row[0]
+    con.execute("insert into tee_rating values (?, '', 'all', 71.2, 117)", [cid])
+    (s,) = round_scores(con, source="bebrassie")
+    assert s.differential == round(113 / 117 * (2 * 52 - 71.2) + 1e-9, 1) and s.extrapolated
+    assert s.ags_source == "gross"
 
 
 def test_putts_only_counted_when_shot_count_matches_score():

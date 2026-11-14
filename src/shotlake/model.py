@@ -144,6 +144,10 @@ class ParsedRound:
     in_progress: bool = False
     exclude_from_stats: bool = False
     simulated: bool = False
+    # Nur Kopfwerte (z. B. reine Score-Runden ohne Lochdaten): Löcher, Schläge, Par der Runde
+    holes_total: int | None = None
+    gross_total: int | None = None
+    par_played: int | None = None
     holes: list[HoleRecord] = field(default_factory=list)
     shots: list[CourseShotRecord] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
@@ -155,9 +159,10 @@ class ParsedRound:
 
     @property
     def holes_played(self) -> int:
-        return sum(1 for h in self.holes if h.strokes is not None)
+        n = sum(1 for h in self.holes if h.strokes is not None)
+        return n if n else (self.holes_total or 0)
 
     @property
     def gross_strokes(self) -> int | None:
         played = [h.strokes for h in self.holes if h.strokes is not None]
-        return sum(played) if played else None
+        return sum(played) if played else self.gross_total

@@ -80,7 +80,7 @@
         <tr><td>{{ h.hole_number }}</td><td>{{ h.par if h.par is not none else '–' }}</td><td>{{ h.stroke_index if h.stroke_index is not none else '–' }}</td>
             <td>{{ h.strokes if h.strokes is not none else '–' }}</td><td>{{ h.putts if h.putts is not none else '–' }}</td>
             <td>{{ h.penalties if h.penalties is not none else '–' }}</td>
-            <td>{{ {'hit': 'Treffer', 'left': 'links', 'right': 'rechts'}.get(h.fairway_outcome, '–') }}</td>
+            <td>{{ {'hit': 'Treffer', 'left': 'links', 'right': 'rechts', 'miss': 'daneben'}.get(h.fairway_outcome, '–') }}</td>
             {% if g and g.complete %}
               <td class="{{ 'pos' if g.total >= 0 else 'neg' }}">{{ g.total|num(2, true) }}</td>
               {% for c in ('tee', 'approach', 'short', 'putting') %}<td>{{ g.by_category.get(c)|num(2, true) }}</td>{% endfor %}

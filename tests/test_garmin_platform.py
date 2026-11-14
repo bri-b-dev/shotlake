@@ -14,7 +14,14 @@ from shotlake.ingest_api import get_cursor, reprocess_raw, sync_api
 from shotlake.ingest_round import write_round
 from shotlake.model import HoleRecord
 
-E7 = 10_000_000
+
+def semi(deg: float) -> int:
+    """Grad -> Garmin-Semicircles (ganzzahlig)."""
+    return round(deg * 2**31 / 180)
+
+
+def course_deg(deg: float) -> int:
+    return round(deg * 1_000_000)
 
 
 def scalar(con: Any, sql: str) -> Any:
@@ -35,8 +42,8 @@ def details(sid: int, start: str) -> dict[str, Any]:
             "putts": 2,
             "penalties": 0,
             "fairwayShotOutcome": "RIGHT",
-            "pinPositionLat": 50 * E7,
-            "pinPositionLon": 8 * E7,
+            "pinPositionLat": semi(50),
+            "pinPositionLon": semi(8),
         },
         {"number": 2, "strokes": 3, "putts": 1, "penalties": 1},
         *({"number": n} for n in range(3, 19)),
@@ -69,8 +76,8 @@ def details(sid: int, start: str) -> dict[str, Any]:
         "name": "Testplatz",
         "country": "DE",
         "city": "Teststadt",
-        "lat": 50 * E7,
-        "lon": 8 * E7,
+        "lat": course_deg(50),
+        "lon": course_deg(8),
         "roundPar": 72,
         "holePars": "435454354435444335",
         "tees": [tee],
@@ -80,7 +87,7 @@ def details(sid: int, start: str) -> dict[str, Any]:
 
 def shot_data() -> dict[str, Any]:
     def loc(lat: int, lie: str) -> dict[str, Any]:
-        return {"lat": lat * E7, "lon": 8 * E7, "lie": lie, "lieSource": "CARTOGRAPHY"}
+        return {"lat": semi(lat), "lon": semi(8), "lie": lie, "lieSource": "CARTOGRAPHY"}
 
     shots = [
         {
@@ -290,3 +297,14 @@ def test_reprocess_rebuilds_canonical_from_raw(tmp_path: Path):
     assert rep.status == "ok"
     assert scalar(con, "select count(*) from course_shot where end_lie = 'kaputt'") == 0
     assert scalar(con, "select handicap_relevant from round_input") is True
+
+
+def test_coordinate_units_are_semicircles_for_shots_and_microdegrees_for_courses():
+    from shotlake.connectors.garmin_platform import _coord, _course_coord
+
+    # Garmin-Semicircles: 2^31 entspricht 180 Grad; nicht Grad * 1e7 (frühere, falsche Annahme)
+    assert _coord(2**31) == pytest.approx(180.0)
+    assert _coord(semi(49.3)) == pytest.approx(49.3, abs=1e-6)
+    assert _coord(493_000_000) != pytest.approx(49.3)  # so wäre es mit Grad * 1e7 gerechnet
+    assert _course_coord(49_300_000) == pytest.approx(49.3)
+    assert _coord(None) is None and _course_coord("x") is None

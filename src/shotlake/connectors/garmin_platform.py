@@ -4,8 +4,9 @@ Pro Runde ein Rohdokument `{summary, details, shot_data}` aus `get_golf_summary`
 `get_golf_scorecard` und `get_golf_shot_data`. Der Client ist hinter `GolfClient` austauschbar
 (Tests nutzen Fixtures, kein Netz).
 
-Annahmen aus der Phase-0-Probe (an weiteren Runden zu prüfen): Koordinaten sind Grad * 1e7,
-`shotTime` ist Epoch in ms, `meters` ist Metrik. Putts sind keine Schläge (nur Zähler je Loch).
+Einheiten (an den echten Daten bestätigt): Positionen von Schlägen/Fahnen sind Semicircles
+(Grad = Wert * 180 / 2^31), die Platzkoordinate ist Grad * 1e6, `shotTime` ist Epoch in ms,
+`meters` ist Metrik. Putts sind keine Schläge (nur Zähler je Loch).
 Cursor: Startzeit der neuesten vollständig geladenen Runde; laufende Runden werden übersprungen.
 """
 
@@ -28,7 +29,11 @@ from ..model import (
 from .api import ApiConnector, AuthError, FetchPage, RateLimitedError, RawRecord, TransientError
 from .errors import SchemaDriftError
 
-COORD_SCALE = 1e7
+# Positionen von Schlägen und Fahnen sind Garmin-"Semicircles" (Grad = Wert * 180 / 2^31); die
+# Koordinate des Platzes (courseSnapshots) ist dagegen Grad * 1e6. Beides an echten Daten geprüft:
+# mit Semicircles stimmt Garmins `meters` überall mit der GPS-Strecke überein (Verhältnis 1,001).
+SEMICIRCLE_TO_DEG = 180 / 2**31
+COURSE_COORD_SCALE = 1e6
 PAGE_SIZE = 20
 LIE = {
     "teebox": "tee",
@@ -48,7 +53,13 @@ class GolfClient(Protocol):
 
 
 def _coord(value: object) -> float | None:
-    return value / COORD_SCALE if isinstance(value, int | float) else None
+    """Schlag-/Fahnenposition (Semicircles) -> Grad."""
+    return value * SEMICIRCLE_TO_DEG if isinstance(value, int | float) else None
+
+
+def _course_coord(value: object) -> float | None:
+    """Platzkoordinate (Grad * 1e6) -> Grad."""
+    return value / COURSE_COORD_SCALE if isinstance(value, int | float) else None
 
 
 def _utc(text: object) -> datetime | None:
@@ -109,8 +120,8 @@ def parse_round(payload: dict[str, Any]) -> ParsedRound:
         name=str(snap.get("name", "")),
         country=snap.get("country"),
         city=snap.get("city"),
-        lat=_coord(snap.get("lat")),
-        lon=_coord(snap.get("lon")),
+        lat=_course_coord(snap.get("lat")),
+        lon=_course_coord(snap.get("lon")),
         par_total=_opt_int(snap.get("roundPar")),
         tees=tees,
     )

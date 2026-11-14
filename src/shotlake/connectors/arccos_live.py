@@ -32,10 +32,11 @@ from .errors import SchemaDriftError
 BASE_URL = "https://dashboard.arccosgolf.com"
 GOAL_HCP = -20  # Wert, den das Dashboard in allen Aufrufen sendet (Bedeutung ungeklärt)
 ROUNDS_LIMIT = 50
-MAX_JS_FILES = 250
+MAX_JS_FILES = 400
 _HASH = re.compile(r"[`\"']([a-z0-9]{4,10})/(\w+)[`\"']")
 _IMPORT = re.compile(r"""["'](\.{0,2}/[^"'\s]+?\.js)["']""")
-_ASSET = re.compile(r"""["'(](/_app/immutable/[^"'\s)]+?\.js)["')]""")
+# Startseite bindet relativ ein: import("./_app/immutable/entry/start.XYZ.js"), href="./_app/..."
+_ASSET = re.compile(r"""["'(](\.{0,2}/_app/immutable/[^"'\s)]+?\.js)["')]""")
 
 
 @dataclass(frozen=True)
@@ -92,9 +93,8 @@ def discover_remote_hashes(
     """Funktions-Hashes aus dem Frontend-Code lesen (Breitensuche ab der Startseite)."""
     start = transport.get(base_url + "/")
     _raise_for_status(start)
-    queue: deque[str] = deque(
-        urllib.parse.urljoin(base_url + "/", m) for m in dict.fromkeys(_ASSET.findall(start.text))
-    )
+    start_refs = list(dict.fromkeys(_ASSET.findall(start.text)))
+    queue: deque[str] = deque(urllib.parse.urljoin(base_url + "/", m) for m in start_refs)
     seen: set[str] = set()
     found: dict[str, str] = {}
     while queue and len(seen) < max_files and not names <= set(found):
@@ -114,7 +114,10 @@ def discover_remote_hashes(
                 queue.append(nxt)
     missing = names - set(found)
     if missing:
-        raise SchemaDriftError(f"Funktions-Hashes nicht gefunden: {sorted(missing)}")
+        raise SchemaDriftError(
+            f"Funktions-Hashes nicht gefunden: {sorted(missing)} "
+            f"({len(start_refs)} Startreferenzen, {len(seen)} Dateien durchsucht)"
+        )
     return found
 
 

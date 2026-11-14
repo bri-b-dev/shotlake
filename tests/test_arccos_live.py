@@ -70,7 +70,15 @@ class FakeDashboard:
         if "/magic-link?" in url:
             return Response(self.login_status, "", {"x-final-url": BASE + "/"})
         if url == BASE + "/":
-            return Response(200, '<script src="/_app/immutable/entry/app.js"></script>')
+            # wie im echten Dashboard: relative Einbindung per dynamischem import
+            return Response(
+                200,
+                '<link href="./_app/immutable/assets/0.css" rel="stylesheet">'
+                '<script>Promise.all([import("./_app/immutable/entry/start.js"),'
+                'import("./_app/immutable/entry/app.js")])</script>',
+            )
+        if url.endswith("entry/start.js"):
+            return Response(200, "// Start")
         if url.endswith("entry/app.js"):
             return Response(200, 'import"../chunks/a.js";import("../nodes/1.js")')
         if url.endswith("chunks/a.js"):
@@ -119,8 +127,9 @@ def test_hash_discovery_walks_imports():
     fake = make_dashboard()
     found = discover_remote_hashes(fake, BASE, {"roundsBundle", "roundDetailBundle"})
     assert found == {"roundsBundle": "ajj89v", "roundDetailBundle": "nqbht5"}
-    with pytest.raises(SchemaDriftError, match="nichtDa"):
+    with pytest.raises(SchemaDriftError, match="nichtDa") as info:
         discover_remote_hashes(fake, BASE, {"nichtDa"})
+    assert "Startreferenzen" in str(info.value) and "durchsucht" in str(info.value)
 
 
 def test_live_client_lists_all_years_and_loads_detail():

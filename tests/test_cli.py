@@ -54,3 +54,9 @@ def test_date_filters(fixtures, tmp_path, capsys):
     assert "wood_5" not in capsys.readouterr().out
     run(["clubs", "--min-n", "1", "--since", "2026-05-01", "--until", "2026-05-08"], tmp_path)
     assert "wood_5" in capsys.readouterr().out
+
+
+def test_sources_command_lists_risk(tmp_path, capsys):
+    assert run(["sources"], tmp_path) == 0
+    out = capsys.readouterr().out
+    assert "mevo" in out and "garmin_range" in out and "file_only" in out

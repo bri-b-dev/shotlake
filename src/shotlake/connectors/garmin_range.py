@@ -19,10 +19,24 @@ from zoneinfo import ZoneInfo
 from .. import units
 from ..clubs import canonical_club
 from ..model import ParsedSession, ShotRecord
+from .base import Connector, check_header
 from .errors import SchemaDriftError
 
 TZ = ZoneInfo("Europe/Berlin")
-REQUIRED = ("Datum", "Schlägerart", "Carry-Distanz", "Gesamtstrecke", "Ballgeschwindigkeit")
+REQUIRED = frozenset(
+    {"Datum", "Schlägerart", "Carry-Distanz", "Gesamtstrecke", "Ballgeschwindigkeit"}
+)
+KNOWN = frozenset(
+    {
+        "Datum", "Spieler", "Schlägername", "Schlägerart", "Schl.gsch.", "Anstellwinkel",
+        "Schwungbahn", "Schlagfläche", "Schlagflächenstellung", "Ballgeschwindigkeit",
+        "Smash Factor", "Abflugwinkel", "Abflugrichtung", "Backspin", "Sidespin", "Drehrate",
+        "Drehratentyp", "Drehachse", "Höhe des Scheitelpunkts", "Carry-Distanz",
+        "Carry-Abweichungswinkel", "Carry-Abweichungsdistanz", "Gesamtstrecke",
+        "Gesamtabweichungswinkel", "Gesamtabweichungsdistanz", "Notiz", "Markierung",
+        "Luftdichte", "Temperatur", "Luftdruck", "Relative Luftfeuchtigkeit",
+    }
+)  # fmt: skip
 EXPECTED_UNITS = {"Carry-Distanz": "[m]", "Gesamtstrecke": "[m]", "Ballgeschwindigkeit": "[km/h]"}
 _TIME = re.compile(r"^(\d{2})/(\d{2})/(\d{2}) (\d{2}):(\d{2}):(\d{2})(?:\s*[AP]M)?$", re.IGNORECASE)
 _SPIN_SOURCE = {"gemessen": "measured", "berechnet": "calculated"}
@@ -58,14 +72,10 @@ def parse_garmin_range_csv(path: Path | str) -> ParsedSession:
     if len(rows) < 2:
         raise SchemaDriftError("Header- und Einheitenzeile erwartet")
     header, unit_row = rows[0], rows[1]
-    missing = [c for c in REQUIRED if c not in header]
-    if missing:
-        raise SchemaDriftError(f"Pflichtspalten fehlen: {missing}")
+    report = check_header(header, unit_row, REQUIRED, KNOWN, EXPECTED_UNITS)
+    if not report.ok:
+        raise SchemaDriftError("; ".join(report.errors))
     index = {name: i for i, name in enumerate(header)}
-    for col, expected in EXPECTED_UNITS.items():
-        actual = unit_row[index[col]].strip() if index[col] < len(unit_row) else ""
-        if actual != expected:
-            raise SchemaDriftError(f"Einheit von {col}: erwartet {expected}, gefunden {actual!r}")
 
     shots: list[ShotRecord] = []
     errors: list[str] = []
@@ -119,5 +129,29 @@ def parse_garmin_range_csv(path: Path | str) -> ParsedSession:
     start = min(s.shot_time_utc for s in shots if s.shot_time_utc)
     local_start = start.astimezone(TZ).strftime("%Y-%m-%dT%H:%M:%S")
     return ParsedSession(
-        source="garmin_range", session_key=local_start, start_utc=start, shots=shots, errors=errors
+        source="garmin_range",
+        session_key=local_start,
+        start_utc=start,
+        shots=shots,
+        errors=errors,
+        warnings=list(report.warnings),
     )
+
+
+class GarminRangeConnector(Connector):
+    id = "garmin_range"
+    mode = "file"
+    risk = "file_only"
+    description = "Garmin Golf Range-Sessions (CSV-Export, deutsche Spaltennamen)"
+    required_columns = REQUIRED
+    known_columns = KNOWN
+    expected_units = EXPECTED_UNITS
+
+    def read_header(self, path: Path) -> tuple[list[str], list[str] | None]:
+        with Path(path).open(encoding="utf-8-sig", newline="") as fh:
+            reader = csv.reader(fh)
+            header = next(reader, [])
+            return header, next(reader, None)
+
+    def parse(self, path: Path) -> ParsedSession:
+        return parse_garmin_range_csv(path)

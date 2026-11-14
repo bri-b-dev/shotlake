@@ -9,17 +9,11 @@ from datetime import date
 from pathlib import Path
 
 from .analytics.distance import club_stats, gapping
+from .connectors.registry import CONNECTORS
 from .db import open_db
-from .ingest import PARSERS, import_file
+from .ingest import sync_location
 
 M_TO_YD = 1 / 0.9144
-
-
-def _files(paths: list[str]) -> list[Path]:
-    out: list[Path] = []
-    for p in map(Path, paths):
-        out.extend(sorted(p.glob("*.csv")) if p.is_dir() else [p])
-    return out
 
 
 def _fmt(value: float | None, factor: float, digits: int = 1) -> str:
@@ -36,8 +30,10 @@ def build_parser() -> argparse.ArgumentParser:
     sub = ap.add_subparsers(dest="cmd", required=True)
 
     imp = sub.add_parser("import", help="Dateien einer Quelle importieren")
-    imp.add_argument("source", choices=sorted(PARSERS))
+    imp.add_argument("source", choices=sorted(CONNECTORS))
     imp.add_argument("paths", nargs="+")
+
+    sub.add_parser("sources", help="Verfügbare Quellen und Risiko anzeigen")
 
     for name in ("clubs", "gapping"):
         p = sub.add_parser(name)
@@ -62,13 +58,17 @@ def main(argv: list[str] | None = None) -> int:
     data = Path(args.data_dir)
     con = open_db(data / "shotlake.duckdb")
     try:
+        if args.cmd == "sources":
+            for c in CONNECTORS.values():
+                print(f"{c.id:<14}{c.mode:<6}{c.risk:<22}{c.description}")
+            return 0
         if args.cmd == "import":
             code = 0
-            for f in _files(args.paths):
-                rep = import_file(con, args.source, f, raw_dir=data / "raw")
-                print(rep.as_text())
-                if rep.status in ("drift_detected", "error"):
-                    code = 2
+            for path in args.paths:
+                for rep in sync_location(con, args.source, path, raw_dir=data / "raw"):
+                    print(rep.as_text())
+                    if rep.status in ("drift_detected", "error"):
+                        code = 2
             return code
 
         factor, unit = (M_TO_YD, "yd") if args.units == "yd" else (1.0, "m")

@@ -19,10 +19,22 @@ from zoneinfo import ZoneInfo
 from .. import units
 from ..clubs import canonical_club
 from ..model import ParsedSession, ShotRecord
+from .base import Connector, check_header
 from .errors import SchemaDriftError
 
 TZ = ZoneInfo("Europe/Berlin")
-REQUIRED = ("club", "Shot", "Ball (mph)", "Carry (yds)", "Total (yds)")
+REQUIRED = frozenset({"club", "Shot", "Ball (mph)", "Carry (yds)", "Total (yds)"})
+KNOWN = frozenset(
+    {
+        "club", "Shot", "Ball (mph)", "Club (mph)", "Smash", "Carry (yds)", "Total (yds)",
+        "Roll (yds)", "Swing H (°)", "Spin (rpm)", "Height (ft)", "Time (s)", "AOA (°)",
+        "Spin Loft (°)", "Swing V (°)", "Spin Axis (°)", "Lateral (yds)", "Shot Type", "FTP (°)",
+        "FTT (°)", "Dynamic Loft (°)", "Club Path (°)", "Launch H (°)", "Launch V (°)",
+        "Low Point (ftin)", "DescentV (°)", "Curve Dist (yds)", "Lateral Impact (in)",
+        "Vertical Impact (in)", "Mode", "Location", "Temperature (°F)", "Humidity (%)",
+        "Air Pressure (psi)", "Altitude (ft)", "Wind Relative Direction", "Wind Speed (mph)",
+    }
+)  # fmt: skip
 _FILENAME = re.compile(r"^(\d{2})-([a-z]{3})-(\d{4})_(\d{1,2})_(\d{2})_(am|pm)$", re.IGNORECASE)
 _MONTHS = {
     m: i
@@ -74,11 +86,12 @@ def parse_mevo_csv(path: Path | str) -> ParsedSession:
         header = next(reader, None)
         if header is None:
             raise SchemaDriftError("Leere Datei")
-        missing = [c for c in REQUIRED if c not in header]
-        if missing:
-            raise SchemaDriftError(f"Pflichtspalten fehlen: {missing}")
+        report = check_header(header, None, REQUIRED, KNOWN, {})
+        if not report.ok:
+            raise SchemaDriftError("; ".join(report.errors))
         index = {name: i for i, name in enumerate(header)}
         session = ParsedSession(source="mevo", session_key=path.stem, start_utc=start)
+        session.warnings.extend(report.warnings)
         for line_no, cells in enumerate(reader, start=2):
             if not cells or not any(c.strip() for c in cells):
                 continue
@@ -128,3 +141,19 @@ def _to_shot(row: Row, shot_no: str) -> ShotRecord:
         altitude_m=_f(row, "Altitude (ft)", units.ft_to_m),
         wind_speed_ms=_f(row, "Wind Speed (mph)", units.mph_to_ms),
     )
+
+
+class MevoConnector(Connector):
+    id = "mevo"
+    mode = "file"
+    risk = "file_only"
+    description = "FlightScope Mevo+ (Range), CSV-Export aus myflightscope.com"
+    required_columns = REQUIRED
+    known_columns = KNOWN
+
+    def read_header(self, path: Path) -> tuple[list[str], list[str] | None]:
+        with Path(path).open(encoding="utf-8-sig", newline="") as fh:
+            return next(csv.reader(fh), []), None
+
+    def parse(self, path: Path) -> ParsedSession:
+        return parse_mevo_csv(path)

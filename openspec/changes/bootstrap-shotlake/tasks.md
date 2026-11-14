@@ -20,7 +20,7 @@ Vorab ausgewertet: `phase0-findings.md` (aus `../analytics-platform`, `../arccos
 
 ## Phase 1 – Canonical-Modell + Range-Quellen
 - [x] 1.1 Repo-Setup (git, uv, pytest, ruff), DuckDB-Schema (raw_object, import_run, session, shot). **Offen:** eigene staging-Schicht (Parser schreiben aktuell direkt nach canonical), Rebuild aus raw
-- [~] 1.2 Parser für **Mevo+-CSV** und **Garmin-Range-CSV** (Trackman-CSV entfällt: kein Performance Studio). **Offen:** formales Connector-Interface (aktuell Parser-Funktionen + Registry), Sync-Cursor, Retry, Contract-Tests gegen Fixtures
+- [x] 1.2 Connector-Interface (`Connector`: id, mode, risk, discover, read_header, parse, contract_check) mit Registry; Parser für **Mevo+-CSV** und **Garmin-Range-CSV** (Trackman-CSV entfällt: kein Performance Studio); Cursor für Datei-Quellen = Inhalts-Hash (`sync_location`); Contract-Tests je Connector (Fixtures, Invarianten, Drift: fehlende Spalte/geänderte Einheit = Fehler, neue Spalte = Warnung). **Offen für API-Connectors:** `fetch(cursor)`, Auth, Retry/Backoff
 - [x] 1.3 Import-Report (neu/geändert/unverändert/Duplikat/Drift), Idempotenztests, Plausibilitäts-Flags, Provenienz (raw_hash, Importlauf)
 - [~] 1.4 analytics-distance: Median/P10/P90/Streuung/Bias, Quelle- und Methodentrennung, Filter (Datum, indoor/outdoor), Gapping. **Offen:** 2D-Streuellipse, Kalibrierungsfaktor, Konfidenzintervalle
 - [~] 1.5 CLI (`shotlake import|clubs|gapping`). **Offen:** FastAPI

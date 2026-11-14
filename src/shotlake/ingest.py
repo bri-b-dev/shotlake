@@ -14,13 +14,10 @@ from pathlib import Path
 import duckdb
 
 from .connectors.errors import SchemaDriftError
-from .connectors.garmin_range import parse_garmin_range_csv
-from .connectors.mevo import parse_mevo_csv
+from .connectors.registry import CONNECTORS, get_connector
 from .db import SHOT_FIELDS, naive_utc
 from .model import ParsedSession
 from .quality import assess
-
-PARSERS = {"mevo": parse_mevo_csv, "garmin_range": parse_garmin_range_csv}
 
 
 @dataclass
@@ -34,6 +31,7 @@ class ImportReport:
     shots_changed: int = 0
     shots_unchanged: int = 0
     errors: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
     flag_counts: dict[str, int] = field(default_factory=dict)
 
     def as_text(self) -> str:
@@ -47,6 +45,7 @@ class ImportReport:
             lines.append("  Datei bereits importiert (Duplikat), nichts geändert")
         for flag, n in sorted(self.flag_counts.items()):
             lines.append(f"  Hinweis {flag}: {n}")
+        lines.extend(f"  Warnung: {w}" for w in self.warnings)
         lines.extend(f"  Fehler: {e}" for e in self.errors)
         return "\n".join(lines)
 
@@ -86,8 +85,9 @@ def import_file(
     con: duckdb.DuckDBPyConnection, source: str, path: Path | str, raw_dir: Path | None
 ) -> ImportReport:
     path = Path(path)
-    if source not in PARSERS:
+    if source not in CONNECTORS:
         raise ValueError(f"Unbekannte Quelle: {source}")
+    connector = get_connector(source)
     started = _now()
     rep = ImportReport(run_id=uuid.uuid4().hex, source=source, filename=path.name)
     digest = _sha256(path)
@@ -112,7 +112,7 @@ def import_file(
     )
 
     try:
-        parsed = PARSERS[source](path)
+        parsed = connector.parse(path)
     except SchemaDriftError as exc:
         rep.status = "drift_detected"
         rep.errors.append(str(exc))
@@ -120,6 +120,7 @@ def import_file(
         return rep
 
     rep.errors.extend(parsed.errors)
+    rep.warnings.extend(parsed.warnings)
     _write(con, parsed, digest, rep)
     _record_run(con, rep, started)
     return rep
@@ -184,3 +185,11 @@ def _write(
         con.rollback()
         raise
     rep.flag_counts = dict(flags)
+
+
+def sync_location(
+    con: duckdb.DuckDBPyConnection, source: str, location: Path | str, raw_dir: Path | None
+) -> list[ImportReport]:
+    """Alle Dateien einer Quelle importieren; bekannte (gleicher Hash) werden übersprungen."""
+    connector = get_connector(source)
+    return [import_file(con, source, f, raw_dir) for f in connector.discover(Path(location))]

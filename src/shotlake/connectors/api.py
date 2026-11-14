@@ -70,7 +70,7 @@ class RetryPolicy:
     def delay(self, attempt: int, exc: TransientError, rng: random.Random | None = None) -> float:
         if isinstance(exc, RateLimitedError) and exc.retry_after_s is not None:
             return float(min(exc.retry_after_s, self.max_delay_s))
-        raw = min(self.base_delay_s * 2 ** (attempt - 1), self.max_delay_s)
+        raw = min(self.base_delay_s * float(2 ** (attempt - 1)), self.max_delay_s)
         spread = raw * self.jitter
         jitter: float = (rng or random).uniform(-spread, spread)
         return raw + jitter

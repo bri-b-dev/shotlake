@@ -57,7 +57,7 @@ def test_cli_club_set_writes_file_and_applies(tmp_path: Path, capsys: pytest.Cap
 def test_repo_config_is_valid_and_complete():
     mapping = load_club_map(REPO_CONFIG)  # lehnt unbekannte Schlägertypen ab
     assert set(mapping) == {"garmin_platform", "arccos"}
-    assert len(mapping["garmin_platform"]) == 11 and len(mapping["arccos"]) == 12
+    assert len(mapping["garmin_platform"]) == 11 and len(mapping["arccos"]) == 14  # inkl. zwei ausgemusterter Schläger
     assert mapping["garmin_platform"]["garmin_clubtype_23"] == "putter"
     assert mapping["arccos"]["arccos_clubtype_12"] == "putter"
     for source in mapping.values():  # je Quelle genau ein Putter und ein Driver

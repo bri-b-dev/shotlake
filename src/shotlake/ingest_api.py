@@ -12,6 +12,8 @@ import duckdb
 from .connectors.api import ApiConnector, AuthError, RawRecord, TransientError
 from .connectors.errors import SchemaDriftError
 from .ingest import ImportReport, _record_run, _write
+from .ingest_round import write_round
+from .model import ParsedRound
 
 
 def _now() -> datetime:
@@ -60,7 +62,10 @@ def _process(
         "insert into raw_object values (?,?,?,?,?,?)",
         [connector.id, digest, record.external_id, len(data), stored, started],
     )
-    _write(con, parsed, digest, rep)
+    if isinstance(parsed, ParsedRound):
+        write_round(con, parsed, digest, rep)
+    else:
+        _write(con, parsed, digest, rep)
 
 
 def sync_api(

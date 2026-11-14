@@ -30,6 +30,9 @@ class ImportReport:
     shots_new: int = 0
     shots_changed: int = 0
     shots_unchanged: int = 0
+    rounds_new: int = 0
+    rounds_changed: int = 0
+    course_shots_new: int = 0
     errors: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
     flag_counts: dict[str, int] = field(default_factory=dict)
@@ -41,6 +44,11 @@ class ImportReport:
                 f"  Sessions neu: {self.sessions_new}; Schläge neu {self.shots_new}, "
                 f"geändert {self.shots_changed}, unverändert {self.shots_unchanged}"
             )
+            if self.rounds_new or self.rounds_changed or self.course_shots_new:
+                lines.append(
+                    f"  Runden neu: {self.rounds_new}, aktualisiert {self.rounds_changed}; "
+                    f"Platzschläge geschrieben: {self.course_shots_new}"
+                )
         elif self.status == "duplicate_file":
             lines.append("  Datei bereits importiert (Duplikat), nichts geändert")
         for flag, n in sorted(self.flag_counts.items()):

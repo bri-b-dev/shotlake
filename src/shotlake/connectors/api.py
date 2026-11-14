@@ -23,7 +23,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import ClassVar, Literal
 
-from ..model import ParsedSession
+from ..model import ParsedRound, ParsedSession
 from .base import ContractReport
 
 
@@ -135,7 +135,7 @@ class ApiConnector(ABC):
         """Seiten ab `cursor` liefern (None: von Anfang). Transiente Fehler wirft die Quelle."""
 
     @abstractmethod
-    def parse_record(self, record: RawRecord) -> ParsedSession:
+    def parse_record(self, record: RawRecord) -> ParsedSession | ParsedRound:
         """Rohdokument ins Canonical-Modell; `SchemaDriftError` bei geänderter Form."""
 
     def contract_check(self, record: RawRecord) -> ContractReport:

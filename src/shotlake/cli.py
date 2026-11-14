@@ -9,9 +9,10 @@ from datetime import date
 from pathlib import Path
 
 from .analytics.distance import club_stats, gapping
-from .connectors.registry import CONNECTORS
+from .connectors.registry import API_CONNECTORS, CONNECTORS
 from .db import open_db
 from .ingest import sync_location
+from .ingest_api import sync_api
 
 M_TO_YD = 1 / 0.9144
 
@@ -32,6 +33,9 @@ def build_parser() -> argparse.ArgumentParser:
     imp = sub.add_parser("import", help="Dateien einer Quelle importieren")
     imp.add_argument("source", choices=sorted(CONNECTORS))
     imp.add_argument("paths", nargs="+")
+
+    syn = sub.add_parser("sync", help="API-Quelle inkrementell abrufen")
+    syn.add_argument("source", choices=sorted(API_CONNECTORS))
 
     sub.add_parser("sources", help="Verfügbare Quellen und Risiko anzeigen")
 
@@ -60,8 +64,15 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.cmd == "sources":
             for c in CONNECTORS.values():
-                print(f"{c.id:<14}{c.mode:<6}{c.risk:<22}{c.description}")
+                print(f"{c.id:<16}{c.mode:<6}{c.risk:<22}{c.description}")
+            for factory in API_CONNECTORS.values():
+                a = factory()
+                print(f"{a.id:<16}{a.mode:<6}{a.risk:<22}{a.description}")
             return 0
+        if args.cmd == "sync":
+            rep = sync_api(con, API_CONNECTORS[args.source](), raw_dir=data / "raw")
+            print(rep.as_text())
+            return 0 if rep.status == "ok" else 2
         if args.cmd == "import":
             code = 0
             for path in args.paths:

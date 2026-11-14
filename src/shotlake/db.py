@@ -49,6 +49,11 @@ create table if not exists import_run (
     shots_unchanged integer default 0,
     errors varchar
 );
+create table if not exists sync_state (
+    source varchar primary key,
+    cursor varchar,
+    updated_at timestamp not null
+);
 create table if not exists session (
     session_id varchar primary key,
     source varchar not null,

@@ -122,6 +122,7 @@ def _print_rounds(rows: list[RoundScore]) -> None:
     )
     for r in rows:
         diff = "-" if r.differential is None else f"{r.differential:.1f}"
+        diff += "x" if r.extrapolated else ""
         to_par = "-" if r.to_par is None else f"{r.to_par:+d}"
         print(
             f"{r.start_utc:%Y-%m-%d}  {r.course_name[:20]:<22}{r.holes_played:>3} "
@@ -130,7 +131,7 @@ def _print_rounds(rows: list[RoundScore]) -> None:
             f"{_pct(r.fir_hits, r.fir_recorded):>4} {_pct(r.gir_hits, r.gir_recorded):>4} "
             f"{r.ags if r.ags is not None else '-':>4} {diff:>6} {_flag(r):<6} {r.reason or ''}"
         )
-    print("Rel: * = Nutzerentscheidung, ? = Vorschlag")
+    print("Rel: * = Nutzerentscheidung, ? = Vorschlag; Diff x = 9 Löcher auf 18 hochgerechnet")
 
 
 def _round_set(con: duckdb.DuckDBPyConnection, args: argparse.Namespace) -> int:

@@ -9,7 +9,6 @@ from shotlake.analytics.score import (
     adjusted_gross,
     allocate_strokes,
     course_handicap,
-    differential_9,
     differential_18,
     round_half_up,
     round_scores,
@@ -29,10 +28,10 @@ def test_differential_examples_from_spec():
     assert differential_18(80, 71.2, 130, -1.0) == pytest.approx(round_half_up(113 / 130 * 9.8))
 
 
-def test_nine_hole_example_from_spec():
-    # (20,0 * 1,04 + 2,4) / 2 = 11,6 ; gespielt: 113/125 * (46 - 35,8) = 9,2208
-    assert differential_9(46, 35.8, 125, 20.0) == round_half_up(9.2208 + 11.6)
-    assert differential_9(46, 35.8, 125, 20.0, pcc=1.0) == round_half_up(9.2208 + 11.6 - 0.5)
+def test_nine_hole_scaled_to_18():
+    # 9 Löcher: AGS 46 verdoppelt (92) gegen 2 * 35.8 = 71.6, Slope 125: 113/125 * 20.4 = 18.4
+    assert differential_18(2 * 46, 2 * 35.8, 125) == 18.4
+    assert differential_18(2 * 46, 2 * 35.8, 125, pcc=1.0) == 17.5  # 113/125 * 19.4: PCC voll, skaliert mit
 
 
 def test_rounding_is_half_up_not_bankers():
@@ -171,19 +170,29 @@ def test_manual_index_enables_cap_net_and_course_handicap(tmp_path: Path):
     assert r.differential == differential_18(r.ags, 71.2, 130)
 
 
-def test_missing_data_gives_null_with_reason(tmp_path: Path):
+def test_partial_round_has_no_differential(tmp_path: Path):
     con = open_db(tmp_path / "t.duckdb")
     seed_round(con, key="partial", holes=11)
-    seed_round(con, key="nine", holes=9)
-    by_key = {r.round_key: r for r in round_scores(con)}
-    assert by_key["partial"].differential is None and "Teilrunde" in (
-        by_key["partial"].reason or ""
-    )
-    assert "Rating/Slope" in (by_key["nine"].reason or "")
+    (r,) = round_scores(con)
+    assert r.differential is None and "Teilrunde" in (r.reason or "")
+    assert r.fir_hits == 8 and not r.extrapolated
+
+
+def test_nine_holes_extrapolated_with_and_without_nine_hole_rating(tmp_path: Path):
+    con = open_db(tmp_path / "t.duckdb")
+    seed_round(con, key="nine", holes=9)  # 45 Schläge
+    (r,) = round_scores(con)
+    # ohne 9-Loch-Rating: AGS 45 -> 90 gegen das 18-Loch-Rating des Tees
+    assert r.extrapolated and r.ags == 45 and r.ags_source == "gross"
+    assert r.differential == differential_18(90, 71.2, 130) == 16.3
+    # mit 9-Loch-Rating: doppeltes Rating und 9-Loch-Slope
     con.execute("insert into tee_rating values ('t|course', 'Gelb', 'front9', 35.8, 125)")
-    (nine,) = round_scores(con, round_ref="nine")
-    assert nine.differential is None and "Index" in (nine.reason or "")
-    assert by_key["nine"].gir_recorded == 9 and by_key["partial"].fir_hits == 8
+    (r,) = round_scores(con)
+    assert r.differential == differential_18(2 * 45, 2 * 35.8, 125)
+    # mit Index und 9-Loch-Rating greift der Höchstscore
+    set_hi(con, "nine", 20.0)
+    (r,) = round_scores(con)
+    assert r.course_hcp is not None and r.ags_source == "computed"
 
 
 def test_trend_moving_average(tmp_path: Path):
@@ -218,13 +227,13 @@ def test_manual_ags_and_cli_inputs(tmp_path: Path, capsys: pytest.CaptureFixture
     assert main([*args, "round-set", "full", "--pcc", "1.0"]) == 0
     assert "11.1" in capsys.readouterr().out  # 113/130 * (85 - 71.2 - 1.0), PCC skaliert mit
     assert main([*args, "round-set", "full", "--pcc", "9"]) == 2
-    # 9-Loch: erst Tee-Werte und Index nötig
+    # 9-Loch: hochgerechnet, 9-Loch-Rating optional
     assert (
         main([*args, "tee-set", "nine", "--part", "front9", "--rating", "35.8", "--slope", "125"])
         == 0
     )
     assert main([*args, "round-set", "nine", "--hi", "20"]) == 0
-    capsys.readouterr()
+    assert "x" in capsys.readouterr().out
     assert main([*args, "trend", "--window", "1"]) == 0
     assert "Datum" in capsys.readouterr().out
     con = open_db(data / "shotlake.duckdb")

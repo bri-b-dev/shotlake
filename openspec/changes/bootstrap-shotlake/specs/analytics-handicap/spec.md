@@ -49,11 +49,15 @@ Das Score Differential SHALL nach der offiziellen Formel `(113 / Slope) × (AGS 
 - THEN ist `score_differential` NULL und die UI nennt den Grund
 
 ### Requirement: 9-Loch-Runden
-Für 9-Loch-Runden SHALL das Differential als Summe aus dem gespielten Teil `(113 / Slope₉) × (AGS₉ − Rating₉)` und dem erwarteten Differential der nicht gespielten neun Löcher `(HI × 1,04 + 2,4) / 2` berechnet werden, abzüglich `0,5 × PCC`, mit `HI = handicap_index_at_play`. Ohne `handicap_index_at_play` SHALL das Differential NULL sein.
+Für 9-Loch-Runden SHALL das Differential auf 18 Löcher **hochgerechnet** werden: der AGS der neun Löcher wird verdoppelt und gegen das 18-Loch-Rating und den Slope des gespielten Tees gerechnet (`113 / Slope × (2 × AGS₉ − Rating − PCC)`). Liegen 9-Loch-Werte des Tees vor (manuell hinterlegt), SHALL stattdessen das doppelte 9-Loch-Rating und der 9-Loch-Slope verwendet werden. Der Höchstscore (Netto-Doppelbogey) SHALL bei 9 Löchern nur mit 9-Loch-Rating und gesetztem `handicap_index_at_play` angewendet werden, sonst gilt das unbereinigte Brutto. Hochgerechnete Differentials SHALL als solche gekennzeichnet sein; die offizielle 9-Loch-Formel mit erwartetem Differential der übrigen Löcher wird nicht verwendet.
 
-#### Scenario: 9 Löcher mit Index
-- WHEN eine 9-Loch-Runde mit Rating/Slope des 9-Loch-Tees und HI 20,0 vorliegt
-- THEN ist der erwartete Anteil der übrigen neun Löcher (20,0 × 1,04 + 2,4) / 2 = 11,6 und wird zum gespielten Teil addiert
+#### Scenario: 9 Löcher ohne 9-Loch-Rating
+- WHEN eine 9-Loch-Runde mit 45 Schlägen auf einem Tee mit Rating 71,2 und Slope 130 vorliegt
+- THEN ist das Differential 113/130 × (90 − 71,2) = 16,3 und als hochgerechnet gekennzeichnet
+
+#### Scenario: 9 Löcher mit 9-Loch-Rating
+- WHEN zusätzlich 9-Loch-Rating 35,8 und Slope 125 hinterlegt sind
+- THEN gilt 113/125 × (90 − 71,6) für das Differential
 
 #### Scenario: Teilrunde mit 11 Löchern
 - WHEN eine Runde nur 11 Löcher hat

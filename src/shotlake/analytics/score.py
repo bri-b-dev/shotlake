@@ -59,14 +59,6 @@ def differential_18(ags: float, rating: float, slope: float, pcc: float = 0.0) -
     return round_half_up(113 / slope * (ags - rating - pcc))
 
 
-def differential_9(
-    ags9: float, rating9: float, slope9: float, hi: float, pcc: float = 0.0
-) -> float:
-    played = 113 / slope9 * (ags9 - rating9)
-    expected_rest = (hi * 1.04 + 2.4) / 2
-    return round_half_up(played + expected_rest - 0.5 * pcc)
-
-
 def suggest_relevant(
     *,
     simulated: bool,
@@ -110,6 +102,7 @@ class RoundScore:
     ags_source: str | None  # computed | manual | gross (unbereinigt, ohne Höchstscore)
     pcc: float
     differential: float | None
+    extrapolated: bool  # 9-Loch-Runde, auf 18 Löcher hochgerechnet
     reason: str | None  # Grund, falls kein Differential
     relevant: bool | None  # Nutzerentscheidung
     relevant_suggestion: bool
@@ -180,14 +173,13 @@ def compute_round(
     pcc = float(pcc_raw) if isinstance(pcc_raw, int | float) else 0.0
     ags_override = inputs.get("ags_override")
 
-    rating: float | None
-    slope: int | None
-    if part == "all":
-        rating, slope = _num(row.get("tee_rating")), _int(row.get("tee_slope"))
-    elif part in ("front9", "back9") and part in tee9:
-        rating, slope = tee9[part][0], tee9[part][1]
-    else:
-        rating = slope = None
+    # Rating/Slope des 18-Loch-Tees; bei 9 Löchern optional 9-Loch-Werte (tee-set), die dann
+    # verdoppelt als 18-Loch-Äquivalent dienen. Ohne sie gilt das 18-Loch-Rating des Tees.
+    rating = _num(row.get("tee_rating"))
+    slope = _int(row.get("tee_slope"))
+    rating9: tuple[float, int] | None = tee9.get(part) if part in ("front9", "back9") else None
+    if rating9 is not None:
+        rating, slope = 2 * rating9[0], rating9[1]
 
     holes_n = len(played)
     nine = part in ("front9", "back9")
@@ -200,26 +192,28 @@ def compute_round(
     if part is None:
         reason = f"Teilrunde mit {holes_n} Löchern (nur 9 oder 18 Löcher werten)"
     elif rating is None or slope is None:
-        reason = "Rating/Slope für 9 Löcher fehlen (tee-set)" if nine else "Rating/Slope fehlen"
+        reason = "Rating/Slope fehlen"
     else:
-        if hi is not None and par is not None and stroke_ok:
-            ch = course_handicap(hi, slope, rating, par, 9 if nine else 18)
+        if hi is not None and par is not None and stroke_ok and (not nine or rating9):
+            # Höchstscore braucht Spielvorgabe; bei 9 Löchern nur mit 9-Loch-Rating
+            ch = (
+                course_handicap(hi, rating9[1], rating9[0], par, 9)
+                if nine and rating9
+                else course_handicap(hi, slope, rating, par, 18)
+            )
             received = allocate_strokes(ch, [h.stroke_index or 0 for h in played])
             ags = adjusted_gross(played, received)
             ags_source = "computed"
         if isinstance(ags_override, int):
             ags, ags_source = ags_override, "manual"
-        if ags is None and not nine and gross is not None:
+        if ags is None and gross is not None:
             # ohne Handicap-Index kein Höchstscore: unbereinigtes Brutto (für den Verlauf nutzbar)
             ags, ags_source = gross, "gross"
-        if nine and hi is None:
-            reason = "9-Loch-Formel braucht den Index zum Spielzeitpunkt (round-set --hi)"
-            ags, ags_source = None, None
-        elif ags is None:
+        if ags is None:
             reason = "AGS nicht ermittelbar (Par oder Lochindex fehlen)"
         elif nine:
-            assert hi is not None
-            diff = differential_9(ags, rating, slope, hi, pcc)
+            # 9 Löcher auf 18 hochgerechnet: doppelter AGS gegen das 18-Loch-Rating
+            diff = differential_18(2 * ags, rating, slope, pcc)
         else:
             diff = differential_18(ags, rating, slope, pcc)
 
@@ -255,6 +249,7 @@ def compute_round(
         ags_source=ags_source,
         pcc=pcc,
         differential=diff,
+        extrapolated=nine and diff is not None,
         reason=reason,
         relevant=relevant if isinstance(relevant, bool) else None,
         relevant_suggestion=suggest_relevant(

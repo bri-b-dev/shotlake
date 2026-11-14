@@ -17,6 +17,7 @@ from .analytics.course_shots import (
     tee_shot_outcomes,
 )
 from .analytics.distance import club_stats, gapping
+from .analytics.insights import generate as generate_insights
 from .analytics.score import PCC_MAX, PCC_MIN, RoundScore, round_scores
 from .analytics.sg import CATEGORIES, strokes_gained
 from .analytics.trend import differential_trend
@@ -124,6 +125,10 @@ def build_parser() -> argparse.ArgumentParser:
     mc.add_argument("--port", type=int, default=8765)
     mc.add_argument("--token", default=os.environ.get("SHOTLAKE_MCP_TOKEN", ""))
     mc.add_argument("--baseline-path", type=Path, default=default_baseline_path())
+    ins = sub.add_parser("insights", help="Regelbasierte Hinweise, wo Schläge verloren gehen")
+    ins.add_argument("--source")
+    ins.add_argument("--all", action="store_true", help="auch unsichere Hinweise zeigen")
+    ins.add_argument("--baseline-path", type=Path, default=default_baseline_path())
     sub.add_parser("sources", help="Verfügbare Quellen und Risiko anzeigen")
 
     for name in ("clubs", "gapping"):
@@ -371,6 +376,15 @@ def main(argv: list[str] | None = None) -> int:
             import uvicorn
 
             uvicorn.run(http_app(server, args.token), host=args.host, port=args.port)
+            return 0
+        if args.cmd == "insights":
+            base = load_baseline(args.baseline_path)
+            found = generate_insights(con, base, source=args.source, include_uncertain=args.all)
+            if not found:
+                print("Keine belegten Hinweise (zu wenige Daten oder keine eindeutigen Effekte).")
+            for i in found:
+                print(f"[{i.status}] {i.text}")
+            print(f"Baseline {base.id} ({base.status}); regelbasiert, je Quelle getrennt.")
             return 0
         if args.cmd == "serve":
             con.close()

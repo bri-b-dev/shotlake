@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Hinweise · Shotlake{% endblock %}
+{% block content %}
+<h1>Hinweise: Wo gehen Schläge verloren?</h1>
+{% set path = '/insights' %}{% set allow_all = True %}
+{% include "_chips.html" %}
+<p class="chips"><a href="{{ link(request, '/insights', uncertain=None) }}" {% if not uncertain %}aria-current="true"{% endif %}>nur belegte</a>
+  <a href="{{ link(request, '/insights', uncertain='1') }}" {% if uncertain %}aria-current="true"{% endif %}>auch unsichere</a></p>
+<p class="muted">Regelbasiert aus deinen Daten abgeleitet, je Quelle getrennt (ohne Dedup würden gemeinsame Runden doppelt zählen).
+  Jeder Hinweis nennt Effekt, 95-%-Intervall und n. „Unsicher" heißt: Das Intervall schließt 0 ein. Strokes Gained bezieht sich auf die Näherungs-Baseline {{ baseline.id }}.</p>
+{% for i in insights %}
+  <article class="card" style="margin-bottom:12px">
+    <p><strong>{{ {'sg_loss': 'Verlust', 'sg_strength': 'Stärke', 'trend': 'Veränderung', 'club_bias': 'Schläger-Bias', 'gap': 'Gapping', 'data_quality': 'Datenlage'}.get(i.kind, i.kind) }}</strong>
+      · <span class="{{ 'pos' if i.status == 'belegt' else 'muted' }}">{{ i.status }}</span></p>
+    <p>{{ i.text }}</p>
+    <p class="muted">
+      {% if i.kind in ('sg_loss', 'sg_strength', 'trend') %}<a href="{{ link(request, '/rounds', source=i.source) }}">Runden ({{ i.source }})</a> ·{% endif %}
+      {% if i.kind in ('club_bias', 'gap') %}<a href="{{ link(request, '/clubs', source=i.source) }}">Schläger</a> ·{% endif %}
+      Nachprüfen per MCP: <code>{{ i.links.get('tool', '') }}</code>
+    </p>
+  </article>
+{% else %}
+  <p class="notice">Keine {{ '' if uncertain else 'belegten ' }}Hinweise: zu wenige Daten oder keine eindeutigen Effekte.</p>
+{% endfor %}
+{% endblock %}

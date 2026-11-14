@@ -16,7 +16,7 @@ import duckdb
 from ..baseline import Baseline
 from ..quality import EXCLUDE_FLAGS
 from .score import RoundScore, round_scores
-from .sg import CATEGORIES, strokes_gained
+from .sg import CATEGORIES, SGResult, strokes_gained
 
 MIN_SG_HOLES = (
     5  # Runden mit weniger vollständig erfassten Löchern gehen nicht in SG-Kennzahlen ein
@@ -82,31 +82,46 @@ def _rate(hits: int, recorded: int) -> float | None:
     return hits / recorded if recorded else None
 
 
-def _sg_extract(category: str | None) -> Callable[..., list[Observation]]:
-    """SG je Loch und Runde (nur Runden mit genug vollständig erfassten Löchern)."""
+def sg_round_observations(
+    con: duckdb.DuckDBPyConnection,
+    f: Filters,
+    baseline: Baseline,
+    res: SGResult | None = None,
+) -> dict[str, list[Observation]]:
+    """SG je Loch und Runde für „total" und jede Kategorie (nur Runden mit genug Löchern).
 
+    Rechnet Strokes Gained einmal; `res` erlaubt, ein vorhandenes Ergebnis wiederzuverwenden.
+    """
+    res = res or strokes_gained(con, baseline, since=f.since, until=f.until, source=f.source)
+    totals: dict[str, list[float]] = defaultdict(list)
+    sums: dict[str, dict[str, float]] = defaultdict(lambda: defaultdict(float))
+    for h in res.holes:
+        if not h.complete or h.total is None:
+            continue
+        totals[h.round_id].append(h.total)
+        sums[h.round_id]["total"] += h.total
+        for cat in CATEGORIES:
+            sums[h.round_id][cat] += h.by_category.get(cat, 0.0)
+    rounds = {
+        r.round_id: r for r in _rounds(con, Filters(f.source, f.since, f.until, f.only_relevant))
+    }
+    out: dict[str, list[Observation]] = {key: [] for key in ("total", *CATEGORIES)}
+    for rid, holes in totals.items():
+        if len(holes) < MIN_SG_HOLES or rid not in rounds:
+            continue
+        r = rounds[rid]
+        for key in out:
+            out[key].append(
+                Observation(sums[rid][key] / len(holes), r.start_utc, rid.split("|")[0], rid)
+            )
+    return {key: sorted(v, key=lambda o: o.when) for key, v in out.items()}
+
+
+def _sg_extract(category: str | None) -> Callable[..., list[Observation]]:
     def extract(
         con: duckdb.DuckDBPyConnection, f: Filters, baseline: Baseline
     ) -> list[Observation]:
-        res = strokes_gained(con, baseline, since=f.since, until=f.until, source=f.source)
-        by_round: dict[str, list[float]] = defaultdict(list)
-        cats: dict[str, float] = defaultdict(float)
-        for h in res.holes:
-            if not h.complete or h.total is None:
-                continue
-            by_round[h.round_id].append(h.total)
-            cats[h.round_id] += h.total if category is None else h.by_category.get(category, 0.0)
-        starts = {
-            r.round_id: r
-            for r in _rounds(con, Filters(f.source, f.since, f.until, f.only_relevant))
-        }
-        out = []
-        for rid, totals in by_round.items():
-            if len(totals) < MIN_SG_HOLES or rid not in starts:
-                continue
-            r = starts[rid]
-            out.append(Observation(cats[rid] / len(totals), r.start_utc, rid.split("|")[0], rid))
-        return sorted(out, key=lambda o: o.when)
+        return sg_round_observations(con, f, baseline)[category or "total"]
 
     return extract
 

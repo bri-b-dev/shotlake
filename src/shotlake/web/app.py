@@ -13,6 +13,7 @@ from fastapi.templating import Jinja2Templates
 
 from ..analytics.course_shots import club_distances
 from ..analytics.distance import club_stats
+from ..analytics.insights import generate as generate_insights
 from ..analytics.score import round_scores
 from ..analytics.sg import CATEGORIES, strokes_gained
 from ..analytics.trend import differential_trend
@@ -236,6 +237,21 @@ def create_app(data_dir: Path, club_map: Path, baseline_path: Path) -> FastAPI:
                 sources=round_sources(con),
                 course=club_distances(con, min_n=5, source=source) if source else [],
                 range_stats=club_stats(con, min_n=10),
+            )
+
+    @app.get("/insights", response_class=HTMLResponse)
+    def insights(request: Request) -> HTMLResponse:
+        with session() as con:
+            source = request.query_params.get("source") or None
+            uncertain = request.query_params.get("uncertain") == "1"
+            found = generate_insights(con, baseline, source=source, include_uncertain=uncertain)
+            return page(
+                request,
+                "insights.html",
+                source=source,
+                sources=round_sources(con),
+                insights=found,
+                uncertain=uncertain,
             )
 
     @app.get("/sources", response_class=HTMLResponse)

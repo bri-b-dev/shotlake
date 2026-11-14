@@ -13,6 +13,8 @@ from typing import Any
 import duckdb
 
 from .analytics.distance import club_stats, gapping
+from .analytics.insights import Insight
+from .analytics.insights import generate as generate_insights
 from .analytics.metrics import METRICS, Filters, Metric, observations
 from .analytics.sg import CATEGORIES, strokes_gained
 from .analytics.stats import STATS, Interval, bootstrap_ci, compare
@@ -293,6 +295,36 @@ def sg_report(
     )
     summary = {"total": grand, "per_hole": grand / complete, "categories": categories}
     return {**out, "summary": summary, "note": note}
+
+
+# --- Insights ---------------------------------------------------------------------------------
+
+
+def insight_dict(i: Insight) -> dict[str, Any]:
+    return {
+        "id": i.id, "kind": i.kind, "status": i.status, "text": i.text,
+        "effect": i.effect, "unit": i.unit, "ci": _ci(i.ci), "n": i.n, "source": i.source,
+        "links": i.links,
+    }  # fmt: skip
+
+
+def insights_report(
+    con: duckdb.DuckDBPyConnection, baseline: Baseline, source: str | None = None,
+    include_uncertain: bool = False, limit: int | None = None,
+) -> dict[str, Any]:  # fmt: skip
+    if limit is not None and limit < 1:
+        raise ValueError("limit muss mindestens 1 sein")
+    found = generate_insights(
+        con, baseline, source=source, include_uncertain=include_uncertain, limit=limit
+    )
+    return {
+        "insights": [insight_dict(i) for i in found],
+        "baseline": {"id": baseline.id, "status": baseline.status},
+        "include_uncertain": include_uncertain,
+        "note": "Regelbasiert und deterministisch aus den Daten abgeleitet, je Quelle getrennt. "
+                "Unsichere Hinweise (Intervall schließt 0 ein) sind standardmäßig ausgeblendet. "
+                "SG-Effekte beziehen sich auf eine Näherungs-Baseline.",
+    }  # fmt: skip
 
 
 # --- Notizen -----------------------------------------------------------------------------------

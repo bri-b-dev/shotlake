@@ -10,7 +10,7 @@ Der MCP-Server SHALL dieselbe Service-Schicht wie API/Frontend nutzen; Ergebniss
 - THEN stimmen die Werte überein
 
 ### Requirement: Trennung read-only / schreibend
-Tools SHALL in zwei Gruppen getrennt sein: **read-only**: `list_sources`, `import_report`, `get_stats`, `compare_periods`, `get_club_gapping`, `get_strokes_gained`; **schreibend**: `sync_source`, `add_note`. Schreibende Tools SHALL separat deaktivierbar sein (Config/Scope) und als `destructive/non-readonly` annotiert werden.
+Tools SHALL in zwei Gruppen getrennt sein: **read-only**: `list_sources`, `import_report`, `get_stats`, `compare_periods`, `get_club_gapping`, `get_strokes_gained`, `get_insights`; **schreibend**: `sync_source`, `add_note`. Schreibende Tools SHALL separat deaktivierbar sein (Config/Scope) und als `destructive/non-readonly` annotiert werden.
 
 #### Scenario: Read-only-Modus
 - WHEN der Server mit `--read-only` startet
@@ -64,6 +64,17 @@ Das Tool SHALL Quellen mit Modus, Status, letztem Sync, Risiko und Datenumfang l
 #### Scenario: Teilabdeckung
 - WHEN Abdeckung < Schwelle
 - THEN wird keine Summe geliefert, sondern Abdeckung und Grund
+
+### Requirement: Tool `get_insights`
+`get_insights(source?, include_uncertain=false, limit?)` SHALL regelbasierte, deterministische Hinweise liefern, wo Schläge verloren gehen (größte SG-Verluste, belegte Veränderungen, Seiten-Bias, Gapping-Lücken). Jeder Hinweis SHALL Effekt, 95-%-Intervall, n, Quelle und einen Verweis auf ein Werkzeug mit Argumenten enthalten, mit dem die Zahlen nachprüfbar sind. Unsichere Hinweise (Intervall schließt 0 ein) SHALL standardmäßig ausgeblendet sein; Hinweise SHALL je Quelle getrennt erzeugt werden.
+
+#### Scenario: Putting-Verlust
+- WHEN SG Putten über mindestens 5 Runden im Mittel negativ ist und das Intervall die Null nicht einschließt
+- THEN enthält die Antwort einen Hinweis mit Effekt pro 18 Löcher, Intervall und n
+
+#### Scenario: Unsicher
+- WHEN das Intervall den Nullwert einschließt
+- THEN fehlt der Hinweis, außer `include_uncertain` ist gesetzt; dann ist er als `unsicher` markiert
 
 ### Requirement: Tool `add_note`
 `add_note(text, type, date, scope)` SHALL eine datierte Notiz anlegen und die ID zurückgeben; Eingaben SHALL validiert werden.

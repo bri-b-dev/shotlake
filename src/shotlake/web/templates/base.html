@@ -16,6 +16,7 @@
     {% set here = request.url.path %}
     <a href="{{ link(request, '/') }}" {% if here == '/' %}aria-current="page"{% endif %}>Übersicht</a>
     <a href="{{ link(request, '/rounds', source=None) }}" {% if here.startswith('/rounds') %}aria-current="page"{% endif %}>Runden</a>
+    <a href="{{ link(request, '/insights', source=None) }}" {% if here == '/insights' %}aria-current="page"{% endif %}>Hinweise</a>
     <a href="{{ link(request, '/clubs') }}" {% if here == '/clubs' %}aria-current="page"{% endif %}>Schläger</a>
     <a href="{{ link(request, '/sources') }}" {% if here == '/sources' %}aria-current="page"{% endif %}>Quellen</a>
   </nav>

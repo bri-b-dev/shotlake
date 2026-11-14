@@ -23,7 +23,7 @@ BASELINE = Path(__file__).parent.parent / "baselines" / "hcp18w-approx-v1.toml"
 FIXTURES = Path(__file__).parent / "fixtures"
 TOOLS = {
     "list_sources", "import_report", "get_stats", "compare_periods", "get_club_gapping",
-    "get_strokes_gained", "sync_source", "add_note",
+    "get_strokes_gained", "get_insights", "sync_source", "add_note",
 }  # fmt: skip
 
 
@@ -76,7 +76,7 @@ def tool_names(server: Any) -> set[str]:
 # --- Registrierung und Trennung ---
 
 
-def test_all_eight_tools_registered_with_annotations(server: Any):
+def test_all_tools_registered_with_annotations(server: Any):
     tools = {t.name: t for t in asyncio.run(server.list_tools())}
     assert set(tools) == TOOLS
     for name in TOOLS - {"sync_source", "add_note"}:

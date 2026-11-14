@@ -38,5 +38,5 @@ Vorab ausgewertet: `phase0-findings.md` (aus `../analytics-platform`, `../arccos
 ## Phase 4 – Frontend, MCP, Insights
 - [~] 4.1 Frontend-Seiten, Dark/Light, mobil (erster Durchstich 2026-11-14: Übersicht mit Differential-Verlauf und SG, Runden, Rundendetail mit Eingaben, Schläger, Quellen; offen: Streuungs-Scatter/Ellipse, Periodenvergleich, Notizen, Dedup-Review, Sync-Knopf/Upload, Konfidenzintervalle)
 - [x] 4.2 MCP-Server (8 Tools, stdio + HTTP mit Token, `--read-only`; 2026-11-14)
-- [~] 4.3 Trends, Periodenvergleich, Insights (Bootstrap-CI, Kennzahlenkatalog und Zeitraumvergleich über MCP vorhanden; offen: Insights, Annotationen im Trend, Vergleichs-UI)
+- [~] 4.3 Trends, Periodenvergleich, Insights (Bootstrap-CI, Kennzahlenkatalog und Zeitraumvergleich über MCP vorhanden; Insights regelbasiert über MCP, CLI und Weboberfläche; offen: Annotationen im Trend, Vergleichs-UI)
 - [ ] 4.4 Backup/Restore, Export, Observability, K8s-Manifeste

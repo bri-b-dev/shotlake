@@ -15,7 +15,7 @@ import duckdb
 from .analytics.distance import club_stats, gapping
 from .analytics.insights import Insight
 from .analytics.insights import generate as generate_insights
-from .analytics.metrics import METRICS, Filters, Metric, observations
+from .analytics.metrics import METRICS, Context, Filters, Metric, observations
 from .analytics.sg import CATEGORIES, strokes_gained
 from .analytics.stats import STATS, Interval, bootstrap_ci, compare
 from .baseline import Baseline
@@ -167,10 +167,11 @@ def compare_report(
         )  # fmt: skip
 
     fa, fb = period(a), period(b)
+    ctx = Context()  # Runden und SG einmal berechnen, für alle Kennzahlen und beide Zeiträume
     results = []
     for metric_id in metrics:
         metric = _metric(metric_id, fa)
-        oa, ob = (observations(con, metric_id, f, baseline) for f in (fa, fb))
+        oa, ob = (observations(con, metric_id, f, baseline, ctx) for f in (fa, fb))
         limit = min_n if min_n is not None else metric.min_n
         cmp = compare(
             [o.value for o in oa], [o.value for o in ob],

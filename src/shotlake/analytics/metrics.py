@@ -49,10 +49,36 @@ class Metric:
     level: str  # round | shot
     better: str | None  # lower | higher | None
     min_n: int
-    extract: Callable[[duckdb.DuckDBPyConnection, Filters, Baseline], list[Observation]]
+    extract: Callable[[duckdb.DuckDBPyConnection, Filters, Baseline, Context], list[Observation]]
     note: str = ""
     stat: str = "mean"
     sources_hint: tuple[str, ...] = field(default=())
+
+
+class Context:
+    """Zwischenspeicher je Anfrage: Runden und SG werden je Quelle nur einmal berechnet.
+
+    Zeiträume werden danach in Python gefiltert; der Speicher gilt nur für die Lebensdauer einer
+    Anfrage (kein globaler Cache, keine veralteten Werte).
+    """
+
+    def __init__(self) -> None:
+        self._rounds: dict[tuple[str | None, bool], list[RoundScore]] = {}
+        self._sg: dict[tuple[int, str | None], SGResult] = {}
+
+    def rounds(self, con: duckdb.DuckDBPyConnection, f: Filters) -> list[RoundScore]:
+        key = (f.source, f.only_relevant)
+        if key not in self._rounds:
+            self._rounds[key] = round_scores(con, source=f.source, only_relevant=f.only_relevant)
+        return [r for r in self._rounds[key] if _in_range(r.start_utc, f)]
+
+    def sg(
+        self, con: duckdb.DuckDBPyConnection, baseline: Baseline, source: str | None
+    ) -> SGResult:
+        key = (id(baseline), source)
+        if key not in self._sg:
+            self._sg[key] = strokes_gained(con, baseline, source=source)
+        return self._sg[key]
 
 
 def _in_range(when: datetime, f: Filters) -> bool:
@@ -61,15 +87,12 @@ def _in_range(when: datetime, f: Filters) -> bool:
     return not (f.until and when >= datetime.combine(f.until + timedelta(days=1), time.min))
 
 
-def _rounds(con: duckdb.DuckDBPyConnection, f: Filters) -> list[RoundScore]:
-    rows = round_scores(con, source=f.source, only_relevant=f.only_relevant)
-    return [r for r in rows if _in_range(r.start_utc, f)]
-
-
 def _from_rounds(pick: Callable[[RoundScore], float | None]) -> Callable[..., list[Observation]]:
-    def extract(con: duckdb.DuckDBPyConnection, f: Filters, _b: Baseline) -> list[Observation]:
+    def extract(
+        con: duckdb.DuckDBPyConnection, f: Filters, _b: Baseline, ctx: Context
+    ) -> list[Observation]:
         out = []
-        for r in _rounds(con, f):
+        for r in ctx.rounds(con, f):
             value = pick(r)
             if value is not None:
                 out.append(Observation(value, r.start_utc, r.round_id.split("|")[0], r.round_id))
@@ -87,46 +110,49 @@ def sg_round_observations(
     f: Filters,
     baseline: Baseline,
     res: SGResult | None = None,
+    ctx: Context | None = None,
 ) -> dict[str, list[Observation]]:
     """SG je Loch und Runde für „total" und jede Kategorie (nur Runden mit genug Löchern).
 
-    Rechnet Strokes Gained einmal; `res` erlaubt, ein vorhandenes Ergebnis wiederzuverwenden.
+    Rechnet Strokes Gained einmal; `res` bzw. `ctx` erlauben, Vorhandenes wiederzuverwenden.
     """
-    res = res or strokes_gained(con, baseline, since=f.since, until=f.until, source=f.source)
+    ctx = ctx or Context()
+    res = res or ctx.sg(con, baseline, f.source)
+    rounds = {
+        r.round_id: r for r in ctx.rounds(con, Filters(f.source, f.since, f.until, f.only_relevant))
+    }
     totals: dict[str, list[float]] = defaultdict(list)
     sums: dict[str, dict[str, float]] = defaultdict(lambda: defaultdict(float))
     for h in res.holes:
-        if not h.complete or h.total is None:
+        if not h.complete or h.total is None or h.round_id not in rounds:
             continue
         totals[h.round_id].append(h.total)
         sums[h.round_id]["total"] += h.total
         for cat in CATEGORIES:
             sums[h.round_id][cat] += h.by_category.get(cat, 0.0)
-    rounds = {
-        r.round_id: r for r in _rounds(con, Filters(f.source, f.since, f.until, f.only_relevant))
-    }
     out: dict[str, list[Observation]] = {key: [] for key in ("total", *CATEGORIES)}
     for rid, holes in totals.items():
-        if len(holes) < MIN_SG_HOLES or rid not in rounds:
+        if len(holes) < MIN_SG_HOLES:
             continue
         r = rounds[rid]
         for key in out:
-            out[key].append(
-                Observation(sums[rid][key] / len(holes), r.start_utc, rid.split("|")[0], rid)
-            )
+            value = sums[rid][key] / len(holes)
+            out[key].append(Observation(value, r.start_utc, rid.split("|")[0], rid))
     return {key: sorted(v, key=lambda o: o.when) for key, v in out.items()}
 
 
 def _sg_extract(category: str | None) -> Callable[..., list[Observation]]:
     def extract(
-        con: duckdb.DuckDBPyConnection, f: Filters, baseline: Baseline
+        con: duckdb.DuckDBPyConnection, f: Filters, baseline: Baseline, ctx: Context
     ) -> list[Observation]:
-        return sg_round_observations(con, f, baseline)[category or "total"]
+        return sg_round_observations(con, f, baseline, ctx=ctx)[category or "total"]
 
     return extract
 
 
-def _carry(con: duckdb.DuckDBPyConnection, f: Filters, _b: Baseline) -> list[Observation]:
+def _carry(
+    con: duckdb.DuckDBPyConnection, f: Filters, _b: Baseline, _ctx: Context
+) -> list[Observation]:
     where = ["sh.carry_m is not null", "sh.club_type is not null"]
     params: list[object] = []
     if f.club:
@@ -184,7 +210,13 @@ METRICS: dict[str, Metric] = {
 
 
 def observations(
-    con: duckdb.DuckDBPyConnection, metric_id: str, f: Filters, baseline: Baseline
+    con: duckdb.DuckDBPyConnection,
+    metric_id: str,
+    f: Filters,
+    baseline: Baseline,
+    ctx: Context | None = None,
 ) -> list[Observation]:
-    obs = sorted(METRICS[metric_id].extract(con, f, baseline), key=lambda o: o.when)
+    obs = sorted(
+        METRICS[metric_id].extract(con, f, baseline, ctx or Context()), key=lambda o: o.when
+    )
     return obs[-f.last_n :] if f.last_n else obs

@@ -17,8 +17,8 @@ import duckdb
 from ..baseline import Baseline
 from ..quality import EXCLUDE_FLAGS
 from .distance import gapping
-from .metrics import Filters, Observation, observations, sg_round_observations
-from .sg import CATEGORIES, SGResult, strokes_gained
+from .metrics import Context, Filters, Observation, observations, sg_round_observations
+from .sg import CATEGORIES, SGResult
 from .stats import Interval, bootstrap_ci, bootstrap_diff_ci, compare
 
 HOLES = 18  # Effekte werden auf 18 Löcher hochgerechnet (besser vorstellbar als pro Loch)
@@ -171,13 +171,15 @@ def trend_insights(
     baseline: Baseline,
     source: str,
     sg_obs: dict[str, list[Observation]],
+    ctx: Context | None = None,
 ) -> list[Insight]:
+    ctx = ctx or Context()
     out: list[Insight] = []
     for metric, (label, better) in TREND_METRICS.items():
         obs = (
             sg_obs["total"]
             if metric == "sg_total_per_hole"
-            else observations(con, metric, Filters(source=source), baseline)
+            else observations(con, metric, Filters(source=source), baseline, ctx)
         )
         values = [o.value for o in obs]
         recent, before = values[-RECENT:], values[-2 * RECENT : -RECENT]
@@ -300,11 +302,12 @@ def generate(
 ) -> list[Insight]:
     sources = [source] if source else _sources(con)
     found: list[Insight] = []
+    ctx = Context()
     for s in sources:
-        res = strokes_gained(con, baseline, source=s)
-        sg_obs = sg_round_observations(con, Filters(source=s), baseline, res)
+        res = ctx.sg(con, baseline, s)
+        sg_obs = sg_round_observations(con, Filters(source=s), baseline, res, ctx)
         found += sg_insights(baseline, s, res, sg_obs)
-        found += trend_insights(con, baseline, s, sg_obs)
+        found += trend_insights(con, baseline, s, sg_obs, ctx)
     range_insights = bias_insights(con) + gap_insights(con)
     found += [i for i in range_insights if source is None or i.source == source]
     if not include_uncertain:

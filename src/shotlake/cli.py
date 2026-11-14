@@ -18,7 +18,9 @@ from .analytics.course_shots import (
 )
 from .analytics.distance import club_stats, gapping
 from .analytics.score import PCC_MAX, PCC_MIN, RoundScore, round_scores
+from .analytics.sg import CATEGORIES, strokes_gained
 from .analytics.trend import differential_trend
+from .baseline import default_baseline_path, load_baseline
 from .clubs import CANONICAL_CLUBS
 from .config import default_club_map_path, load_club_map, save_club_map, sync_club_map
 from .connectors.registry import API_CONNECTORS, CONNECTORS
@@ -67,6 +69,13 @@ def build_parser() -> argparse.ArgumentParser:
     cc.add_argument("--until", type=date.fromisoformat)
     cc.add_argument("--min-n", type=int, default=5)
     cc.add_argument("--units", choices=["m", "yd"], default="m")
+
+    sg = sub.add_parser("sg", help="Strokes Gained (selbst berechnet, Handicap-Band-Baseline)")
+    sg.add_argument("--round", dest="round_ref")
+    sg.add_argument("--since", type=date.fromisoformat)
+    sg.add_argument("--until", type=date.fromisoformat)
+    sg.add_argument("--baseline", type=Path, default=default_baseline_path())
+    sg.add_argument("--reasons", action="store_true", help="Gründe unvollständiger Löcher zeigen")
 
     cs = sub.add_parser("club-set", help="Quell-Schläger einem Schlägertyp zuordnen")
     cs.add_argument("source")
@@ -189,6 +198,38 @@ def _tee_set(con: duckdb.DuckDBPyConnection, args: argparse.Namespace) -> int:
     return 0
 
 
+def _print_sg(con: duckdb.DuckDBPyConnection, args: argparse.Namespace) -> None:
+    base = load_baseline(args.baseline)
+    res = strokes_gained(con, base, since=args.since, until=args.until, round_ref=args.round_ref)
+    n_all = len(res.holes)
+    print(f"Strokes Gained (computed), Baseline {base.id} [{base.status}]")
+    print(f"Vollständig erfasste Löcher: {res.complete_holes} von {n_all}")
+    if not res.complete_holes:
+        print("Keine vollständig erfassten Löcher, keine SG-Werte.")
+    else:
+        names = {
+            "tee": "Abschlag", "approach": "Annäherung", "short": "Kurzes Spiel",
+            "green_play": "Aufs Grün+Putts",
+            "putting": "Putten", "penalty": "Strafschläge",
+        }  # fmt: skip
+        totals = res.totals()
+        total = sum(h.total or 0.0 for h in res.holes if h.complete)
+        for cat in CATEGORIES:
+            per_hole = totals[cat] / res.complete_holes
+            print(f"  {names[cat]:<17}{totals[cat]:>+8.2f}  ({per_hole:+.2f}/Loch)")
+        print(f"  {'Gesamt':<17}{total:>+8.2f}  ({total / res.complete_holes:+.2f}/Loch)")
+    print("Hinweis: Summen nur über vollständig erfasste Löcher; Baseline ist eine Näherung.")
+    print(
+        "'Aufs Grün+Putts': letzter Schlag und Putts, nicht trennbar, wenn die Quelle keine echte "
+        "Ballposition auf dem Grün liefert."
+    )
+    if args.reasons:
+        from collections import Counter
+
+        for reason, n in Counter(h.reason for h in res.holes if not h.complete).most_common():
+            print(f"  unvollständig: {n}x {reason}")
+
+
 def _print_course_shots(con: duckdb.DuckDBPyConnection, args: argparse.Namespace) -> None:
     f = M_TO_YD if args.units == "yd" else 1.0
     kw = {"since": args.since, "until": args.until, "round_ref": args.round_ref}
@@ -233,6 +274,9 @@ def main(argv: list[str] | None = None) -> int:
             save_club_map(args.club_map, mapping)
             sync_club_map(con, args.club_map)
             print(f"{args.source}/{args.club_ref} -> {args.club_type}  ({args.club_map})")
+            return 0
+        if args.cmd == "sg":
+            _print_sg(con, args)
             return 0
         if args.cmd == "course-shots":
             _print_course_shots(con, args)

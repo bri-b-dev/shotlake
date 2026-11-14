@@ -61,3 +61,21 @@ Die SG-Berechnung SHALL durch Golden-Tests mit handgerechneten Beispielrunden un
 #### Scenario: Regression
 - WHEN die Berechnung geändert wird und ein Golden-Wert abweicht
 - THEN schlägt der Test fehl
+
+### Requirement: Standard-Baseline Handicap 18 (Damen)
+Die Standard-Baseline SHALL `hcp18w-approx-v1` sein (Handicap-Band 18, Damen), als versionierte TOML-Tabelle im Repo mit `id`, `source`, `license` und `status`. Die Werte SHALL als eigene, ungeprüfte Näherung gekennzeichnet sein (`status = approximation`); fremde Tabellen (Tour/ShotLink) SHALL NOT übernommen werden. Jede SG-Ausgabe SHALL Baseline-ID und Status nennen.
+
+#### Scenario: Baseline ohne Quellenangabe
+- WHEN eine Baseline-Datei `source` oder `license` nicht enthält
+- THEN lehnt das System sie mit einer Fehlermeldung ab
+
+### Requirement: Vollständigkeit und Putt-Distanz
+SG SHALL nur für **vollständig erfasste Löcher** berechnet werden: Zahl der Schläge = Score − Putts − Strafschläge, alle Lagen, Koordinaten und die Fahnenposition vorhanden, kein von der Quelle ausgeschlossener Schlag. Unvollständige Löcher SHALL mit Grund ausgewiesen und nie geschätzt werden; Summen SHALL die Abdeckung (vollständige von allen Löchern) nennen. Liefert die Quelle für das Ende des letzten Schlags auf dem Grün keine echte Ballposition (Ende liegt weniger als 1 m von der Fahnenposition, wie bei Garmin), SHALL die erste Putt-Distanz als unbekannt gelten; dann SHALL der letzte Schlag und die Putts gemeinsam als Kategorie „Aufs Grün + Putts" ausgewiesen und Putten nicht separat bewertet werden.
+
+#### Scenario: Fehlender Schlag
+- WHEN ein Loch Score 5 und 2 Putts hat, aber nur 1 Schlag erfasst ist
+- THEN erscheint das Loch als unvollständig („1 Schläge erfasst, 3 erwartet") und geht nicht in die Summen ein
+
+#### Scenario: Grünposition entspricht der Fahne
+- WHEN das Ende des letzten Schlags 0 m von der Fahnenposition entfernt liegt
+- THEN zählt der Schlag samt Putts als „Aufs Grün + Putts" und Putten bleibt für dieses Loch leer

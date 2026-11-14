@@ -1,0 +1,38 @@
+# Erwartete Schläge bis zum Einlochen: E(Lage, Distanz zur Fahne in Metern).
+# Baseline-ID: hcp18w-approx-v1 (Handicap-Band 18, Damen).
+
+[meta]
+id = "hcp18w-approx-v1"
+target_handicap = 18.0
+gender = "women"
+status = "approximation"
+source = """
+Eigene Näherung von Shotlake, NICHT gemessen und nicht aus Tour- oder ShotLink-Daten kopiert.
+Die Stützwerte sind grob geschätzt (Größenordnung eines Handicap-18-Damen-Spiels: Par-4 ca. 5,0
+Schläge ab Abschlag, Rough/Sand schwieriger als Fairway) und dazwischen linear interpoliert.
+Sie sind plausibel, aber ungeprüft; Absolutwerte nicht überinterpretieren, Vergleiche zwischen
+Runden, Kategorien und Zeiträumen mit derselben Tabelle bleiben aussagekräftig.
+"""
+license = "eigene Werte (CC0); keine fremden Tabellen übernommen"
+version = 1
+
+# Jede Tabelle: aufsteigende Distanzen (m) und zugehörige erwartete Restschläge.
+[tables.tee]
+distance_m = [90, 120, 150, 180, 220, 260, 300, 350, 400, 450]
+expected   = [3.3, 3.5, 3.7, 3.9, 4.2, 4.5, 4.8, 5.1, 5.5, 5.9]
+
+[tables.fairway]
+distance_m = [5, 10, 20, 30, 50, 75, 100, 125, 150, 200, 250, 300, 350]
+expected   = [2.1, 2.35, 2.6, 2.8, 3.1, 3.45, 3.75, 4.0, 4.25, 4.65, 5.0, 5.3, 5.6]
+
+[tables.rough]
+distance_m = [5, 10, 20, 30, 50, 75, 100, 125, 150, 200, 250, 300, 350]
+expected   = [2.3, 2.5, 2.8, 3.0, 3.3, 3.65, 3.95, 4.2, 4.5, 4.9, 5.25, 5.6, 5.9]
+
+[tables.sand]
+distance_m = [5, 10, 20, 30, 50, 75, 100, 150, 200, 300]
+expected   = [2.5, 2.7, 3.0, 3.2, 3.5, 3.8, 4.1, 4.6, 5.1, 5.8]
+
+[tables.green]
+distance_m = [0.5, 1, 2, 3, 5, 8, 12, 20, 30]
+expected   = [1.05, 1.25, 1.6, 1.8, 1.95, 2.1, 2.3, 2.5, 2.7]

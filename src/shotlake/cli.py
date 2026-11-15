@@ -30,6 +30,7 @@ from .db import open_db
 from .dedup import Scope, default_dedup_config_path, load_config
 from .ingest import sync_location
 from .ingest_api import reprocess_raw, sync_api
+from .secret_store import use_store
 
 M_TO_YD = 1 / 0.9144
 
@@ -433,6 +434,7 @@ def _auto_dedup(con: duckdb.DuckDBPyConnection, args: argparse.Namespace) -> Non
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     data = Path(args.data_dir)
+    use_store(data)  # im Frontend gepflegte Zugangsdaten für Syncs bereitstellen
     con = open_db(data / "shotlake.duckdb")
     try:
         sync_club_map(con, args.club_map)

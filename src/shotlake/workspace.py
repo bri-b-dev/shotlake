@@ -20,6 +20,7 @@ from .dedup import (
     load_config,
 )
 from .dedup import run as run_dedup
+from .secret_store import use_store
 
 
 class Workspace:
@@ -33,6 +34,7 @@ class Workspace:
         dedup_config: Path | None = None,
     ) -> None:
         self.data_dir = data_dir
+        self.secrets = use_store(data_dir)
         self.club_map = club_map
         self.baseline_path = baseline_path
         self.dedup_config = (

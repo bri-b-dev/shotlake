@@ -1158,6 +1158,7 @@ name = "shotlake"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "cryptography" },
     { name = "duckdb" },
     { name = "fastapi" },
     { name = "jinja2" },
@@ -1176,6 +1177,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "cryptography", specifier = ">=50.0.2" },
     { name = "duckdb", specifier = ">=1.1" },
     { name = "fastapi", specifier = ">=0.162.7" },
     { name = "jinja2", specifier = ">=3.1.6" },

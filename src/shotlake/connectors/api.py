@@ -94,11 +94,24 @@ def with_retry[T](
             attempt += 1
 
 
+_PROVIDERS: list[Callable[[str, str], str | None]] = []
+
+
+def register_secret_provider(provider: Callable[[str, str], str | None]) -> None:
+    """Zusätzliche Quelle für Zugangsdaten (z. B. der verschlüsselte Speicher); ersetzt keine
+    Umgebungsvariable. Es gilt immer nur der zuletzt registrierte Anbieter."""
+    _PROVIDERS[:] = [provider]
+
+
 def load_secret(source: str, key: str, sops_file: Path | None = None) -> str:
-    """Zugangsdaten holen: `SHOTLAKE_<SOURCE>_<KEY>` aus der Umgebung, sonst sops-Datei."""
+    """Zugangsdaten holen: Umgebung `SHOTLAKE_<SOURCE>_<KEY>`, dann Speicher, dann sops-Datei."""
     env_name = f"SHOTLAKE_{source}_{key}".upper().replace("-", "_")
     if env_name in os.environ:
         return os.environ[env_name]
+    for provider in _PROVIDERS:
+        value = provider(source, key)
+        if value:
+            return value
     if sops_file is not None and sops_file.exists():
         out = subprocess.run(
             ["sops", "--decrypt", "--output-type", "json", str(sops_file)],

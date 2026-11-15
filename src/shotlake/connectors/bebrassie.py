@@ -11,8 +11,8 @@ Aus den echten Daten (18 Runden, 115 Löcher mit Detail) bestätigt:
   entspricht immer `numShots`. `number` zählt je Loch ab 0.
 - Strafschläge stehen als eigener Schlag (`penalty`). Sie werden nicht als Schlag gespeichert,
   sondern als Strafschlag des Lochs; der Schlag davor endet am Droppunkt (z. B. nach Wasser).
-- Die Lage `roughout` kommt als Start und als Ziel vor (man spielt daraus weiter); ihre Bedeutung
-  ist offen, sie wird wie `water` zu `other` und macht betroffene Löcher für SG unvollständig.
+- Die Lage `roughout` ist laut Nutzerin „tiefes Rough" (2026-11-14). Die Baseline kennt keine
+  eigene Lage dafür; sie wird als `rough` gezählt (Näherung, tendenziell zu milde).
 - Rating/Slope 0 bedeutet „nicht gepflegt" und ist kein Wert.
 - Die Wertung (Damen/Herren) folgt `proPlayerType` bzw. dem Schlüssel in `strokesGained`
   (z. B. WOMEN18); ohne Angabe gibt es kein Rating (nicht geraten).
@@ -35,12 +35,13 @@ from ..model import CourseRecord, CourseShotRecord, HoleRecord, ParsedRound, Tee
 from .api import ApiConnector, AuthError, FetchPage, RawRecord, load_secret
 from .errors import SchemaDriftError
 
-# Lagen (aus den echten Daten abgelesen). `water` (Hindernis) und `roughout` (Bedeutung offen)
-# haben keine Baseline-Tabelle und werden zu `other`. `hole` ist das Einlochen (nur als Ziel).
+# Lagen (aus den echten Daten abgelesen). `water` (Hindernis) hat keine
+# Baseline-Tabelle und wird zu `other`; `roughout` = tiefes Rough, als `rough` genähert.
+# `hole` ist das Einlochen (nur als Ziel).
 LIE = {
     "tee": "tee", "teebox": "tee", "fairway": "fairway", "rough": "rough",
     "bunker": "sand", "sand": "sand", "green": "green", "hole": "hole",
-    "water": "other", "roughout": "other",
+    "water": "other", "roughout": "rough",
 }  # fmt: skip
 SHOT_TYPES = {
     "teeshot": "TEE", "shottogreen": "APPROACH", "chip": "CHIP", "pitch": "PITCH",

@@ -566,13 +566,13 @@ def main(argv: list[str] | None = None) -> int:
                 indoor=args.indoor,
             )
             print(
-                f"{'Schläger':<15}{'Quelle':<14}{'n':>4} {'Carry-Median':>13}"
+                f"{'Schläger':<15}{'Quelle':<14}{'Methode':<8}{'n':>4} {'Carry-Median':>13}"
                 f" {'P10':>6} {'P90':>6} {'Bias':>7} {'Streu':>6}  Hinweis"
             )
             for s in rows:
                 note = s.warning or ("gemischt" if s.mixed else "")
                 print(
-                    f"{s.club_type:<15}{s.source:<14}{s.n:>4} "
+                    f"{s.club_type:<15}{s.source:<14}{s.method[:7]:<8}{s.n:>4} "
                     f"{_fmt(s.carry_median_m, factor):>10} {unit:<2}"
                     f"{_fmt(s.carry_p10_m, factor):>6} {_fmt(s.carry_p90_m, factor):>6} "
                     f"{_fmt(s.side_bias_m, factor):>7} {_fmt(s.side_std_m, factor):>6}  {note}"

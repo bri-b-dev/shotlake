@@ -43,3 +43,8 @@ garmin_clubtype_20 = "wedge_gap"
 garmin_clubtype_21 = "wedge_sand"
 garmin_clubtype_22 = "wedge_lob"
 garmin_clubtype_23 = "putter"
+
+[trackman]
+52Wedge = "wedge_gap"
+56Wedge = "wedge_sand"
+60Wedge = "wedge_lob"

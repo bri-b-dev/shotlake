@@ -56,15 +56,21 @@ def test_cli_club_set_writes_file_and_applies(tmp_path: Path, capsys: pytest.Cap
 
 def test_repo_config_is_valid_and_complete():
     mapping = load_club_map(REPO_CONFIG)  # lehnt unbekannte Schlägertypen ab
-    assert set(mapping) == {"garmin_platform", "arccos", "bebrassie"}
+    assert set(mapping) == {"garmin_platform", "arccos", "bebrassie", "trackman"}
     # Arccos: 12 aktive Schläger plus zwei ausgemusterte (Typ 42 = altes SW, Typ 37 = altes 7i)
     assert len(mapping["bebrassie"]) == 11 and mapping["bebrassie"]["56°"] == "wedge_sand"
     assert len(mapping["garmin_platform"]) == 11 and len(mapping["arccos"]) == 14
     assert mapping["garmin_platform"]["garmin_clubtype_23"] == "putter"
     assert mapping["arccos"]["arccos_clubtype_12"] == "putter"
-    for source in mapping.values():  # je Quelle genau ein Putter und ein Driver
-        assert list(source.values()).count("putter") == 1
-        assert list(source.values()).count("driver") == 1
+    assert mapping["trackman"] == {  # nur Loft-Wedges; der Rest ergibt sich aus den Enum-Namen
+        "52Wedge": "wedge_gap",
+        "56Wedge": "wedge_sand",
+        "60Wedge": "wedge_lob",
+    }
+    for name, source in mapping.items():  # je ID-basierter Quelle ein Putter und ein Driver
+        if name != "trackman":
+            assert list(source.values()).count("putter") == 1
+            assert list(source.values()).count("driver") == 1
 
 
 def test_keys_with_special_characters_are_quoted_and_roundtrip(tmp_path: Path):

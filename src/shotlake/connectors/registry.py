@@ -11,6 +11,7 @@ from .bebrassie import BeBrassieConnector
 from .garmin_platform import GarminPlatformConnector
 from .garmin_range import GarminRangeConnector
 from .mevo import MevoConnector
+from .trackman import TrackmanConnector
 
 CONNECTORS: dict[str, Connector] = {c.id: c for c in (MevoConnector(), GarminRangeConnector())}
 
@@ -23,4 +24,5 @@ API_CONNECTORS: dict[str, Callable[[], ApiConnector]] = {
     GarminPlatformConnector.id: GarminPlatformConnector,
     ArccosConnector.id: ArccosConnector,
     BeBrassieConnector.id: BeBrassieConnector,
+    TrackmanConnector.id: TrackmanConnector,
 }

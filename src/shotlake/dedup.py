@@ -115,7 +115,7 @@ def load_facts(con: duckdb.DuckDBPyConnection) -> dict[str, RoundFacts]:
                   exists (select 1 from course_shot s where s.round_id = r.round_id),
                   r.tee_rating is not null and r.tee_slope is not null
            from round r join course c using (course_id)
-           where not r.in_progress"""
+           where not r.in_progress and not r.simulated"""
     ).fetchall()
     return {r[0]: RoundFacts(*r) for r in rows}
 

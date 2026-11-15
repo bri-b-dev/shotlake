@@ -281,3 +281,12 @@ def test_manual_merge_form_links_rounds_that_the_rules_do_not(tmp_path: Path):
     assert "Verknüpfte Runden (0)" in client.get("/dedup").text
     client.post("/dedup/confirm", data={"a": "arccos|r0", "b": "bebrassie|r0"})
     assert "Verknüpfte Runden (1)" in client.get("/dedup").text
+
+
+def test_simulated_rounds_never_match_real_ones(con) -> None:
+    add_round(con, 1, datetime(2026, 6, 1, 10), putts=2, source="arccos")
+    add_round(con, 1, datetime(2026, 6, 1, 10, 5), putts=2, source="trackman")
+    con.execute("update round set simulated = true where source = 'trackman'")
+    fill_gross(con)
+    report = dedup.run(con, CFG)
+    assert report.auto == 0 and not dedup.open_proposals(con)

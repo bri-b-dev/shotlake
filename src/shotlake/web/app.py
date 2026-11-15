@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from datetime import date, timedelta
 from pathlib import Path
 from typing import Annotated, Any
@@ -32,6 +33,7 @@ from ..service import (
     source_statuses,
 )
 from ..workspace import Workspace
+from .auth import install_auth
 from .charts import Marker, bars_svg, scatter_svg, trend_svg
 
 HERE = Path(__file__).parent
@@ -48,7 +50,11 @@ SG_NAMES = {
 
 
 def create_app(
-    data_dir: Path, club_map: Path, baseline_path: Path, dedup_config: Path | None = None
+    data_dir: Path,
+    club_map: Path,
+    baseline_path: Path,
+    dedup_config: Path | None = None,
+    auth: bool | None = None,
 ) -> FastAPI:
     app = FastAPI(title="Shotlake", docs_url=None, redoc_url=None, openapi_url=None)
     app.mount("/static", StaticFiles(directory=HERE / "static"), name="static")
@@ -93,6 +99,10 @@ def create_app(
         return templates.TemplateResponse(
             request, name, {"unit": unit, "baseline": baseline, "request": request, **ctx}
         )
+
+    if auth is None:  # `SHOTLAKE_WEB_AUTH=off` nur für Betrieb hinter eigenem Schutz
+        auth = os.environ.get("SHOTLAKE_WEB_AUTH", "on").lower() != "off"
+    install_auth(app, data_dir, page, enabled=auth)
 
     @app.get("/", response_class=HTMLResponse)
     def dashboard(request: Request) -> HTMLResponse:

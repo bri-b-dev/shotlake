@@ -14,3 +14,9 @@ def fixtures() -> Path:
 def _isolated_club_map(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Tests dürfen nie die echte config/club_map.toml lesen oder schreiben."""
     monkeypatch.setenv("SHOTLAKE_CLUB_MAP", str(tmp_path / "club_map.toml"))
+
+
+@pytest.fixture(autouse=True)
+def _web_auth_off(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Weboberflächen-Tests laufen ohne Login (Login-Tests schalten es selbst ein)."""
+    monkeypatch.setenv("SHOTLAKE_WEB_AUTH", "off")

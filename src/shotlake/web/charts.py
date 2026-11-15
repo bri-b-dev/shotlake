@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from datetime import date, datetime, time
 from html import escape
 
+from ..analytics.dispersion import ScatterGroup
 from ..analytics.trend import TrendPoint
 
 W, H = 640, 260
@@ -112,6 +114,57 @@ def bars_svg(items: list[tuple[str, float]], unit: str = "") -> str:
             f'height="18" rx="2"/>'
             f'<text class="val" x="{(zero + w + 6) if v >= 0 else (zero - w - 6):.1f}" '
             f'y="{yy + 17}" text-anchor="{"start" if v >= 0 else "end"}">{v:+.2f}{unit}</text>'
+        )
+    out.append("</svg>")
+    return "".join(out)
+
+
+def scatter_svg(group: ScatterGroup, factor: float = 1.0, unit: str = "m") -> str:
+    """Streuung: links/rechts waagerecht, Carry senkrecht, gleicher Maßstab, 95-%-Ellipse."""
+    pts = [(x * factor, y * factor) for x, y in group.points]
+    ell = [(x * factor, y * factor) for x, y in group.ellipse.outline()] if group.ellipse else []
+    every = pts + ell
+    half = max(max(abs(x) for x, _ in every), 5.0 * factor) * 1.1
+    y_lo, y_hi = min(y for _, y in every), max(y for _, y in every)
+    y_pad = max((y_hi - y_lo) * 0.08, 2.0 * factor)
+    y_lo, y_hi = y_lo - y_pad, y_hi + y_pad
+    w, h, pl, pr, pt, pb = 420, 340, 44, 14, 12, 28
+    scale = min((w - pl - pr) / (2 * half), (h - pt - pb) / (y_hi - y_lo))
+    cx = pl + (w - pl - pr) / 2
+
+    def sx(v: float) -> float:
+        return cx + v * scale
+
+    def sy(v: float) -> float:
+        return h - pb - (v - y_lo) * scale
+
+    out = [
+        f'<svg class="chart scatter" viewBox="0 0 {w} {h}" role="img" '
+        f'aria-label="Streuung {escape(group.club_type)} ({escape(group.source)}, '
+        f'{escape(group.method)}), {len(pts)} Schläge">',
+        f'<line class="grid" x1="{cx:.1f}" x2="{cx:.1f}" y1="{pt}" y2="{h - pb}"/>',
+    ]
+    step = 10 if (y_hi - y_lo) > 40 * factor else 5
+    v = math.ceil(y_lo / (step * factor)) * step * factor
+    while v <= y_hi:
+        out.append(
+            f'<line class="grid" x1="{pl}" x2="{w - pr}" y1="{sy(v):.1f}" y2="{sy(v):.1f}"/>'
+            f'<text class="axis" x="{pl - 6}" y="{sy(v) + 4:.1f}" text-anchor="end">{v:.0f}</text>'
+        )
+        v += step * factor
+    out.append(
+        f'<text class="axis" x="{pl}" y="{h - 8}" text-anchor="start">links</text>'
+        f'<text class="axis" x="{w - pr}" y="{h - 8}" text-anchor="end">rechts</text>'
+        f'<text class="axis" x="{cx:.1f}" y="{h - 8}" text-anchor="middle">{unit}</text>'
+    )
+    if ell:
+        path = " ".join(f"{sx(x):.1f},{sy(y):.1f}" for x, y in ell)
+        out.append(f'<polygon class="ell" points="{path}"/>')
+    for x, y in pts:
+        title = escape(f"Carry {y:.0f} {unit}, Seite {x:+.1f} {unit}")
+        out.append(
+            f'<circle class="pt" cx="{sx(x):.1f}" cy="{sy(y):.1f}" r="3">'
+            f"<title>{title}</title></circle>"
         )
     out.append("</svg>")
     return "".join(out)

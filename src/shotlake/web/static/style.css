@@ -54,6 +54,9 @@ rect.pos { fill: var(--pos); } rect.neg { fill: var(--neg); }
 .chart .dot { fill: none; stroke: var(--dot); stroke-width: 2; }
 .chart .dot.rel { fill: var(--dot); }
 .chart .avg { fill: none; stroke: var(--avg); stroke-width: 2.5; }
+.chart .pt { fill: var(--dot); fill-opacity: .55; }
+.chart .ell { fill: none; stroke: var(--avg); stroke-width: 2; }
+.scatter-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
 .legend { font-size: .85rem; color: var(--muted); }
 .kpi { font-size: 1.6rem; font-weight: 700; }
 form.inputs { display: grid; gap: .6rem; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }

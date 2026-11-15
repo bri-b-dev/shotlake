@@ -15,6 +15,7 @@ from fastapi.templating import Jinja2Templates
 from .. import dedup as dedup_mod
 from .. import reports
 from ..analytics.course_shots import club_distances
+from ..analytics.dispersion import scatter_groups
 from ..analytics.distance import DEFAULT_MIN_SPEED_RATIO, club_stats
 from ..analytics.insights import generate as generate_insights
 from ..analytics.metrics import METRICS
@@ -22,7 +23,7 @@ from ..analytics.score import round_scores
 from ..analytics.sg import CATEGORIES, strokes_gained
 from ..analytics.trend import differential_trend
 from ..baseline import Baseline
-from ..clubs import CANONICAL_CLUBS
+from ..clubs import CANONICAL_CLUBS, club_sort_key
 from ..service import (
     round_detail,
     round_sources,
@@ -31,7 +32,7 @@ from ..service import (
     source_statuses,
 )
 from ..workspace import Workspace
-from .charts import Marker, bars_svg, trend_svg
+from .charts import Marker, bars_svg, scatter_svg, trend_svg
 
 HERE = Path(__file__).parent
 M_TO_YD = 1 / 0.9144
@@ -74,7 +75,9 @@ def create_app(
         return NA if value is None else f"{value:.0%}"
 
     def link(request: Request, path: str, **changes: str | None) -> str:
-        params = {k: v for k, v in request.query_params.items() if k in ("u", "source", "w")}
+        params = {
+            k: v for k, v in request.query_params.items() if k in ("u", "source", "w", "club")
+        }
         for k, v in changes.items():
             if v is None:
                 params.pop(k, None)
@@ -325,9 +328,33 @@ def create_app(
         with session() as con:
             source = request.query_params.get("source") or None
             scope = workspace.scope(con)
+            scatter_clubs = [
+                r[0]
+                for r in con.execute(
+                    "select club_type from shot where club_type is not null and "
+                    "carry_m is not null and carry_side_m is not null "
+                    "group by club_type order by count(*) desc"
+                ).fetchall()
+            ]
+            scatter_clubs.sort(key=club_sort_key)
+            club = request.query_params.get("club")
+            if club not in scatter_clubs:
+                club = scatter_clubs[0] if scatter_clubs else None
+            factor = M_TO_YD if unit_of(request) == "yd" else 1.0
+            plots = [
+                (g, scatter_svg(g, factor, unit_of(request)))
+                for g in (
+                    scatter_groups(con, club, min_speed_ratio=DEFAULT_MIN_SPEED_RATIO)
+                    if club
+                    else []
+                )
+            ]
             return page(
                 request,
                 "clubs.html",
+                scatter_clubs=scatter_clubs,
+                scatter_club=club,
+                plots=plots,
                 source=source,
                 sources=round_sources(con),
                 course=club_distances(

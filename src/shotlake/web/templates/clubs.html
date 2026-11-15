@@ -37,5 +37,25 @@
     </table></div>
     <p class="muted">Je Quelle und Messmethode getrennt, da Radar-Systeme systematisch unterschiedlich messen. Seitenversatz: rechts positiv. Ausreißer sind markiert und ausgeschlossen; Teilschläge (Ballgeschwindigkeit unter 70 % des Schläger-Medians je Methode) zählen nicht mit.</p>
   </section>
+
+  <section class="card wide" aria-labelledby="h-scatter">
+    <h2 id="h-scatter">Streuung</h2>
+    <div class="chips" role="group" aria-label="Schläger">
+      {% for c in scatter_clubs %}
+        <a href="{{ link(request, '/clubs', club=c) }}#h-scatter" {% if c == scatter_club %}aria-current="true"{% endif %}>{{ c }}</a>
+      {% endfor %}
+    </div>
+    <div class="scatter-grid">
+      {% for g, svg in plots %}
+        <figure style="margin:0">
+          <figcaption><strong>{{ g.source }}</strong> · {{ g.method }} · {{ g.points|length }} Schläge
+            {% if not g.ellipse %}<span class="muted">(zu wenige für eine Ellipse)</span>{% endif %}</figcaption>
+          {{ svg|safe }}
+        </figure>
+      {% else %}<p class="muted">Keine Schläge mit Carry und Seitenabweichung.</p>
+      {% endfor %}
+    </div>
+    <p class="muted">Punkte: ein Schlag. Linie: 95-%-Ellipse (Näherung als Normalverteilung). Carry nach oben, Seite links/rechts im selben Maßstab. Je Quelle und Messmethode getrennt, ohne Ausreißer und Teilschläge.</p>
+  </section>
 </div>
 {% endblock %}

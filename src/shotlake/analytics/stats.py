@@ -36,7 +36,7 @@ def bootstrap_ci(
     fn = STATS[stat]
     rng = random.Random(SEED)
     n = len(values)
-    draws = sorted(fn([values[rng.randrange(n)] for _ in range(n)]) for _ in range(n_boot))
+    draws = sorted(fn(rng.choices(values, k=n)) for _ in range(n_boot))
     lo = draws[int((1 - level) / 2 * n_boot)]
     hi = draws[min(n_boot - 1, int((1 + level) / 2 * n_boot))]
     return Interval(lo, hi, level)
@@ -52,11 +52,7 @@ def bootstrap_diff_ci(
     fn = STATS[stat]
     rng = random.Random(SEED)
     na, nb = len(a), len(b)
-    diffs = sorted(
-        fn([a[rng.randrange(na)] for _ in range(na)])
-        - fn([b[rng.randrange(nb)] for _ in range(nb)])
-        for _ in range(n_boot)
-    )
+    diffs = sorted(fn(rng.choices(a, k=na)) - fn(rng.choices(b, k=nb)) for _ in range(n_boot))
     return Interval(
         diffs[int((1 - level) / 2 * n_boot)], diffs[min(n_boot - 1, int((1 + level) / 2 * n_boot))]
     )

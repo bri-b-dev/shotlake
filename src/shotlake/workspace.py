@@ -11,6 +11,9 @@ import duckdb
 
 from .baseline import Baseline, load_baseline
 from .config import sync_club_map
+from .connectors.api import ApiConnector
+from .connectors.arccos import ArccosConnector
+from .connectors.registry import API_CONNECTORS
 from .db import open_db
 from .dedup import (
     DedupConfig,
@@ -20,6 +23,8 @@ from .dedup import (
     load_config,
 )
 from .dedup import run as run_dedup
+from .ingest import ImportReport
+from .ingest_api import sync_api
 from .secret_store import use_store
 
 
@@ -43,6 +48,7 @@ class Workspace:
         self.dedup_cfg: DedupConfig = load_config(self.dedup_config)
         self.baseline: Baseline = load_baseline(baseline_path)
         self._lock = threading.Lock()
+        self._sync_lock = threading.Lock()
 
     @contextmanager
     def session(self) -> Iterator[duckdb.DuckDBPyConnection]:
@@ -57,6 +63,37 @@ class Workspace:
     def scope(self, con: duckdb.DuckDBPyConnection) -> Scope:
         """Dedup-Sicht für Auswertungen ohne Quellenfilter."""
         return Scope.build(con, self.dedup_cfg)
+
+    def make_connector(self, source: str) -> ApiConnector:
+        connector = API_CONNECTORS[source]()
+        if isinstance(connector, ArccosConnector):
+            connector.cache_dir = self.data_dir / "cache"
+        return connector
+
+    def run_sync(
+        self, make: Callable[[], ApiConnector], mode: str = "incremental"
+    ) -> ImportReport | None:
+        """Sync mit eigener Verbindung (blockiert die Seiten nicht); None: es läuft schon einer.
+
+        `full` ignoriert den gespeicherten Cursor. Danach Dedup, damit neue Runden sofort mit
+        anderen Quellen abgeglichen sind.
+        """
+        if not self._sync_lock.acquire(blocking=False):
+            return None
+        try:
+            connector = make()  # erst unter der Sperre: Zugangsdaten werden erst jetzt gelesen
+            con = open_db(self.data_dir / "shotlake.duckdb")
+            try:
+                sync_club_map(con, self.club_map)
+                if mode == "full":
+                    con.execute("delete from sync_state where source = ?", [connector.id])
+                rep = sync_api(con, connector, self.data_dir / "raw")
+                run_dedup(con, self.dedup_cfg)
+                return rep
+            finally:
+                con.close()
+        finally:
+            self._sync_lock.release()
 
     def run_dedup(self, con: duckdb.DuckDBPyConnection) -> RunReport:
         return run_dedup(con, self.dedup_cfg)

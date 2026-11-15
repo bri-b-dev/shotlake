@@ -13,7 +13,6 @@ from __future__ import annotations
 import functools
 import hmac
 import json
-import threading
 from collections.abc import Callable
 from typing import Any, Literal
 
@@ -24,9 +23,7 @@ from pydantic import BaseModel, Field
 
 from . import reports
 from .connectors.api import ApiConnector
-from .connectors.arccos import ArccosConnector
 from .connectors.registry import API_CONNECTORS
-from .ingest_api import sync_api
 from .workspace import Workspace
 
 INSTRUCTIONS = (
@@ -97,15 +94,11 @@ def create_server(
     connector_factory: Callable[[str], ApiConnector] | None = None,
 ) -> MCPServer:
     server = MCPServer("shotlake", instructions=INSTRUCTIONS)
-    sync_lock = threading.Lock()
 
     def make_connector(source: str) -> ApiConnector:
         if connector_factory is not None:
             return connector_factory(source)
-        connector = API_CONNECTORS[source]()
-        if isinstance(connector, ArccosConnector):
-            connector.cache_dir = workspace.data_dir / "cache"
-        return connector
+        return workspace.make_connector(source)
 
     # --- lesend -------------------------------------------------------------------------------
 
@@ -272,17 +265,9 @@ def create_server(
                 f"Quelle {source!r} ist keine API-Quelle; verfügbar: {sorted(API_CONNECTORS)}. "
                 "Dateiquellen werden per `shotlake import` importiert."
             )
-        if not sync_lock.acquire(blocking=False):
+        rep = workspace.run_sync(lambda: make_connector(source), mode)
+        if rep is None:
             return {"status": "busy", "reason": "es läuft bereits ein Sync"}
-        try:
-            connector = make_connector(source)
-            with workspace.session() as con:
-                if mode == "full":
-                    con.execute("delete from sync_state where source = ?", [connector.id])
-                rep = sync_api(con, connector, workspace.data_dir / "raw")
-                workspace.run_dedup(con)  # neue Runden sofort mit anderen Quellen abgleichen
-        finally:
-            sync_lock.release()
         auth_failed = any(e.startswith("Auth:") or "Zugangsdaten" in e for e in rep.errors)
         return {
             "status": "auth_required" if auth_failed else rep.status,

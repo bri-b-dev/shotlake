@@ -290,3 +290,19 @@ def test_simulated_rounds_never_match_real_ones(con) -> None:
     fill_gross(con)
     report = dedup.run(con, CFG)
     assert report.auto == 0 and not dedup.open_proposals(con)
+
+
+def test_simulated_rounds_stay_out_of_combined_stats_and_sg(con) -> None:
+    add_round(con, 1, datetime(2026, 6, 1, 10), putts=2, source="arccos")
+    add_round(con, 2, datetime(2026, 6, 2, 10), putts=2, source="trackman")
+    con.execute("update round set simulated = true where source = 'trackman'")
+    fill_gross(con)
+    ctx = Context()
+    combined = ctx.rounds(con, Filters())
+    assert {r.round_id.split("|")[0] for r in combined} == {"arccos"}
+    assert {r.round_id.split("|")[0] for r in ctx.rounds(con, Filters(source="trackman"))} == {
+        "trackman"
+    }
+    assert {h.round_id.split("|")[0] for h in strokes_gained(con, BASELINE).holes} <= {"arccos"}
+    only_sim = strokes_gained(con, BASELINE, source="trackman").holes
+    assert only_sim and all(h.round_id.startswith("trackman") for h in only_sim)

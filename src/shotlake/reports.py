@@ -12,7 +12,7 @@ from typing import Any
 
 import duckdb
 
-from .analytics.distance import club_stats, gapping
+from .analytics.distance import DEFAULT_MIN_SPEED_RATIO, club_stats, gapping
 from .analytics.insights import Insight
 from .analytics.insights import generate as generate_insights
 from .analytics.metrics import METRICS, Context, Filters, Metric, observations
@@ -209,10 +209,25 @@ def compare_report(
 def gapping_report(
     con: duckdb.DuckDBPyConnection, f: Filters, method: str | None = None, min_n: int = 10
 ) -> dict[str, Any]:
+    ratio = DEFAULT_MIN_SPEED_RATIO
     clubs = club_stats(
-        con, source=f.source, method=method, since=f.since, until=f.until, min_n=min_n
+        con,
+        source=f.source,
+        method=method,
+        since=f.since,
+        until=f.until,
+        min_n=min_n,
+        min_speed_ratio=ratio,
     )
-    gaps = gapping(con, min_n=min_n, source=f.source, method=method, since=f.since, until=f.until)
+    gaps = gapping(
+        con,
+        min_n=min_n,
+        source=f.source,
+        method=method,
+        since=f.since,
+        until=f.until,
+        min_speed_ratio=ratio,
+    )
     return {
         "clubs": [
             {
@@ -233,7 +248,7 @@ def gapping_report(
         ],
         "min_n": min_n,
         "note": "Carry-Mediane aus Range-Daten je Quelle und Messmethode getrennt; Ausreißer "
-                "ausgeschlossen.",
+                "ausgeschlossen, ebenso Teilschläge (Ballgeschwindigkeit < 70 % des Medians).",
     }  # fmt: skip
 
 

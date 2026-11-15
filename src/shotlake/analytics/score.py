@@ -108,6 +108,7 @@ class RoundScore:
     relevant: bool | None  # Nutzerentscheidung
     relevant_suggestion: bool  # nur Hinweis: formale Kriterien erfüllt; ändert nichts am Standard
     rating_source: str | None = None  # Quelle, falls Rating/Slope von einer verknüpften Runde kommt
+    simulated: bool = False  # Simulator-Runde (nicht mit realen Runden mischen)
 
     @property
     def relevant_effective(self) -> bool:
@@ -266,6 +267,7 @@ def compute_round(
         extrapolated=nine and diff is not None,
         reason=reason,
         relevant=relevant if isinstance(relevant, bool) else None,
+        simulated=bool(row.get("simulated")),
         relevant_suggestion=suggest_relevant(
             simulated=bool(row.get("simulated")),
             in_progress=bool(row.get("in_progress")),

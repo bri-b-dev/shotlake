@@ -84,6 +84,8 @@ class Context:
                 donors=self.scope.donors if self.scope else None,
             )
         rows = self._rounds[key]
+        if f.source is None:  # Sim-Runden nie mit realen Runden mischen (nur per Quelle abrufbar)
+            rows = [r for r in rows if not r.simulated]
         if self.scope is not None and f.source is None:
             dropped = self.scope.exclude(group)
             rows = [r for r in rows if r.round_id not in dropped]

@@ -16,7 +16,7 @@ from .analytics.course_shots import (
     start_lies,
     tee_shot_outcomes,
 )
-from .analytics.distance import club_stats, gapping
+from .analytics.distance import DEFAULT_MIN_SPEED_RATIO, club_stats, gapping
 from .analytics.insights import generate as generate_insights
 from .analytics.score import PCC_MAX, PCC_MIN, RoundScore, round_scores
 from .analytics.sg import CATEGORIES, strokes_gained
@@ -177,6 +177,11 @@ def build_parser() -> argparse.ArgumentParser:
         where.add_argument("--outdoor", dest="indoor", action="store_const", const=False)
         where.add_argument("--indoor", dest="indoor", action="store_const", const=True)
         p.set_defaults(indoor=None)
+        p.add_argument(
+            "--all-swings",
+            action="store_true",
+            help="auch Teilschläge/Chips (Ballgeschwindigkeit < 70 %% des Schläger-Medians)",
+        )
         if name == "clubs":
             p.add_argument("--club")
             p.add_argument("--combine", action="store_true")
@@ -564,6 +569,7 @@ def main(argv: list[str] | None = None) -> int:
                 since=args.since,
                 until=args.until,
                 indoor=args.indoor,
+                min_speed_ratio=None if args.all_swings else DEFAULT_MIN_SPEED_RATIO,
             )
             print(
                 f"{'Schläger':<15}{'Quelle':<14}{'Methode':<8}{'n':>4} {'Carry-Median':>13}"
@@ -587,6 +593,7 @@ def main(argv: list[str] | None = None) -> int:
             since=args.since,
             until=args.until,
             indoor=args.indoor,
+            min_speed_ratio=None if args.all_swings else DEFAULT_MIN_SPEED_RATIO,
         )
         for g in gaps:
             print(

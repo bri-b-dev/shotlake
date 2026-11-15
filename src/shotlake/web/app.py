@@ -15,7 +15,7 @@ from fastapi.templating import Jinja2Templates
 from .. import dedup as dedup_mod
 from .. import reports
 from ..analytics.course_shots import club_distances
-from ..analytics.distance import club_stats
+from ..analytics.distance import DEFAULT_MIN_SPEED_RATIO, club_stats
 from ..analytics.insights import generate as generate_insights
 from ..analytics.metrics import METRICS
 from ..analytics.score import round_scores
@@ -336,7 +336,7 @@ def create_app(
                     source=source,
                     exclude_rounds=None if source else scope.exclude("shots"),
                 ),
-                range_stats=club_stats(con, min_n=10),
+                range_stats=club_stats(con, min_n=10, min_speed_ratio=DEFAULT_MIN_SPEED_RATIO),
             )
 
     @app.get("/insights", response_class=HTMLResponse)

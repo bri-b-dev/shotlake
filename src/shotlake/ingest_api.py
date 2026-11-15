@@ -29,6 +29,35 @@ def _set_cursor(con: duckdb.DuckDBPyConnection, source: str, cursor: str | None)
     con.execute("insert or replace into sync_state values (?,?,?)", [source, cursor, _now()])
 
 
+UNMAPPED_PREFIX = "Schläger ohne Zuordnung: "
+
+
+def drop_mapped_club_warnings(
+    con: duckdb.DuckDBPyConnection, source: str, warnings: list[str]
+) -> list[str]:
+    """Warnungen zu Schlägern entfernen, die inzwischen in `club_map` zugeordnet sind."""
+    import ast
+
+    mapped = {
+        r[0]
+        for r in con.execute("select club_ref from club_map where source = ?", [source]).fetchall()
+    }
+    out: list[str] = []
+    for w in warnings:
+        if not w.startswith(UNMAPPED_PREFIX):
+            out.append(w)
+            continue
+        try:
+            names = ast.literal_eval(w[len(UNMAPPED_PREFIX) :])
+        except (ValueError, SyntaxError):
+            out.append(w)
+            continue
+        rest = [n for n in names if n not in mapped]
+        if rest:
+            out.append(f"{UNMAPPED_PREFIX}{rest}")
+    return out
+
+
 def _process(
     con: duckdb.DuckDBPyConnection,
     connector: ApiConnector,
@@ -56,7 +85,7 @@ def _process(
         raise SchemaDriftError("; ".join(report.errors))
     parsed = connector.parse_record(record)
     rep.errors.extend(parsed.errors)
-    rep.warnings.extend(parsed.warnings)
+    rep.warnings.extend(drop_mapped_club_warnings(con, connector.id, parsed.warnings))
     # Hash erst nach erfolgreichem Parsen registrieren: ein Drift-Dokument wird nach
     # einem Connector-Fix erneut verarbeitet.
     con.execute(
@@ -135,7 +164,7 @@ def reprocess_raw(con: duckdb.DuckDBPyConnection, connector: ApiConnector) -> Im
             payload = json.loads(Path(path).read_text())
             parsed = connector.parse_record(RawRecord(external_id, payload))
             rep.errors.extend(parsed.errors)
-            rep.warnings.extend(parsed.warnings)
+            rep.warnings.extend(drop_mapped_club_warnings(con, connector.id, parsed.warnings))
             if isinstance(parsed, ParsedRound):
                 write_round(con, parsed, digest, rep)
             else:

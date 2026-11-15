@@ -216,13 +216,21 @@ def parse_round(data: dict[str, Any]) -> ParsedRound:
         played = hole.get("isPlayed") is not False
         strokes = _int(hole.get("grossScore")) if played else None
         pin = _latlon(hole.get("pinPosition"))
+        hole_shots = [s for s in hole.get("shots") or [] if isinstance(s, dict)]
+        putts = _int(hole.get("putts")) if strokes else None
+        # Putts stehen nicht als Schläge in den Daten. Passt Schlagzahl + Putts zum Score, gibt
+        # es keine Strafschläge; sonst bleibt unbekannt, was die Differenz ist (nicht geraten).
+        penalties = (
+            0 if strokes and putts is not None and len(hole_shots) + putts == strokes else None
+        )
         result.holes.append(
             HoleRecord(
                 number=number,
                 par=_int(hole.get("par")),
                 stroke_index=_int(hole.get("strokeIndex")),
                 strokes=strokes or None,
-                putts=_int(hole.get("putts")) if strokes else None,
+                putts=putts,
+                penalties=penalties,
                 pin_lat=pin[0] if pin else None,
                 pin_lon=pin[1] if pin else None,
             )

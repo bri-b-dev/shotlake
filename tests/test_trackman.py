@@ -261,3 +261,20 @@ def test_simulator_sessions_use_method_sim() -> None:
     sim = parse_session({**SESSION, "kind": "SIMULATOR"})
     assert {s.measurement_method for s in sim.shots} == {"sim"} and sim.shots[0].indoor
     assert {s.measurement_method for s in parse_session(SESSION).shots} == {"radar"}
+
+
+def test_mapped_clubs_no_longer_warn(tmp_path: Any) -> None:
+    from shotlake.db import open_db
+    from shotlake.ingest_api import drop_mapped_club_warnings
+
+    con = open_db(tmp_path / "t.duckdb")
+    con.execute("insert into club_map values ('trackman', '52Wedge', 'wedge_gap')")
+    warn = [
+        "Schläger ohne Zuordnung: ['52Wedge', '99Wedge']",
+        "Anderes",
+        "Schläger ohne Zuordnung: ['52Wedge']",
+    ]
+    assert drop_mapped_club_warnings(con, "trackman", warn) == [
+        "Schläger ohne Zuordnung: ['99Wedge']",
+        "Anderes",
+    ]

@@ -197,6 +197,8 @@ def strokes_gained(
     if source:
         where.append("r.source = ?")
         params.append(source)
+    if not source and not round_ref:
+        where.append("not r.simulated")  # Sim-Runden nur gezielt (Quelle/Runde), nie gemischt
     if exclude_rounds:
         where.append("not list_contains(?, r.round_id)")
         params.append(list(exclude_rounds))

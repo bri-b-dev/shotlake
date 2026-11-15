@@ -46,6 +46,12 @@ class GapRow:
     status: str  # ok | overlap | gap_too_small | gap_too_large
 
 
+# Schläge mit deutlich geringerer Ballgeschwindigkeit als der Median des Schlägers (je Methode)
+# sind Teilschläge, Chips oder Probeschwünge und verfälschen Distanzen. Die Auswertungen
+# (CLI, Web, MCP) übergeben diesen Wert; die Bibliotheksfunktionen filtern nur auf Wunsch.
+DEFAULT_MIN_SPEED_RATIO = 0.7
+
+
 def club_stats(
     con: duckdb.DuckDBPyConnection,
     *,
@@ -59,6 +65,7 @@ def club_stats(
     include_flagged: bool = False,
     combine: bool = False,
     corridor_m: float = 5.0,
+    min_speed_ratio: float | None = None,
 ) -> list[ClubStats]:
     where = ["sh.club_type is not null", "sh.carry_m is not null"]
     params: list[object] = []
@@ -83,6 +90,14 @@ def club_stats(
     if not include_flagged:
         flags = ", ".join(f"'{f}'" for f in EXCLUDE_FLAGS)
         where.append(f"not list_has_any(sh.flags, [{flags}])")
+
+    if min_speed_ratio is not None:
+        where.append(
+            "(sh.ball_speed_ms is null or sh.ball_speed_ms >= ? * (select median(b.ball_speed_ms) "
+            "from shot b where b.club_type = sh.club_type and "
+            "b.measurement_method = sh.measurement_method and b.ball_speed_ms is not null))"
+        )
+        params.append(min_speed_ratio)
 
     if combine:
         group = "sh.club_type"
@@ -150,6 +165,7 @@ def gapping(
     until: date | None = None,
     indoor: bool | None = None,
     include_flagged: bool = False,
+    min_speed_ratio: float | None = None,
 ) -> list[GapRow]:
     """Carry-Mediane je Quelle/Methode ordnen und Lücken/Überlappungen bewerten.
 
@@ -165,6 +181,7 @@ def gapping(
         min_n=min_n,
         include_flagged=include_flagged,
         combine=False,
+        min_speed_ratio=min_speed_ratio,
     )
     groups: dict[tuple[str, str], list[tuple[float, str]]] = {}
     for s in stats:

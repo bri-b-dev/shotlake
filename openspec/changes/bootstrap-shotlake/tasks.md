@@ -11,7 +11,7 @@ Vorab ausgewertet: `phase0-findings.md` (aus `../analytics-platform`, `../arccos
 - [x] 0.3 (Struktur live geprüft 2026-11-14, siehe `phase0-findings.md` §4b; Einheiten und Lie-Abdeckung an einer Runde bestimmt; offen: weitere Runden gegenprüfen, Putt-Distanz-Ableitung, Anonymisierung der Rohdaten in `probe-output/`) Garmin **Platz (API)**: python-garminconnect live testen (`get_golf_summary/scorecard/shot_data/club_stats`), tatsächliche Schlagfelder und MFA-/Token-Verhalten dokumentieren, anonymisierte Beispielrunde sichern. FIT/Export entfällt
 - [x] 0.3a Garmin **Range (CSV)**: 8 Beispiel-CSVs in `/Volumes/golf/sessions` ausgewertet (`phase0-findings.md` §4a); als Fixtures kopieren und `Spieler` anonymisieren; Annahmen bestätigen (Spin-Einheit rpm, Zeitzone, 24-h-Stunde mit PM-Suffix)
 - [ ] 0.3b Arccos-Alternative prüfen: offizielle On-Course-Data-API (OAuth2, Swagger `api.arccosgolf.com/swagger`) – Zugang/Antrag und Bedingungen klären
-- [ ] 0.3c sops/age einrichten (noch nicht installiert) und Schlüssel-Backup festlegen
+- [~] 0.3c Secrets: entschieden 2026-11-15, Zugangsdaten über die Oberfläche in verschlüsseltem Speicher (Fernet) statt sops; offen: Schlüssel-Backup (`SHOTLAKE_SECRET_KEY` bzw. `secret.key` sichern), Ablösung der `secrets/*.env` und Rotation der Arccos-Zugangsdaten
 - [x] 0.4 Trackman (2026-11-14: Connector gebaut und live gelaufen: 40 Sessions mit 1199 Schlägen, 15 Sim-Runden mit 598 Platzschlägen; eigene GraphQL-Abfragen gegen die offene Schema-Introspection geprüft; Einheiten SI bestätigt). **Offen:** anonymisierte Fixtures je Aktivitätsart, `docs/sources/trackman.md`, Token-Laufzeit (ca. 7 Tage laut Referenz) beobachten
 - [ ] 0.5 Mevo+: myflightscope-CSV-Export mit Beispielen
 - [ ] 0.6 Anonymisierte Beispielexporte als Fixtures unter `tests/fixtures/<source>/`
@@ -36,7 +36,7 @@ Vorab ausgewertet: `phase0-findings.md` (aus `../analytics-platform`, `../arccos
 - [x] 3.2 SG-Berechnung nur über vollständig erfasste Löcher mit Grund, Kategorien tee/approach/short/green_play/putting/penalty, Tests in `tests/test_sg.py`. Sim-Runden nur gezielt (`--source trackman`). **Offen:** Lagen `Fringe`/`Rock`/`Mulch`/`Pinestraw` ohne Baseline-Wert, Garmin ohne echte Putt-Startdistanz
 
 ## Phase 4 – Frontend, MCP, Insights
-- [~] 4.1 Frontend-Seiten, Dark/Light, mobil: Übersicht, Runden, Rundendetail mit Eingaben, Schläger (inkl. Streuungs-Scatter mit Ellipse), Quellen, Periodenvergleich, Notizen, Dubletten-Review vorhanden. **Offen:** Sync-Knopf/Upload, Konfidenzintervalle in allen Ansichten; Insights-Seite ca. 1,4 s (Ziel 1 s)
+- [~] 4.1 Frontend-Seiten, Dark/Light, mobil: Übersicht, Runden, Rundendetail mit Eingaben, Schläger (inkl. Streuungs-Scatter mit Ellipse), Quellen, Periodenvergleich, Notizen, Dubletten-Review vorhanden. Sync-Knopf, Prüfen, Datei-Upload, Einstellungen mit verschlüsselten Zugangsdaten und Passwortschutz (2026-11-15). **Offen:** Garmin-Erstanmeldung mit MFA in der Oberfläche, Konfidenzintervalle in allen Ansichten; Insights-Seite ca. 1,4 s (Ziel 1 s)
 - [x] 4.2 MCP-Server (8 Tools, stdio + HTTP mit Token, `--read-only`; 2026-11-14)
 - [x] 4.3 Trends, Periodenvergleich, Insights (Bootstrap-CI, Kennzahlenkatalog, regelbasierte Insights über MCP, CLI und Weboberfläche, Notizen als Marker mit Vorher/Nachher-Vergleich, A/B-Vergleich)
 - [ ] 4.4 Backup/Restore, Export, Observability, K8s-Manifeste

@@ -123,10 +123,10 @@ class SecretStore:
             for src, fields in self._load().items()
         }
 
-    def visible(self, source: str, key: str) -> str | None:
-        """Wert eines nicht geheimen Feldes (z. B. E-Mail) zur Anzeige."""
+    def visible(self, source: str, key: str) -> str:
+        """Wert eines nicht geheimen Feldes (z. B. E-Mail) zur Anzeige, sonst leer."""
         field = next((f for f in CREDENTIAL_FIELDS.get(source, ()) if f.key == key), None)
-        return self.get(source, key) if field and not field.secret else None
+        return (self.get(source, key) or "") if field and not field.secret else ""
 
 
 def use_store(data_dir: Path) -> SecretStore:

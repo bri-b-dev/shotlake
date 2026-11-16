@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Callable
 from datetime import date, timedelta
 from pathlib import Path
 from typing import Annotated, Any
@@ -25,6 +26,9 @@ from ..analytics.sg import CATEGORIES, strokes_gained
 from ..analytics.trend import differential_trend
 from ..baseline import Baseline
 from ..clubs import CANONICAL_CLUBS, club_sort_key
+from ..connectors.api import ApiConnector
+from ..connectors.registry import API_CONNECTORS
+from ..secret_store import CREDENTIAL_FIELDS, SecretStoreError
 from ..service import (
     round_detail,
     round_sources,
@@ -35,6 +39,7 @@ from ..service import (
 from ..workspace import Workspace
 from .auth import install_auth
 from .charts import Marker, bars_svg, scatter_svg, trend_svg
+from .sync import install_settings
 
 HERE = Path(__file__).parent
 M_TO_YD = 1 / 0.9144
@@ -55,6 +60,7 @@ def create_app(
     baseline_path: Path,
     dedup_config: Path | None = None,
     auth: bool | None = None,
+    connector_factory: Callable[[str], ApiConnector] | None = None,
 ) -> FastAPI:
     app = FastAPI(title="Shotlake", docs_url=None, redoc_url=None, openapi_url=None)
     app.mount("/static", StaticFiles(directory=HERE / "static"), name="static")
@@ -102,7 +108,8 @@ def create_app(
 
     if auth is None:  # `SHOTLAKE_WEB_AUTH=off` nur für Betrieb hinter eigenem Schutz
         auth = os.environ.get("SHOTLAKE_WEB_AUTH", "on").lower() != "off"
-    install_auth(app, data_dir, page, enabled=auth)
+    auth_store = install_auth(app, data_dir, page, enabled=auth)
+    sync_manager = install_settings(app, workspace, auth_store, page, connector_factory)
 
     @app.get("/", response_class=HTMLResponse)
     def dashboard(request: Request) -> HTMLResponse:
@@ -646,6 +653,24 @@ def create_app(
                 "shots_changed, shots_unchanged, errors from import_run "
                 "order by started_at desc limit 20"
             ).fetchall()
-            return page(request, "sources.html", statuses=source_statuses(con), runs=runs)
+            try:
+                cred_status = workspace.secrets.status()
+            except SecretStoreError:
+                cred_status = {}
+            needs = {
+                src: all(f.key in cred_status.get(src, {}) for f in fields)
+                for src, fields in CREDENTIAL_FIELDS.items()
+            }
+            return page(
+                request,
+                "sources.html",
+                statuses=source_statuses(con),
+                runs=runs,
+                api_sources=set(API_CONNECTORS),
+                creds_ready=needs,
+                states=sync_manager.states,
+                notice=sync_manager.notice,
+                running=sync_manager.running(),
+            )
 
     return app

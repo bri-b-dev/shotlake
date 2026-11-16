@@ -2,18 +2,41 @@
 {% block title %}Quellen · Shotlake{% endblock %}
 {% block content %}
 <h1>Quellen &amp; Import</h1>
+{% if running %}<meta http-equiv="refresh" content="3">{% endif %}
 <div class="card scroll"><table>
-  <thead><tr><th>Quelle</th><th>Modus</th><th class="left">Risiko</th><th>Runden</th><th>Sessions</th><th>Schläge</th><th class="left">Letzter Lauf</th></tr></thead>
+  <thead><tr><th>Quelle</th><th>Modus</th><th class="left">Risiko</th><th>Runden</th><th>Sessions</th><th>Schläge</th><th class="left">Letzter Lauf</th><th class="left">Aktion</th></tr></thead>
   <tbody>
   {% for s in statuses %}
     <tr><td title="{{ s.description }}">{{ s.id }}</td><td>{{ s.mode }}</td>
         <td class="left">{{ {'file_only': 'nur Datei', 'official': 'offiziell', 'unofficial_tos_risk': 'inoffiziell (ToS-Risiko)'}.get(s.risk, s.risk) }}</td>
         <td>{{ s.rounds }}</td><td>{{ s.sessions }}</td><td>{{ s.course_shots + s.range_shots }}</td>
-        <td class="left">{% if s.last_run %}{{ s.last_run.strftime('%d.%m.%Y %H:%M') }} · {{ s.last_status }}{% else %}–{% endif %}</td></tr>
+        <td class="left">{% if s.last_run %}{{ s.last_run.strftime('%d.%m.%Y %H:%M') }} · {{ s.last_status }}{% else %}–{% endif %}</td>
+        <td class="left">
+        {% if s.id in api_sources %}
+          {% set st = states.get(s.id) %}
+          {% if s.id in creds_ready and not creds_ready[s.id] %}<span class="muted">Zugangsdaten fehlen (<a href="/settings">Einstellungen</a>)</span>{% endif %}
+          <form method="post" action="/sources/{{ s.id }}/sync" style="display:inline">
+            <button type="submit" name="mode" value="incremental" {% if running %}disabled{% endif %}>Sync</button>
+            <button type="submit" name="mode" value="full" {% if running %}disabled{% endif %} title="Cursor ignorieren, alles neu abrufen">Vollständig</button>
+          </form>
+          <form method="post" action="/sources/{{ s.id }}/check" style="display:inline"><button type="submit">Prüfen</button></form>
+          {% if st %}<div class="muted">{{ 'läuft …' if st.state == 'running' else ('fertig' if st.state == 'ok' else 'Fehler') }} {{ st.started.strftime('%H:%M:%S') }}</div>{% endif %}
+        {% else %}
+          <form method="post" action="/sources/{{ s.id }}/upload" enctype="multipart/form-data" style="display:inline">
+            <input type="file" name="files" accept=".csv" multiple required aria-label="CSV-Dateien für {{ s.id }}">
+            <button type="submit">Importieren</button>
+          </form>
+        {% endif %}
+        {% if notice.get(s.id) %}<pre class="muted" style="white-space:pre-wrap;margin:.3rem 0 0">{{ notice[s.id] }}</pre>{% endif %}
+        {% set st2 = states.get(s.id) %}
+        {% if st2 and st2.state != 'running' and st2.text %}<pre class="muted" style="white-space:pre-wrap;margin:.3rem 0 0">{{ st2.text }}{% for w in st2.warnings[:3] %}
+Warnung: {{ w }}{% endfor %}{% for e in st2.errors[:3] %}
+Fehler: {{ e }}{% endfor %}</pre>{% endif %}
+        </td></tr>
   {% endfor %}
   </tbody>
 </table></div>
-<p class="muted">Sync und Datei-Import laufen über die Kommandozeile (<code>shotlake sync …</code>, <code>shotlake import …</code>); ein Sync-Knopf in der Oberfläche folgt.</p>
+<p class="muted">Sync und Datei-Import laufen hier oder über die Kommandozeile. Zugangsdaten pflegst du unter <a href="/settings">Einstellungen</a>. „Vollständig" ruft alles neu ab (idempotent).</p>
 
 <div class="card scroll"><h2>Letzte Importläufe</h2><table>
   <thead><tr><th>Zeit</th><th class="left">Quelle</th><th class="left">Datei</th><th class="left">Status</th><th>Sessions neu</th><th>Schläge neu</th><th>geändert</th><th>unverändert</th><th class="left">Fehler</th></tr></thead>

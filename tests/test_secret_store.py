@@ -34,7 +34,7 @@ def test_status_never_contains_values(tmp_path: Path) -> None:
     store.set_many("trackman", {"token": "TOK-GEHEIM"})
     status = store.status()
     assert set(status["trackman"]) == {"token"} and "TOK-GEHEIM" not in str(status)
-    assert store.visible("trackman", "token") is None  # Geheimfeld nie sichtbar
+    assert store.visible("trackman", "token") == ""  # Geheimfeld nie sichtbar
     store.set_many("bebrassie", {"email": "a@example.org"})
     assert store.visible("bebrassie", "email") == "a@example.org"
 

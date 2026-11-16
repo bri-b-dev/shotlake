@@ -24,12 +24,30 @@ Use `--units yd` to display values ​​in yards. Repeated imports are idempote
 
 ## Web Interface
 
-uv run shotlake serve            # http://127.0.0.1:8000, local-only, no authentication
+uv run shotlake serve            # http://127.0.0.1:8000
 
 Pages: Overview (differential trend with moving average, Strokes Gained, recent rounds),
-Rounds, Round Details (holes, shots, inputs such as handicap relevance/PCC/AGS), Clubs, Sources.
-Units (m/yd) and themes (light/dark) can be toggled. By default, the server binds only to `127.0.0.1`;
-it does not include authentication and is not intended for use on an open network. ## MCP Server (for AI Assistants)
+Rounds, Round Details (holes, shots, inputs such as handicap relevance/PCC/AGS), Clubs (distance,
+gapping, dispersion scatter with 95% ellipse), Insights, Notes, Duplicates, Sources, Settings.
+Units (m/yd) and themes (light/dark) can be toggled.
+
+**Operating without a terminal.** On first start the interface asks for a password (at least
+10 characters; scrypt hash in `data/auth.json`, session cookie, rate-limited login). After that:
+
+- *Settings*: enter credentials for BeBrassie, Arccos and Trackman. They are stored encrypted
+  (Fernet) in `data/secrets.enc`; set `SHOTLAKE_SECRET_KEY` to keep the key outside the data
+  directory, otherwise `data/secret.key` (0600) is created. Stored values are never shown again.
+  Environment variables `SHOTLAKE_<SOURCE>_<FIELD>` take precedence.
+- *Sources*: sync buttons (incremental or full), "check" for credentials, CSV upload for Mevo+ and
+  Garmin Range. Syncs run in the background.
+- Garmin (course) still needs a locally stored login token; the first login with a two-factor code
+  is not possible in the interface yet.
+
+By default the server binds only to `127.0.0.1`. When exposing it, put it behind HTTPS (the session
+cookie is marked `Secure` over HTTPS). `SHOTLAKE_WEB_AUTH=off` disables the password check (only for
+setups protected otherwise).
+
+## MCP Server (for AI Assistants)
 
 uv run shotlake mcp --read-only              # stdio, read-only tools
 uv run shotlake mcp                          # stdio, includes `sync_source` and `add_note`

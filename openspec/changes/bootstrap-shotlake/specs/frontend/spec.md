@@ -24,11 +24,22 @@ Es SHALL eine Detailseite für Runde/Session geben mit Lochübersicht, Schlägen
 - THEN werden beide Quellen und führende Felder angezeigt
 
 ### Requirement: Quellen & Sync
-Es SHALL eine Seite geben mit Status je Quelle, letztem Sync, Risiko-Hinweis, Sync-Button, Datei-Upload (für File-Modus) und Import-Report mit Delta (neu/geändert/Duplikate/Fehler).
+Es SHALL eine Seite geben mit Status je Quelle, letztem Sync, Risiko-Hinweis, Sync-Button (inkrementell oder vollständig, im Hintergrund, höchstens ein Sync gleichzeitig), Prüfen der Zugangsdaten, Datei-Upload (für File-Modus) und Import-Report mit Delta (neu/geändert/Duplikate/Fehler).
 
 #### Scenario: Sync auslösen
 - WHEN der Nutzer „Sync" für Trackman klickt
 - THEN sieht er Fortschritt, danach den Report und einen Link „Vergleich mit davor"
+
+### Requirement: Zugangsdaten und Zugriffsschutz
+Die Oberfläche SHALL ohne Terminal bedienbar sein. Sie SHALL beim ersten Start ein Passwort verlangen (mindestens 10 Zeichen, gehasht, Sitzungs-Cookie `HttpOnly`/`SameSite=Strict`, Login-Sperre nach Fehlversuchen) und danach jede Seite außer den statischen Dateien schützen; fremde `Origin`-Header bei POST SHALL abgelehnt werden. Zugangsdaten für BeBrassie, Arccos und Trackman SHALL auf einer Einstellungsseite verschlüsselt im Datenverzeichnis gespeichert werden (Schlüssel aus `SHOTLAKE_SECRET_KEY` oder Schlüsseldatei mit Rechten 0600). Gespeicherte Geheimnisse SHALL nie wieder angezeigt, geloggt oder in Meldungen genannt werden; leere Felder SHALL bestehende Werte unverändert lassen. Umgebungsvariablen SHALL Vorrang haben.
+
+#### Scenario: Erster Start
+- WHEN die Oberfläche ohne gesetztes Passwort aufgerufen wird
+- THEN führt jede Seite auf die Passwortvergabe, danach ist die Nutzerin angemeldet
+
+#### Scenario: Zugangsdaten eintragen und prüfen
+- WHEN die Nutzerin Zugangsdaten speichert und „Prüfen" wählt
+- THEN meldet die Oberfläche Erfolg oder die Fehlerklasse (abgelehnt, nicht erreichbar), nie den Wert
 
 ### Requirement: Vergleich A/B
 Es SHALL eine Vergleichsansicht geben mit Zeitraumwahl A/B, Kennzahlen-Δ, Konfidenzintervallen, n und Warnungen.

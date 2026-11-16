@@ -70,10 +70,16 @@ def sync_club_map(con: duckdb.DuckDBPyConnection, path: Path) -> int:
     if not path.exists():
         return 0
     mapping = load_club_map(path)
-    con.execute("delete from club_map")
     rows = [(s, ref, club) for s, entries in mapping.items() for ref, club in entries.items()]
+    current = {tuple(r) for r in con.execute("select * from club_map").fetchall()}
+    if current != set(rows):  # nur bei Änderung schreiben (Parallelität)
+        try:
+            con.execute("delete from club_map")
+            if rows:
+                con.executemany("insert into club_map values (?,?,?)", rows)
+        except (duckdb.ConstraintException, duckdb.TransactionException):
+            pass  # eine parallele Verbindung hat dieselbe Angleichung gerade geschrieben
     if rows:
-        con.executemany("insert into club_map values (?,?,?)", rows)
         # Range-Schläge ohne Typ (z. B. Trackman `52Wedge`) erhalten die Nutzerzuordnung
         con.execute(
             "update shot set club_type = m.club_type, "

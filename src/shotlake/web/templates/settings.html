@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Einstellungen · Shotlake{% endblock %}
+{% block content %}
+<h1>Einstellungen</h1>
+{% if message %}<p class="card" role="status">{{ message }}</p>{% endif %}
+
+<h2>Zugangsdaten</h2>
+<p class="muted">Gespeichert verschlüsselt im Datenverzeichnis. Gesetzte Werte werden nicht wieder angezeigt; leere Felder lassen sie unverändert, ein neuer Wert überschreibt. Umgebungsvariablen <code>SHOTLAKE_&lt;QUELLE&gt;_&lt;FELD&gt;</code> haben Vorrang.</p>
+<div class="grid">
+{% for c in creds %}
+  <section class="card" aria-labelledby="h-{{ c.source }}">
+    <h3 id="h-{{ c.source }}">{{ c.source }}</h3>
+    {% if c.problem %}<p class="neg" role="alert">{{ c.problem }}</p>{% endif %}
+    {% if c.notice %}<p role="status">{{ c.notice }}</p>{% endif %}
+    <form method="post" action="/settings/credentials/{{ c.source }}" class="inputs" autocomplete="off">
+      {% for f in c.fields %}
+        <label>{{ f.label }}{% if f.set %} <span class="muted">(gesetzt{% if f.updated %}, {{ f.updated }}{% endif %})</span>{% endif %}
+          <input type="{{ 'password' if f.secret else 'text' }}" name="{{ f.key }}" value="{{ f.value }}"
+                 placeholder="{{ 'unverändert lassen' if f.set and f.secret else '' }}" autocomplete="off">
+        </label>
+      {% endfor %}
+      {% if c.source == 'arccos' %}
+        <label>oder Magic-Link-Adresse einfügen <span class="muted">(füllt die drei Felder)</span>
+          <input type="password" name="magic_link" placeholder="https://…/magic-link?accessKey=…&amp;secret=…&amp;userId=…" autocomplete="off"></label>
+      {% endif %}
+      <button type="submit">Speichern</button>
+    </form>
+    <form method="post" action="/settings/credentials/{{ c.source }}/delete" style="margin-top:.5rem">
+      <button type="submit">Löschen</button>
+    </form>
+    {% if c.source == 'arccos' %}
+      <p class="muted">Die Adresse steht im Netzwerk-Log des Browsers, wenn du den Link aus der Login-Mail öffnest (Eintrag mit <code>magic-link</code> und <code>accessKey=</code>).</p>
+    {% elif c.source == 'trackman' %}
+      <p class="muted">Bearer-Token aus einer Anmeldung auf portal.trackmangolf.com (Netzwerk-Log, Anfrage an <code>api.trackmangolf.com/graphql</code>, Header <code>Authorization</code>, ohne „Bearer"). Gilt etwa 7 Tage; danach neu eintragen. Das Token des golf-coach-Plugins wird als Ersatz verwendet, wenn hier nichts steht.</p>
+    {% elif c.source == 'bebrassie' %}
+      <p class="muted">Zugang der BeBrassie-App (inoffizielle Schnittstelle).</p>
+    {% endif %}
+  </section>
+{% endfor %}
+</div>
+<p class="muted">Garmin (Platz) meldet sich über ein lokal gespeichertes Token an; die erste Anmeldung mit Zwei-Faktor-Code ist hier noch nicht möglich.</p>
+
+<h2>Passwort der Oberfläche</h2>
+<section class="card" style="max-width:26rem">
+  <form method="post" action="/settings/password" class="inputs">
+    <label>Aktuelles Passwort <input type="password" name="current" autocomplete="current-password" required></label>
+    <label>Neues Passwort <span class="muted">(mind. {{ min_password }} Zeichen)</span> <input type="password" name="new" autocomplete="new-password" minlength="{{ min_password }}" required></label>
+    <label>Wiederholen <input type="password" name="repeat" autocomplete="new-password" minlength="{{ min_password }}" required></label>
+    <button type="submit">Passwort ändern</button>
+  </form>
+  <form method="post" action="/logout" style="margin-top:.5rem"><button type="submit">Abmelden</button></form>
+</section>
+{% endblock %}

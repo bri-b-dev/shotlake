@@ -61,7 +61,7 @@ def differential_18(ags: float, rating: float, slope: float, pcc: float = 0.0) -
 
 
 def expected_nine(hi: float) -> float:
-    """WHS: erwartetes Differential der nicht gespielten 9 Löcher, `0,52 × Index + 1,2`."""
+    """WHS: erwartetes Differential der nicht gespielten 9 Löcher, `0,52 * Index + 1,2`."""
     return round_half_up(0.52 * hi + 1.2)
 
 

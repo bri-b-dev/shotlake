@@ -29,14 +29,14 @@ Vorab ausgewertet: `phase0-findings.md` (aus `../analytics-platform`, `../arccos
 - [x] 2.1 Garmin (API), Arccos, BeBrassie und Trackman (Sim-Runden getrennt, nicht in gemeinsamen Auswertungen)
 - [~] 2.2 Course-Stammdaten: Rating/Slope/Tees je Quelle aus den Runden (BeBrassie Damen/Herren, Garmin, Trackman); Rating-Übernahme zwischen verknüpften Runden; `tee-set` für manuelle Werte. **Offen:** eigene Kurs-Stammdaten unabhängig von Runden
 - [x] 2.3 Dedup-Matching + manuelle Korrektur (2026-11-14: Garmin, Arccos, BeBrassie; Trackman folgt mit seinem Connector; Konfiguration `config/dedup.toml`)
-- [x] 2.4 Score, FIR/GIR/Scrambling/Putts, AGS und Score Differential (9-Loch auf 18 hochgerechnet), Handicap-Relevanz nur per Nutzerentscheidung (Standard nein), kein Handicap-Index; Golden-Tests in `tests/test_score.py`
+- [x] 2.4 Score, FIR/GIR/Scrambling/Putts, AGS und Score Differential (9-Loch nach WHS mit erwartetem Differential `0,52 × Index + 1,2`, ohne Index oder 9-Loch-Rating verdoppelt, 2026-11-17), Handicap-Relevanz nur per Nutzerentscheidung (Standard nein), kein Handicap-Index; Golden-Tests in `tests/test_score.py`
 
 ## Phase 3 – Strokes Gained
 - [x] 3.1 Baseline-Tabellen + Config (`baselines/hcp18w-approx-v1.toml`, eigene Näherung für Handicap 18 Damen, als `approximation` gekennzeichnet)
 - [x] 3.2 SG-Berechnung nur über vollständig erfasste Löcher mit Grund, Kategorien tee/approach/short/green_play/putting/penalty, Tests in `tests/test_sg.py`. Sim-Runden nur gezielt (`--source trackman`). **Offen:** Lagen `Fringe`/`Rock`/`Mulch`/`Pinestraw` ohne Baseline-Wert, Garmin ohne echte Putt-Startdistanz
 
 ## Phase 4 – Frontend, MCP, Insights
-- [~] 4.1 Frontend-Seiten, Dark/Light, mobil: Übersicht, Runden, Rundendetail mit Eingaben, Schläger (inkl. Streuungs-Scatter mit Ellipse), Quellen, Periodenvergleich, Notizen, Dubletten-Review vorhanden. Sync-Knopf, Prüfen, Datei-Upload, Einstellungen mit verschlüsselten Zugangsdaten und Passwortschutz (2026-11-15). Garmin-Erstanmeldung mit Zwei-Faktor-Code in den Einstellungen (2026-11-17, nur mit Attrappen getestet). **Offen:** Konfidenzintervalle in allen Ansichten; Insights-Seite ca. 1,4 s (Ziel 1 s)
+- [~] 4.1 Frontend-Seiten, Dark/Light, mobil: Übersicht, Runden, Rundendetail mit Eingaben, Schläger (inkl. Streuungs-Scatter mit Ellipse), Quellen, Periodenvergleich, Notizen, Dubletten-Review vorhanden. Sync-Knopf, Prüfen, Datei-Upload, Einstellungen mit verschlüsselten Zugangsdaten und Passwortschutz (2026-11-15). Garmin-Erstanmeldung mit Zwei-Faktor-Code in den Einstellungen (2026-11-17, live mit Token-Speicherung bestätigt); Schläger-Übersicht der Platzschläge führt Typ am Schlag und `club_map` zusammen. **Offen:** Konfidenzintervalle in allen Ansichten; Insights-Seite ca. 1,4 s (Ziel 1 s)
 - [x] 4.2 MCP-Server (8 Tools, stdio + HTTP mit Token, `--read-only`; 2026-11-14)
 - [x] 4.3 Trends, Periodenvergleich, Insights (Bootstrap-CI, Kennzahlenkatalog, regelbasierte Insights über MCP, CLI und Weboberfläche, Notizen als Marker mit Vorher/Nachher-Vergleich, A/B-Vergleich)
 - [ ] 4.4 Backup/Restore, Export, Observability, K8s-Manifeste

@@ -37,7 +37,7 @@
       <span>n = {{ trend|length }} von {{ n_scores }} Runden mit Differential</span>
       <span>Kein Handicap-Index</span>
       {% if n_markers %}<span>▾ Notizen ({{ n_markers }}): Klick zeigt Vorher/Nachher</span>{% endif %}
-      {% if n_markers_outside %}<span>{{ n_markers_outside }} Notiz(en) außerhalb des Zeitraums</span>{% endif %}
+      {% if n_markers_outside %}<span>{{ n_markers_outside }} Notiz(en) außerhalb des gezeigten Zeitraums</span>{% endif %}
       <span>Fenster:
         {% for w in (3, 5, 10) %}<a href="{{ link(request, '/', w=w|string) }}" {% if w == window %}aria-current="true"{% endif %}>{{ w }}</a> {% endfor %}</span>
     </p>

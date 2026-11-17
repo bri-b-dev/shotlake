@@ -89,22 +89,25 @@ def trend_svg(points: list[TrendPoint], window: int, markers: list[Marker] | Non
 
 
 def bars_svg(items: list[tuple[str, float]], unit: str = "") -> str:
-    """Horizontale Balken um die Nulllinie (SG je Kategorie); negativ links."""
+    """Horizontale Balken um die Nulllinie (SG je Kategorie); die Nulllinie wandert an den Rand,
+    wenn alle Werte dasselbe Vorzeichen haben, damit die Breite genutzt wird."""
     if not items:
         return ""
-    row_h, label_w, width = 30, 130, 520
-    span = max(max(abs(v) for _, v in items), 0.01)
-    zero = label_w + (width - label_w) / 2
-    half = (width - label_w) / 2 - 40
+    row_h, label_w, width, room = 30, 130, 520, 78  # room: Platz für den Wertetext am Balkenende
+    lo, hi = min(0.0, *(v for _, v in items)), max(0.0, *(v for _, v in items))
+    span = max(hi - lo, 0.01)
+    left, right = label_w + (room if lo < 0 else 0), width - (room if hi > 0 else 0)
+    scale = (right - left) / span
+    zero = left - lo * scale
     height = row_h * len(items) + 8
     out = [
         f'<svg class="chart bars" viewBox="0 0 {width} {height}" role="img" '
         f'aria-label="Strokes Gained je Kategorie">',
-        f'<line class="grid" x1="{zero}" x2="{zero}" y1="0" y2="{height}"/>',
+        f'<line class="grid" x1="{zero:.1f}" x2="{zero:.1f}" y1="0" y2="{height}"/>',
     ]
     for i, (label, v) in enumerate(items):
         yy = 4 + i * row_h
-        w = abs(v) / span * half
+        w = abs(v) * scale
         x0 = zero if v >= 0 else zero - w
         cls = "pos" if v >= 0 else "neg"
         out.append(

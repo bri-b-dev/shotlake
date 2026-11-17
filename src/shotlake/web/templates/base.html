@@ -14,20 +14,27 @@
   <a class="brand" href="{{ link(request, '/') }}">Shotlake</a>
   <nav aria-label="Hauptnavigation">
     {% set here = request.url.path %}
-    <a href="{{ link(request, '/') }}" {% if here == '/' %}aria-current="page"{% endif %}>Übersicht</a>
-    <a href="{{ link(request, '/rounds', source=None) }}" {% if here.startswith('/rounds') %}aria-current="page"{% endif %}>Runden</a>
-    <a href="{{ link(request, '/insights', source=None) }}" {% if here == '/insights' %}aria-current="page"{% endif %}>Hinweise</a>
-    <a href="{{ link(request, '/dedup') }}" {% if here.startswith('/dedup') %}aria-current="page"{% endif %}>Dubletten</a>
-    <a href="{{ link(request, '/notes') }}" {% if here.startswith('/notes') %}aria-current="page"{% endif %}>Notizen</a>
-    <a href="{{ link(request, '/clubs') }}" {% if here == '/clubs' %}aria-current="page"{% endif %}>Schläger</a>
-    <a href="{{ link(request, '/sources') }}" {% if here == '/sources' %}aria-current="page"{% endif %}>Quellen</a>
-    <a href="{{ link(request, '/settings') }}" {% if here == '/settings' %}aria-current="page"{% endif %}>Einstellungen</a>
+    <span class="navgroup">
+      <a href="{{ link(request, '/') }}" {% if here == '/' %}aria-current="page"{% endif %}>Übersicht</a>
+      <a href="{{ link(request, '/rounds', source=None) }}" {% if here.startswith('/rounds') %}aria-current="page"{% endif %}>Runden</a>
+      <a href="{{ link(request, '/clubs') }}" {% if here == '/clubs' %}aria-current="page"{% endif %}>Schläger</a>
+      <a href="{{ link(request, '/insights', source=None) }}" {% if here == '/insights' %}aria-current="page"{% endif %}>Hinweise</a>
+    </span>
+    <span class="navgroup">
+      <a href="{{ link(request, '/notes') }}" {% if here.startswith('/notes') %}aria-current="page"{% endif %}>Notizen</a>
+      <a href="{{ link(request, '/dedup') }}" {% if here.startswith('/dedup') %}aria-current="page"{% endif %}>Dubletten</a>
+    </span>
+    <span class="navgroup">
+      <a href="{{ link(request, '/sources') }}" {% if here == '/sources' %}aria-current="page"{% endif %}>Quellen</a>
+      <a href="{{ link(request, '/settings') }}" {% if here == '/settings' %}aria-current="page"{% endif %}>Einstellungen</a>
+    </span>
   </nav>
   <span class="tools">
-    Einheit:
-    <a href="{{ link(request, here, u='m') }}" {% if unit == 'm' %}aria-current="true"{% endif %}>m</a>
-    <a href="{{ link(request, here, u='yd') }}" {% if unit == 'yd' %}aria-current="true"{% endif %}>yd</a>
-    <button type="button" id="theme" aria-label="Darstellung wechseln">Hell/Dunkel</button>
+    <span class="seg" role="group" aria-label="Einheit">
+      <a href="{{ link(request, here, u='m') }}" {% if unit == 'm' %}aria-current="true"{% endif %}>m</a>
+      <a href="{{ link(request, here, u='yd') }}" {% if unit == 'yd' %}aria-current="true"{% endif %}>yd</a>
+    </span>
+    <button type="button" id="theme" aria-label="Darstellung wechseln (hell/dunkel)" title="Hell/Dunkel">◐</button>
   </span>
 </div></header>
 <main>{% block content %}{% endblock %}</main>

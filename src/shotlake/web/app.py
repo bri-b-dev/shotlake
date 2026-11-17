@@ -154,14 +154,12 @@ def create_app(
                 exclude_rounds=None if source else scope.exclude("shots"),
             )
             totals = sg.totals() if sg else {}
-            bars = bars_svg(
-                [
-                    (SG_NAMES[c], totals[c] / sg.complete_holes)
-                    for c in CATEGORIES
-                    if sg and sg.complete_holes and (totals[c] != 0 or c != "green_play")
-                ],
-                "/Loch",
-            )
+            sg_items = [
+                (SG_NAMES[c], totals[c] / sg.complete_holes)
+                for c in CATEGORIES
+                if sg and sg.complete_holes and (totals[c] != 0 or c != "green_play")
+            ]
+            bars = bars_svg(sg_items, "/Loch")
             return page(
                 request,
                 "dashboard.html",
@@ -179,6 +177,8 @@ def create_app(
                 sg_totals=totals,
                 sg_total=sum(h.total or 0.0 for h in sg.holes if h.complete) if sg else 0.0,
                 bars=bars,
+                sg_worst=min(sg_items, key=lambda i: i[1]) if sg_items else None,
+                sg_best=max(sg_items, key=lambda i: i[1]) if sg_items else None,
                 statuses=source_statuses(con),
             )
 

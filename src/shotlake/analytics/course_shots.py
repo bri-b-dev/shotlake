@@ -75,7 +75,8 @@ def club_distances(
     extra, params = _filters(since, until, round_ref, source, exclude_rounds)
     rows = con.execute(
         f"""
-        select coalesce(m.club_type, s.club_raw) club, bool_and(m.club_type is not null),
+        select coalesce(s.club_type, m.club_type, s.club_raw) club,
+               bool_and(coalesce(s.club_type, m.club_type) is not null),
                count(*), median(s.distance_m), quantile_cont(s.distance_m, 0.1),
                quantile_cont(s.distance_m, 0.9), max(s.distance_m)
         {_BASE} and s.club_raw is not null and s.distance_m is not null

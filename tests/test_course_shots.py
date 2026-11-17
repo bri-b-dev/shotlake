@@ -86,3 +86,23 @@ def test_date_filter_and_cli(tmp_path: Path, capsys):
     assert main([*args, "course-shots", "--min-n", "1"]) == 0
     out = capsys.readouterr().out
     assert "driver" in out and "nicht zugeordnet" in out and "kein Carry" in out
+
+
+def test_club_type_on_shot_merges_with_club_map(tmp_path: Path):
+    """Schläger mit Typ am Schlag (Trackman `Driver`) fallen mit zugeordneten (`D1`) zusammen."""
+    con = open_db(tmp_path / "t.duckdb")
+    seed(con, [("Driver", "TEE", 200.0, "tee", "fairway", False)])
+    con.execute("update course_shot set club_type = 'driver'")
+    seed_other = (
+        "insert into round (round_id, source, round_key, course_id, start_utc, holes_played, "
+        "in_progress, exclude_from_stats, simulated, content_hash, raw_hash, import_run_id) "
+        "values ('b|r', 'b', 'r', 'c', '2026-07-02', 9, false, false, false, 'h', 'r', 'i')"
+    )
+    con.execute(seed_other)
+    con.execute(
+        f"insert into course_shot ({','.join(SHOT_COLS)}) values ({','.join('?' * 13)})",
+        ["b1", "b|r", 1, 1, "D1", "TEE", 180.0, "tee", "fairway", False, "h", "r", "i"],
+    )
+    con.execute("insert into club_map values ('b', 'D1', 'driver')")
+    rows = club_distances(con, min_n=1)
+    assert [(c.club, c.n, c.mapped) for c in rows] == [("driver", 2, True)]

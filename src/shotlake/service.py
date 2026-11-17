@@ -127,7 +127,7 @@ def round_detail(
         sg_holes={h.hole: h for h in sg.holes},
         sg_shots=sg_shots,
         shots=rows(
-            "select s.*, coalesce(m.club_type, s.club_raw) as club from course_shot s "
+            "select s.*, coalesce(s.club_type, m.club_type, s.club_raw) as club from course_shot s "
             "join round r using (round_id) left join club_map m "
             "on m.source = r.source and m.club_ref = s.club_raw "
             "where s.round_id = ? order by s.hole_number, s.shot_order"

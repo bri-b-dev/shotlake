@@ -13,6 +13,11 @@ dependencies = [
     "uvicorn>=0.54.0",
 ]
 
+[project.optional-dependencies]
+# Garmin Golf (inoffiziell): `uv sync --extra garmin`; die Anmeldung mit Zwei-Faktor-Code
+# braucht die Token-API ab 0.3 (`return_on_mfa`, `resume_login`).
+garmin = ["garminconnect>=0.3.20"]
+
 [dependency-groups]
 dev = [
     "httpx>=0.28.1",

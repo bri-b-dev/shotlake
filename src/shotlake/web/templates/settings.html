@@ -38,7 +38,24 @@
   </section>
 {% endfor %}
 </div>
-<p class="muted">Garmin (Platz) meldet sich über ein lokal gespeichertes Token an; die erste Anmeldung mit Zwei-Faktor-Code ist hier noch nicht möglich.</p>
+<h2>Garmin (Platz)</h2>
+<section class="card" style="max-width:26rem">
+  <p class="muted">{% if garmin_tokens %}Token vorhanden (Anmeldung gespeichert).{% else %}Noch kein Token in diesem Datenverzeichnis.{% endif %} E-Mail und Passwort werden nur für die Anmeldung benutzt und nicht gespeichert; gespeichert wird allein das Token.</p>
+  {% if garmin_notice %}<p role="status">{{ garmin_notice }}</p>{% endif %}
+  {% if garmin_pending %}
+  <form method="post" action="/settings/garmin/code" class="inputs">
+    <label>Code aus der Garmin-Mail bzw. App <input name="code" inputmode="numeric" autocomplete="one-time-code" required></label>
+    <button type="submit">Anmeldung abschließen</button>
+  </form>
+  <form method="post" action="/settings/garmin/cancel" style="margin-top:.5rem"><button type="submit">Abbrechen</button></form>
+  {% else %}
+  <form method="post" action="/settings/garmin/login" class="inputs">
+    <label>E-Mail <input type="email" name="email" autocomplete="username" required></label>
+    <label>Passwort <input type="password" name="password" autocomplete="current-password" required></label>
+    <button type="submit">{% if garmin_tokens %}Neu anmelden{% else %}Anmelden{% endif %}</button>
+  </form>
+  {% endif %}
+</section>
 
 <h2>Passwort der Oberfläche</h2>
 <section class="card" style="max-width:26rem">

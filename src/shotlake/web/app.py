@@ -61,6 +61,7 @@ def create_app(
     dedup_config: Path | None = None,
     auth: bool | None = None,
     connector_factory: Callable[[str], ApiConnector] | None = None,
+    garmin_factory: Callable[[str | None, str | None, bool], Any] | None = None,
 ) -> FastAPI:
     app = FastAPI(title="Shotlake", docs_url=None, redoc_url=None, openapi_url=None)
     app.mount("/static", StaticFiles(directory=HERE / "static"), name="static")
@@ -109,7 +110,9 @@ def create_app(
     if auth is None:  # `SHOTLAKE_WEB_AUTH=off` nur für Betrieb hinter eigenem Schutz
         auth = os.environ.get("SHOTLAKE_WEB_AUTH", "on").lower() != "off"
     auth_store = install_auth(app, data_dir, page, enabled=auth)
-    sync_manager = install_settings(app, workspace, auth_store, page, connector_factory)
+    sync_manager = install_settings(
+        app, workspace, auth_store, page, connector_factory, garmin_factory
+    )
 
     @app.get("/", response_class=HTMLResponse)
     def dashboard(request: Request) -> HTMLResponse:

@@ -13,6 +13,7 @@ from .baseline import Baseline, load_baseline
 from .config import sync_club_map
 from .connectors.api import ApiConnector
 from .connectors.arccos import ArccosConnector
+from .connectors.garmin_platform import GarminPlatformConnector
 from .connectors.registry import API_CONNECTORS
 from .db import open_db
 from .dedup import (
@@ -64,10 +65,19 @@ class Workspace:
         """Dedup-Sicht für Auswertungen ohne Quellenfilter."""
         return Scope.build(con, self.dedup_cfg)
 
+    @property
+    def garmin_dir(self) -> Path:
+        return self.data_dir / "garmin"
+
     def make_connector(self, source: str) -> ApiConnector:
         connector = API_CONNECTORS[source]()
         if isinstance(connector, ArccosConnector):
             connector.cache_dir = self.data_dir / "cache"
+        if (
+            isinstance(connector, GarminPlatformConnector)
+            and (self.garmin_dir / "garmin_tokens.json").exists()
+        ):
+            connector.tokenstore = str(self.garmin_dir)  # in der Oberfläche angemeldet
         return connector
 
     def run_sync(

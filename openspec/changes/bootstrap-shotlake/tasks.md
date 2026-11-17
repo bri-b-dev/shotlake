@@ -36,7 +36,7 @@ Vorab ausgewertet: `phase0-findings.md` (aus `../analytics-platform`, `../arccos
 - [x] 3.2 SG-Berechnung nur über vollständig erfasste Löcher mit Grund, Kategorien tee/approach/short/green_play/putting/penalty, Tests in `tests/test_sg.py`. Sim-Runden nur gezielt (`--source trackman`). **Offen:** Lagen `Fringe`/`Rock`/`Mulch`/`Pinestraw` ohne Baseline-Wert, Garmin ohne echte Putt-Startdistanz
 
 ## Phase 4 – Frontend, MCP, Insights
-- [~] 4.1 Frontend-Seiten, Dark/Light, mobil: Übersicht, Runden, Rundendetail mit Eingaben, Schläger (inkl. Streuungs-Scatter mit Ellipse), Quellen, Periodenvergleich, Notizen, Dubletten-Review vorhanden. Sync-Knopf, Prüfen, Datei-Upload, Einstellungen mit verschlüsselten Zugangsdaten und Passwortschutz (2026-11-15). **Offen:** Garmin-Erstanmeldung mit MFA in der Oberfläche, Konfidenzintervalle in allen Ansichten; Insights-Seite ca. 1,4 s (Ziel 1 s)
+- [~] 4.1 Frontend-Seiten, Dark/Light, mobil: Übersicht, Runden, Rundendetail mit Eingaben, Schläger (inkl. Streuungs-Scatter mit Ellipse), Quellen, Periodenvergleich, Notizen, Dubletten-Review vorhanden. Sync-Knopf, Prüfen, Datei-Upload, Einstellungen mit verschlüsselten Zugangsdaten und Passwortschutz (2026-11-15). Garmin-Erstanmeldung mit Zwei-Faktor-Code in den Einstellungen (2026-11-17, nur mit Attrappen getestet). **Offen:** Konfidenzintervalle in allen Ansichten; Insights-Seite ca. 1,4 s (Ziel 1 s)
 - [x] 4.2 MCP-Server (8 Tools, stdio + HTTP mit Token, `--read-only`; 2026-11-14)
 - [x] 4.3 Trends, Periodenvergleich, Insights (Bootstrap-CI, Kennzahlenkatalog, regelbasierte Insights über MCP, CLI und Weboberfläche, Notizen als Marker mit Vorher/Nachher-Vergleich, A/B-Vergleich)
 - [ ] 4.4 Backup/Restore, Export, Observability, K8s-Manifeste

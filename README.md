@@ -40,8 +40,8 @@ Units (m/yd) and themes (light/dark) can be toggled.
   Environment variables `SHOTLAKE_<SOURCE>_<FIELD>` take precedence.
 - *Sources*: sync buttons (incremental or full), "check" for credentials, CSV upload for Mevo+ and
   Garmin Range. Syncs run in the background.
-- Garmin (course) still needs a locally stored login token; the first login with a two-factor code
-  is not possible in the interface yet.
+- Garmin (course): first login with a two-factor code in *Settings* (email and password are used
+  once and not stored; only the token is, in `data/garmin/`). Reads from `~/.garminconnect` otherwise.
 
 By default the server binds only to `127.0.0.1`. When exposing it, put it behind HTTPS (the session
 cookie is marked `Secure` over HTTPS). `SHOTLAKE_WEB_AUTH=off` disables the password check (only for

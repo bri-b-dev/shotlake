@@ -18,10 +18,12 @@ from typing import Annotated, Any
 from urllib.parse import parse_qs, urlparse
 
 from fastapi import FastAPI, File, Form, Request, UploadFile
+from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 
 from ..connectors.api import ApiConnector, AuthError, TransientError
 from ..connectors.errors import SchemaDriftError
+from ..connectors.garmin_login import GarminLogin, GarminLoginError
 from ..connectors.registry import API_CONNECTORS, CONNECTORS
 from ..ingest import sync_location
 from ..secret_store import CREDENTIAL_FIELDS, SecretStoreError
@@ -105,8 +107,10 @@ def install_settings(
     auth: AuthStore,
     render: Callable[..., HTMLResponse],
     connector_factory: Callable[[str], ApiConnector] | None = None,
+    garmin_factory: Callable[[str | None, str | None, bool], Any] | None = None,
 ) -> SyncManager:
     manager = SyncManager(workspace, connector_factory)
+    garmin = GarminLogin(workspace.garmin_dir, garmin_factory)
     notice = manager.notice  # letzte Meldung je Quelle (nur Anzeige)
 
     def back(target: str = "/sources") -> RedirectResponse:
@@ -149,6 +153,9 @@ def install_settings(
             "settings.html",
             creds=credentials_view(),
             min_password=MIN_PASSWORD,
+            garmin_tokens=garmin.tokens_present(),
+            garmin_pending=garmin.pending(),
+            garmin_notice=notice.get("garmin_platform", ""),
             message=request.query_params.get("msg", ""),
         )
 
@@ -180,6 +187,44 @@ def install_settings(
             notice[source] = "Gelöscht."
         except SecretStoreError as exc:
             notice[source] = str(exc)
+        return back("/settings")
+
+    @app.post("/settings/garmin/login")
+    async def garmin_login(request: Request) -> Response:
+        form = await request.form()
+        email, password = str(form.get("email", "")), str(form.get("password", ""))
+        if not email.strip() or not password:
+            notice["garmin_platform"] = "E-Mail und Passwort eintragen."
+            return back("/settings")
+        try:
+            result = await run_in_threadpool(garmin.start, email, password)
+            notice["garmin_platform"] = (
+                "Angemeldet, Token gespeichert."
+                if result == "ok"
+                else "Garmin hat einen Code geschickt: unten eintragen."
+            )
+        except GarminLoginError as exc:
+            notice["garmin_platform"] = str(exc)
+        return back("/settings")
+
+    @app.post("/settings/garmin/code")
+    async def garmin_code(request: Request) -> Response:
+        form = await request.form()
+        code = str(form.get("code", "")).strip()
+        if not code:
+            notice["garmin_platform"] = "Code eintragen."
+            return back("/settings")
+        try:
+            await run_in_threadpool(garmin.finish, code)
+            notice["garmin_platform"] = "Angemeldet, Token gespeichert."
+        except GarminLoginError as exc:
+            notice["garmin_platform"] = str(exc)
+        return back("/settings")
+
+    @app.post("/settings/garmin/cancel")
+    def garmin_cancel() -> Response:
+        garmin.cancel()
+        notice["garmin_platform"] = "Abgebrochen."
         return back("/settings")
 
     @app.post("/settings/password")

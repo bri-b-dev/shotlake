@@ -6,10 +6,59 @@
 <h1>{{ s.course_name }} · {{ s.start_utc.strftime('%d.%m.%Y') }}</h1>
 <p class="muted">Quelle {{ d.source }} · {{ s.holes_played }} Löcher{% if d.tee_name %} · Tee {{ d.tee_name }}{% endif %}</p>
 
-<div class="grid">
-  <section class="card" aria-labelledby="h-score">
+<section class="lede" aria-label="Ergebnis der Runde">
+  <div class="lede-num">{{ s.gross if s.gross is not none else '–' }}<small>Brutto, {{ s.to_par|num(0, true) }} zu Par</small></div>
+  <p class="facts lede-facts">
+    <span>Differential <strong>{{ s.differential|num }}</strong>{% if s.extrapolated %}<abbr title="9 Löcher auf 18 hochgerechnet">ˣ</abbr>{% endif %}</span>
+    <span>Putts <strong>{{ s.putts if s.putts is not none else '–' }}</strong></span>
+    <span>Fairways <strong>{% if s.fir_recorded %}{{ s.fir_hits }}/{{ s.fir_recorded }}{% else %}–{% endif %}</strong></span>
+    <span>Grüns in Regulation <strong>{% if s.gir_recorded %}{{ s.gir_hits }}/{{ s.gir_recorded }}{% else %}–{% endif %}</strong></span>
+  </p>
+</section>
+
+<section class="band" aria-labelledby="h-holes">
+    <h2 id="h-holes">Löcher</h2>
+    <div class="scroll"><table>
+      <thead><tr><th>Loch</th><th>Par</th><th>Index</th><th>Schläge</th><th>Putts</th><th>Strafe</th><th>Fairway</th>
+        <th>SG gesamt</th><th>Abschlag</th><th>Annäherung</th><th>Kurz</th><th>Putten</th></tr></thead>
+      <tbody>
+      {% for h in d.holes %}
+        {% set g = d.sg_holes.get(h.hole_number) %}
+        <tr><td>{{ h.hole_number }}</td><td>{{ h.par if h.par is not none else '–' }}</td><td>{{ h.stroke_index if h.stroke_index is not none else '–' }}</td>
+            <td>{% if h.strokes is not none and h.par is not none %}{% set dv = h.strokes - h.par %}<span class="mark {{ 'eagle' if dv <= -2 else 'birdie' if dv == -1 else 'bogey' if dv == 1 else 'dbl' if dv >= 2 else '' }}" title="{{ {-2: 'Eagle oder besser', -1: 'Birdie', 0: 'Par', 1: 'Bogey'}.get(dv, 'Doppelbogey oder schlechter' if dv >= 2 else 'Eagle oder besser') }}">{{ h.strokes }}</span>{% else %}{{ h.strokes if h.strokes is not none else '–' }}{% endif %}</td><td>{{ h.putts if h.putts is not none else '–' }}</td>
+            <td>{{ h.penalties if h.penalties is not none else '–' }}</td>
+            <td>{{ {'hit': 'Treffer', 'left': 'links', 'right': 'rechts', 'miss': 'daneben'}.get(h.fairway_outcome, '–') }}</td>
+            {% if g and g.complete %}
+              <td class="{{ 'pos' if g.total >= 0 else 'neg' }}">{{ g.total|num(2, true) }}</td>
+              {% for c in ('tee', 'approach', 'short', 'putting') %}<td>{{ g.by_category.get(c)|num(2, true) }}</td>{% endfor %}
+            {% else %}
+              <td colspan="5" class="muted left">{{ g.reason if g else 'keine SG-Daten' }}</td>
+            {% endif %}
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table></div>
+    <p class="muted">SG nur für vollständig erfasste Löcher. Baseline {{ d.baseline_id }} (Näherung). „Aufs Grün + Putts" erscheint in der Summe, wenn die Quelle keine echte Ballposition auf dem Grün liefert.</p>
+  </section>
+<section class="band" aria-labelledby="h-shots">
+    <details><summary id="h-shots">Schläge ({{ d.shots|length }})</summary>
+    {% if d.shots %}
+    <div class="scroll"><table>
+      <thead><tr><th>Loch</th><th>#</th><th class="left">Schläger</th><th class="left">Typ</th><th class="left">Von</th><th class="left">Nach</th><th>Distanz ({{ unit }})</th><th>SG Quelle</th></tr></thead>
+      <tbody>
+      {% for x in d.shots %}
+        <tr><td>{{ x.hole_number }}</td><td>{{ x.shot_order }}</td><td class="left">{{ x.club or '–' }}</td><td class="left">{{ x.shot_type or '–' }}</td>
+            <td class="left">{{ x.start_lie or '–' }}</td><td class="left">{{ x.end_lie or '–' }}</td>
+            <td>{{ x.distance_m|dist(unit, 0) }}</td><td>{{ x.source_sg|num(2, true) }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table></div>
+    <p class="muted">Distanz = GPS Start bis Ende inkl. Rollen (kein Carry). „SG Quelle" ist die SG der Quelle mit ihrer eigenen Baseline, nicht mit der obigen vergleichbar.</p>
+    {% else %}<p class="muted">Für diese Runde liegen keine Schlagdaten vor.</p>{% endif %}
+  </details></section>
+<div class="cols">
+<section class="band" aria-labelledby="h-score">
     <h2 id="h-score">Score</h2>
-    <p><span class="kpi">{{ s.gross if s.gross is not none else '–' }}</span> Brutto ({{ s.to_par|num(0, true) }} zu Par)</p>
     <table><tbody>
       <tr><td>Putts</td><td>{{ s.putts if s.putts is not none else '–' }}</td></tr>
       <tr><td>Strafschläge</td><td>{{ s.penalties if s.penalties is not none else '–' }}</td></tr>
@@ -24,8 +73,7 @@
     <p class="muted"><strong>AGS</strong> (Adjusted Gross Score, bereinigtes Brutto): dein Brutto-Score, bei dem jedes Loch auf Netto-Doppelbogey
       (Par + 2 + erhaltene Vorgabeschläge) begrenzt ist. Er ist die Grundlage des Score Differentials. Ohne Handicap-Index gilt dein unbereinigtes Brutto.</p>
   </section>
-
-  <section class="card" id="eingaben" aria-labelledby="h-in">
+<section class="band" id="eingaben" aria-labelledby="h-in">
     <h2 id="h-in">Eingaben</h2>
     {% for e in errors %}<p class="error" role="alert">{{ e }}</p>{% endfor %}
     <p class="muted">Handicap-relevant ist eine Runde nur, wenn du es setzt (Standard: nein).
@@ -48,8 +96,8 @@
     </form>
     <p class="muted">Leere Felder löschen den Wert.</p>
   </section>
-
-  <section class="card" id="platzwerte" aria-labelledby="h-tee">
+</div>
+<section class="band" id="platzwerte" aria-labelledby="h-tee">
     <h2 id="h-tee">Platzwerte (Rating und Slope)</h2>
     <p class="muted">Gelten für alle Runden auf {{ s.course_name }} mit Tee „{{ d.tee_name or 'unbekannt' }}". Hinterlegte Werte haben Vorrang vor der Quelle.
       {% if d.source_rating is not none %}Quelle ({{ d.source }}) liefert: Rating {{ d.source_rating }}, Slope {{ d.source_slope }} (18 Löcher).
@@ -68,50 +116,7 @@
     </form>
     <p class="muted">Beide Felder leer löschen den Eintrag.</p>
   </section>
-
-  <section class="card wide" aria-labelledby="h-holes">
-    <h2 id="h-holes">Löcher</h2>
-    <div class="scroll"><table>
-      <thead><tr><th>Loch</th><th>Par</th><th>Index</th><th>Schläge</th><th>Putts</th><th>Strafe</th><th>Fairway</th>
-        <th>SG gesamt</th><th>Abschlag</th><th>Annäherung</th><th>Kurz</th><th>Putten</th></tr></thead>
-      <tbody>
-      {% for h in d.holes %}
-        {% set g = d.sg_holes.get(h.hole_number) %}
-        <tr><td>{{ h.hole_number }}</td><td>{{ h.par if h.par is not none else '–' }}</td><td>{{ h.stroke_index if h.stroke_index is not none else '–' }}</td>
-            <td>{{ h.strokes if h.strokes is not none else '–' }}</td><td>{{ h.putts if h.putts is not none else '–' }}</td>
-            <td>{{ h.penalties if h.penalties is not none else '–' }}</td>
-            <td>{{ {'hit': 'Treffer', 'left': 'links', 'right': 'rechts', 'miss': 'daneben'}.get(h.fairway_outcome, '–') }}</td>
-            {% if g and g.complete %}
-              <td class="{{ 'pos' if g.total >= 0 else 'neg' }}">{{ g.total|num(2, true) }}</td>
-              {% for c in ('tee', 'approach', 'short', 'putting') %}<td>{{ g.by_category.get(c)|num(2, true) }}</td>{% endfor %}
-            {% else %}
-              <td colspan="5" class="muted left">{{ g.reason if g else 'keine SG-Daten' }}</td>
-            {% endif %}
-        </tr>
-      {% endfor %}
-      </tbody>
-    </table></div>
-    <p class="muted">SG nur für vollständig erfasste Löcher. Baseline {{ d.baseline_id }} (Näherung). „Aufs Grün + Putts" erscheint in der Summe, wenn die Quelle keine echte Ballposition auf dem Grün liefert.</p>
-  </section>
-
-  <section class="card wide" aria-labelledby="h-shots">
-    <h2 id="h-shots">Schläge ({{ d.shots|length }})</h2>
-    {% if d.shots %}
-    <div class="scroll"><table>
-      <thead><tr><th>Loch</th><th>#</th><th>Schläger</th><th>Typ</th><th>Von</th><th>Nach</th><th>Distanz ({{ unit }})</th><th>SG Quelle</th></tr></thead>
-      <tbody>
-      {% for x in d.shots %}
-        <tr><td>{{ x.hole_number }}</td><td>{{ x.shot_order }}</td><td class="left">{{ x.club or '–' }}</td><td class="left">{{ x.shot_type or '–' }}</td>
-            <td class="left">{{ x.start_lie or '–' }}</td><td class="left">{{ x.end_lie or '–' }}</td>
-            <td>{{ x.distance_m|dist(unit, 0) }}</td><td>{{ x.source_sg|num(2, true) }}</td></tr>
-      {% endfor %}
-      </tbody>
-    </table></div>
-    <p class="muted">Distanz = GPS Start bis Ende inkl. Rollen (kein Carry). „SG Quelle" ist die SG der Quelle mit ihrer eigenen Baseline, nicht mit der obigen vergleichbar.</p>
-    {% else %}<p class="muted">Für diese Runde liegen keine Schlagdaten vor.</p>{% endif %}
-  </section>
-
-  <section class="card wide" aria-labelledby="h-notes">
+<section class="band" aria-labelledby="h-notes">
     <h2 id="h-notes">Notizen zu dieser Runde</h2>
     {% for n in round_notes|default([]) %}
       <div class="note"><p><span class="tag">{{ n.type }}</span> {{ n.date }}</p><p>{{ n.text }}</p>
@@ -126,8 +131,7 @@
     {% set submit = 'Notiz zur Runde speichern' %}
     {% include "_note_form.html" %}
   </section>
-
-  <section class="card wide" id="dedup" aria-labelledby="h-dd">
+<section class="band" id="dedup" aria-labelledby="h-dd">
     <h2 id="h-dd">Dubletten und führende Quelle</h2>
     {% if dedup_group %}
       <p>Diese Runde ist mit {{ dedup_group|length - 1 }} weiteren Quelle(n) verknüpft. Führend: Score <strong>{{ dedup_leaders.score }}</strong>, Schläge <strong>{{ dedup_leaders.shots }}</strong>, Rating <strong>{{ dedup_leaders.rating }}</strong>.</p>
@@ -150,10 +154,8 @@
     {% endfor %}
     <p class="muted">Quellen werden nie überschrieben: alle Rohwerte bleiben erhalten. Auswertungen ohne Quellenfilter nutzen je Feldgruppe die führende Quelle.</p>
   </section>
-
-  <section class="card wide" aria-labelledby="h-prov">
+<section class="band" aria-labelledby="h-prov">
     <h2 id="h-prov">Provenienz</h2>
     <p class="muted">Quelle {{ d.source }} · Rohdaten-Hash {{ d.raw_hash[:16] }}… · Importlauf {{ d.import_run_id[:8] }}…</p>
   </section>
-</div>
 {% endblock %}

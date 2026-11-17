@@ -112,3 +112,18 @@ textarea { font: inherit; padding: .4rem .5rem; border: 1px solid var(--line); b
 .note:first-child { border-top: 0; }
 .tag { display: inline-block; padding: 0 .5rem; border: 1px solid var(--line); border-radius: 999px;
   font-size: .8rem; color: var(--muted); margin-right: .3rem; }
+
+/* Scorekarte: Kreis = Birdie, Quadrat = Bogey, doppelt = Eagle bzw. Doppelbogey oder schlechter */
+.mark { display: inline-block; min-width: 1.9rem; height: 1.9rem; line-height: 1.75rem;
+  text-align: center; font-weight: 650; }
+.mark.birdie, .mark.eagle { border: 1.5px solid var(--fg); border-radius: 50%; }
+.mark.bogey, .mark.dbl { border: 1.5px solid var(--fg); border-radius: 2px; }
+.mark.eagle, .mark.dbl { box-shadow: 0 0 0 2px var(--bg), 0 0 0 3.5px var(--fg); }
+.lede-facts { align-self: end; font-size: .95rem; gap: .4rem 1.6rem; }
+.lede-facts strong { color: var(--fg); font-weight: 650; }
+.toggle { font-size: .82rem; padding: .05rem .6rem; border-radius: 999px; cursor: pointer; }
+.toggle[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+td.strong { font-weight: 650; }
+td.left.muted { white-space: normal; min-width: 7rem; }
+details > summary { cursor: pointer; font-weight: 650; padding: .2rem 0; }
+details[open] > summary { margin-bottom: .6rem; }

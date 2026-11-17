@@ -25,6 +25,8 @@ from .http import JsonTransport, UrllibTransport, raise_for_status
 
 ENDPOINT = "https://api.trackmangolf.com/graphql"
 PAGE_SIZE = 50
+SCORECARD_PAGE = 10  # Runden mit allen Löchern und Schlägen sind schwere Antworten
+TIMEOUT_S = 90.0
 SKEW_S = 120
 
 
@@ -73,7 +75,7 @@ def load_token(sops_file: Path | None = None) -> str:
 @dataclass
 class TrackmanClient:
     token: str
-    transport: JsonTransport = field(default_factory=UrllibTransport)
+    transport: JsonTransport = field(default_factory=lambda: UrllibTransport(TIMEOUT_S))
     endpoint: str = ENDPOINT
 
     def __repr__(self) -> str:  # Token nie in Reprs
@@ -143,12 +145,12 @@ class TrackmanClient:
         cards: list[dict[str, Any]] = []
         skip = 0
         while True:
-            data = self._query(q.SCORECARDS, {"skip": skip, "take": PAGE_SIZE})
+            data = self._query(q.SCORECARDS, {"skip": skip, "take": SCORECARD_PAGE})
             try:
                 batch = data["me"]["scorecards"] or []
             except (KeyError, TypeError):
                 raise SchemaDriftError("Trackman: scorecards fehlt") from None
             cards.extend(c for c in batch if isinstance(c, dict) and "id" in c)
-            skip += PAGE_SIZE
-            if len(batch) < PAGE_SIZE:
+            skip += SCORECARD_PAGE
+            if len(batch) < SCORECARD_PAGE:
                 return cards

@@ -199,7 +199,7 @@ METRICS: dict[str, Metric] = {
     for m in (
         Metric("differential", "Score Differential", "Punkte", "round", "lower", 5,
                _from_rounds(lambda r: r.differential),
-               "9-Loch-Runden hochgerechnet; kein Handicap-Index"),
+               "9-Loch-Runden: WHS mit Index vor der Runde, sonst verdoppelt; kein Handicap-Index"),
         Metric("gross", "Brutto-Score", "Schläge", "round", None, 5,
                _from_rounds(lambda r: float(r.gross) if r.gross is not None else None),
                "nicht zwischen 9- und 18-Loch-Runden vergleichbar; besser to_par_per_hole nutzen"),

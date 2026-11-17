@@ -60,6 +60,11 @@ def differential_18(ags: float, rating: float, slope: float, pcc: float = 0.0) -
     return round_half_up(113 / slope * (ags - rating - pcc))
 
 
+def expected_nine(hi: float) -> float:
+    """WHS: erwartetes Differential der nicht gespielten 9 Löcher, `0,52 × Index + 1,2`."""
+    return round_half_up(0.52 * hi + 1.2)
+
+
 def suggest_relevant(
     *,
     simulated: bool,
@@ -192,7 +197,7 @@ def compute_round(
         rating, slope = tee9["all"]
     rating9: tuple[float, int] | None = tee9.get(part) if part in ("front9", "back9") else None
     if rating9 is not None:
-        rating, slope = 2 * rating9[0], rating9[1]
+        rating, slope = 2 * rating9[0], rating9[1]  # Rückfall ohne Handicap-Index (siehe unten)
 
     holes_n = header_n if header_only and header_n else len(played)
     nine = part in ("front9", "back9", "nine")
@@ -226,8 +231,14 @@ def compute_round(
             ags, ags_source = gross, "gross"
         if ags is None:
             reason = "AGS nicht ermittelbar (Par oder Lochindex fehlen)"
+        elif nine and rating9 is not None and hi is not None:
+            # WHS: 9-Loch-Differential (9-Loch-Rating/-Slope) plus erwartetes Differential der
+            # übrigen 9 Löcher aus dem Handicap-Index vor der Runde
+            diff = round_half_up(
+                differential_18(ags, rating9[0], rating9[1], pcc) + expected_nine(hi)
+            )
         elif nine:
-            # 9 Löcher auf 18 hochgerechnet: doppelter AGS gegen das 18-Loch-Rating
+            # ohne Index oder 9-Loch-Rating: doppelter AGS gegen das 18-Loch-Rating (Näherung)
             diff = differential_18(2 * ags, rating, slope, pcc)
         else:
             diff = differential_18(ags, rating, slope, pcc)

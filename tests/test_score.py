@@ -10,6 +10,7 @@ from shotlake.analytics.score import (
     allocate_strokes,
     course_handicap,
     differential_18,
+    expected_nine,
     round_half_up,
     round_scores,
     suggest_relevant,
@@ -196,6 +197,22 @@ def test_nine_holes_extrapolated_with_and_without_nine_hole_rating(tmp_path: Pat
     set_hi(con, "nine", 20.0)
     (r,) = round_scores(con)
     assert r.course_hcp is not None and r.ags_source == "computed"
+
+
+def test_nine_hole_whs_with_expected_differential(tmp_path: Path):
+    """Front 9, Index 39,5, Rating 37,7, Slope 135, 57 Schläge: offiziell 37,9 (nicht 32,3)."""
+    con = open_db(tmp_path / "t.duckdb")
+    seed_round(con, key="nine", holes=9)
+    con.execute("insert into tee_rating values ('t|course', 'Gelb', 'front9', 37.7, 135)")
+    set_hi(con, "nine", 39.5)
+    con.execute("update round_input set ags_override = 57 where round_id = 't|nine'")
+    (r,) = round_scores(con)
+    assert expected_nine(39.5) == 21.7  # 0,52 * 39,5 + 1,2 = 21,74
+    assert r.differential == 37.9 and r.extrapolated
+    # ohne Index bleibt die Näherung durch Verdoppeln (kein Schätzwert für den Index)
+    con.execute("update round_input set handicap_index_at_play = null where round_id = 't|nine'")
+    (r,) = round_scores(con)
+    assert r.differential == differential_18(2 * 57, 2 * 37.7, 135) == 32.3
 
 
 def test_trend_moving_average(tmp_path: Path):

@@ -54,7 +54,7 @@
     <p class="muted">Gelten für alle Runden auf {{ s.course_name }} mit Tee „{{ d.tee_name or 'unbekannt' }}". Hinterlegte Werte haben Vorrang vor der Quelle.
       {% if d.source_rating is not none %}Quelle ({{ d.source }}) liefert: Rating {{ d.source_rating }}, Slope {{ d.source_slope }} (18 Löcher).
       {% else %}Quelle {{ d.source }} liefert kein Rating/Slope.{% endif %}
-      Für 9-Loch-Runden zählt das doppelte 9-Loch-Rating, falls hinterlegt, sonst das 18-Loch-Rating.</p>
+      Für 9-Loch-Runden mit hinterlegtem 9-Loch-Rating und Handicap-Index vor der Runde gilt die WHS-Formel (9-Loch-Differential + 0,52 × Index + 1,2); sonst wird der Score verdoppelt (Näherung).</p>
     {% for e in tee_errors %}<p class="error" role="alert">{{ e }}</p>{% endfor %}
     <form class="inputs" method="post" action="{{ link(request, '/rounds/' ~ (s.round_id|urlq) ~ '/tee') }}">
       {% for part, label in (('all', '18 Löcher'), ('front9', 'Vorderneun (1–9)'), ('back9', 'Hinterneun (10–18)')) %}

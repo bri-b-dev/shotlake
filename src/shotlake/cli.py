@@ -215,7 +215,7 @@ def _print_rounds(rows: list[RoundScore]) -> None:
             f"{r.ags if r.ags is not None else '-':>4} {diff:>6} {_flag(r):<6} {r.reason or ''}"
         )
     print("Rel: ja nur, wenn du es gesetzt hast (Standard nein).")
-    print("Diff x = 9 Löcher auf 18 hochgerechnet.")
+    print("Diff x = 9 Löcher auf 18 hochgerechnet (WHS mit Index, sonst verdoppelt).")
 
 
 def _round_set(con: duckdb.DuckDBPyConnection, args: argparse.Namespace) -> int:

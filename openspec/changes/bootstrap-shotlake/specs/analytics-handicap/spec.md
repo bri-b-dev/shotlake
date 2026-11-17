@@ -49,7 +49,11 @@ Das Score Differential SHALL nach der offiziellen Formel `(113 / Slope) × (AGS 
 - THEN ist `score_differential` NULL und die UI nennt den Grund
 
 ### Requirement: 9-Loch-Runden
-Für 9-Loch-Runden SHALL das Differential auf 18 Löcher **hochgerechnet** werden: der AGS der neun Löcher wird verdoppelt und gegen das 18-Loch-Rating und den Slope des gespielten Tees gerechnet (`113 / Slope × (2 × AGS₉ − Rating − PCC)`). Liegen 9-Loch-Werte des Tees vor (manuell hinterlegt), SHALL stattdessen das doppelte 9-Loch-Rating und der 9-Loch-Slope verwendet werden. Der Höchstscore (Netto-Doppelbogey) SHALL bei 9 Löchern nur mit 9-Loch-Rating und gesetztem `handicap_index_at_play` angewendet werden, sonst gilt das unbereinigte Brutto. Hochgerechnete Differentials SHALL als solche gekennzeichnet sein; die offizielle 9-Loch-Formel mit erwartetem Differential der übrigen Löcher wird nicht verwendet.
+Für 9-Loch-Runden mit hinterlegtem 9-Loch-Rating und gesetztem `handicap_index_at_play` SHALL das Differential nach der aktuellen WHS-Regel berechnet werden: `113 / Slope₉ × (AGS₉ − Rating₉ − PCC) + (0,52 × Index + 1,2)` (9-Loch-Differential plus erwartetes Differential der übrigen neun Löcher, je auf eine Dezimale gerundet). Fehlt eines von beiden, SHALL das Differential auf 18 Löcher **hochgerechnet** werden: der AGS der neun Löcher wird verdoppelt und gegen das 18-Loch-Rating und den Slope des gespielten Tees gerechnet (`113 / Slope × (2 × AGS₉ − Rating − PCC)`). Liegen 9-Loch-Werte des Tees vor (manuell hinterlegt), SHALL stattdessen das doppelte 9-Loch-Rating und der 9-Loch-Slope verwendet werden. Der Höchstscore (Netto-Doppelbogey) SHALL bei 9 Löchern nur mit 9-Loch-Rating und gesetztem `handicap_index_at_play` angewendet werden, sonst gilt das unbereinigte Brutto. Hochgerechnete Differentials SHALL als solche gekennzeichnet sein. Die Verdopplung ist eine Näherung ohne Handicap-Index.
+
+#### Scenario: 9 Löcher mit Index (WHS)
+- WHEN eine Front-9-Runde mit AGS 57, 9-Loch-Rating 37,7, Slope 135 und Handicap-Index 39,5 vorliegt
+- THEN ist das Differential 113/135 × (57 − 37,7) + (0,52 × 39,5 + 1,2) = 16,2 + 21,7 = 37,9
 
 #### Scenario: 9 Löcher ohne 9-Loch-Rating
 - WHEN eine 9-Loch-Runde mit 45 Schlägen auf einem Tee mit Rating 71,2 und Slope 130 vorliegt

@@ -73,6 +73,16 @@ def install_backup(app: FastAPI, workspace: Workspace, auth: AuthStore) -> None:
             background=BackgroundTask(tmp.unlink, missing_ok=True),
         )
 
+    # Download-Adressen sind POST (Knopf), nie per Link auslösbar; ein Aufruf per Adresszeile führt
+    # zum passenden Abschnitt der Einstellungen statt zu einem Fehler.
+    @app.get("/settings/export/download")
+    def export_page() -> Response:
+        return RedirectResponse("/settings#export", status_code=303)
+
+    @app.get("/settings/backup/download")
+    def backup_page() -> Response:
+        return RedirectResponse("/settings#sicherung", status_code=303)
+
     @app.post("/settings/export/download")
     async def export_download() -> Response:
         fd, tmp_name = tempfile.mkstemp(dir=workspace.data_dir, prefix=".export-")

@@ -181,3 +181,13 @@ def test_export_is_refused_while_a_sync_runs(tmp_path: Path, filled: Path) -> No
             ws.export(tmp_path / "x.zip")
     finally:
         ws._sync_lock.release()
+
+
+def test_download_addresses_redirect_when_opened_directly(tmp_path: Path, filled: Path) -> None:
+    client = TestClient(create_app(filled.parent, CLUB_MAP, BASELINE), follow_redirects=False)
+    for path, anchor in (
+        ("/settings/export/download", "#export"),
+        ("/settings/backup/download", "#sicherung"),
+    ):
+        r = client.get(path)
+        assert r.status_code == 303 and r.headers["location"] == f"/settings{anchor}"

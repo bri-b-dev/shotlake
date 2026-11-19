@@ -1,0 +1,11 @@
+{# Vergleichsniveau der Strokes Gained; erwartet `baselines`, `baseline`, `request` #}
+{% if baselines|length > 1 %}
+<div class="baseline-switch" role="group" aria-label="Vergleichsniveau der Strokes Gained">
+  <span>Strokes Gained gegen</span>
+  <span class="seg">
+    {% for b in baselines %}
+      <a href="{{ link(request, request.url.path, b=(None if loop.first else b.id)) }}" {% if b.id == baseline.id %}aria-current="true"{% endif %} title="{{ b.id }}">{{ b.title }}</a>
+    {% endfor %}
+  </span>
+</div>
+{% endif %}

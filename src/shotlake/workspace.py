@@ -10,7 +10,7 @@ from pathlib import Path
 import duckdb
 
 from .backup import BackupError, Manifest, RestoreReport, create_backup, restore_backup
-from .baseline import Baseline, load_baseline
+from .baseline import Baseline, list_baselines, load_baseline
 from .config import sync_club_map
 from .connectors.api import ApiConnector
 from .connectors.arccos import ArccosConnector
@@ -140,13 +140,18 @@ class Workspace:
     def run_dedup(self, con: duckdb.DuckDBPyConnection) -> RunReport:
         return run_dedup(con, self.dedup_cfg)
 
+    def available_baselines(self) -> list[Baseline]:
+        """Alle Baselines im Verzeichnis der Standard-Baseline (Standard zuerst)."""
+        found = list_baselines(self.baseline_path.parent)
+        by_id = {b.id: b for b in found if b.id != self.baseline.id}
+        return [self.baseline, *by_id.values()]
+
     def find_baseline(self, baseline_id: str | None) -> Baseline:
-        """Baseline nach ID aus dem Verzeichnis der Standard-Baseline; ohne ID die Standard."""
+        """Baseline nach ID; ohne ID die Standard-Baseline."""
         if baseline_id is None or baseline_id == self.baseline.id:
             return self.baseline
-        for path in sorted(self.baseline_path.parent.glob("*.toml")):
-            candidate = load_baseline(path)
+        for candidate in self.available_baselines():
             if candidate.id == baseline_id:
                 return candidate
-        known = sorted(p.stem for p in self.baseline_path.parent.glob("*.toml"))
+        known = sorted(b.id for b in self.available_baselines())
         raise ValueError(f"Unbekannte Baseline {baseline_id!r}; verfügbar: {known}")

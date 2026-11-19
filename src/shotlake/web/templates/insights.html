@@ -6,13 +6,14 @@
 {% include "_chips.html" %}
 <p class="chips"><a href="{{ link(request, '/insights', uncertain=None) }}" {% if not uncertain %}aria-current="true"{% endif %}>nur belegte</a>
   <a href="{{ link(request, '/insights', uncertain='1') }}" {% if uncertain %}aria-current="true"{% endif %}>auch unsichere</a></p>
+{% include "_baseline.html" %}
 <p class="muted">Regelbasiert aus deinen Daten abgeleitet. Ohne Quellenwahl über alle Quellen dedupliziert (dieselbe Runde zählt einmal).
   Jeder Hinweis nennt Effekt, 95-%-Intervall und n. „Unsicher" heißt: Das Intervall schließt 0 ein. Strokes Gained bezieht sich auf die Näherungs-Baseline {{ baseline.id }}.</p>
 {% for i in insights %}
   {% set kind = {'sg_loss': 'Verlust', 'sg_strength': 'Stärke', 'trend': 'Veränderung', 'club_bias': 'Schläger-Bias', 'gap': 'Gapping', 'data_quality': 'Datenlage'}.get(i.kind, i.kind) %}
   <article class="insight">
     {% if i.effect is not none and i.unit != 'Anteil' %}
-      <div class="insight-num {{ 'pos' if i.effect >= 0 else 'neg' }}">{{ ('%+.1f'|format(i.effect))|replace('.', ',')|replace('-', '−') }}<small>{{ i.unit }}</small></div>
+      <div class="insight-num {{ 'pos' if (improved[i.id] if improved[i.id] is not none else i.effect >= 0) else 'neg' }}">{{ ('%+.1f'|format(i.effect))|replace('.', ',')|replace('-', '−') }}<small>{{ i.unit }}</small></div>
     {% else %}
       <div class="insight-num muted">{% if i.effect is not none %}{{ '%.0f'|format(i.effect * 100) }} %{% else %}–{% endif %}<small>{{ i.unit or '' }}</small></div>
     {% endif %}

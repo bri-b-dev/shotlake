@@ -168,7 +168,7 @@ def reach_svg(
     return "".join(out)
 
 
-def ci_svg(effect: float, low: float, high: float, bound: float) -> str:
+def ci_svg(effect: float, low: float, high: float, bound: float, good: bool | None = None) -> str:
     """Effekt mit 95-%-Intervall auf einer Achse um 0 (gemeinsame Skala `-bound` bis `bound`)."""
     w, h, pad = 340, 26, 8
     bound = max(bound, 1e-9)
@@ -177,7 +177,7 @@ def ci_svg(effect: float, low: float, high: float, bound: float) -> str:
         return pad + (v + bound) / (2 * bound) * (w - 2 * pad)
 
     lo, hi = sorted((low, high))
-    cls = "pos" if effect >= 0 else "neg"
+    cls = "pos" if (effect >= 0 if good is None else good) else "neg"
     return (
         f'<svg class="chart ci" viewBox="0 0 {w} {h}" role="img" '
         f'aria-label="Effekt {effect:+.1f}, 95-%-Intervall {lo:.1f} bis {hi:.1f}">'

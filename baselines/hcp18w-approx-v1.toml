@@ -3,6 +3,7 @@
 
 [meta]
 id = "hcp18w-approx-v1"
+label = "Ziel Handicap 18"
 target_handicap = 18.0
 gender = "women"
 status = "approximation"

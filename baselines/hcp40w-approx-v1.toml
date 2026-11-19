@@ -1,0 +1,45 @@
+# Erwartete Schläge bis zum Einlochen: E(Lage, Distanz zur Fahne in Metern).
+# Baseline-ID: hcp40w-approx-v1 (Handicap-Band 40, Damen): das eigene Niveau.
+
+[meta]
+id = "hcp40w-approx-v1"
+label = "Mein Niveau (Handicap 40)"
+target_handicap = 40.0
+gender = "women"
+status = "approximation"
+source = """
+Eigene Näherung von Shotlake, NICHT gemessen und nicht aus Tour- oder ShotLink-Daten kopiert.
+Sie hat dieselbe Struktur wie hcp18w-approx-v1 (gleiche Lagen und Stützdistanzen) mit Zuschlägen auf
+die erwarteten Schläge: im Fairway etwa +0,2 nahe am Grün bis +1,9 bei 350 m, im Rough etwas mehr,
+im Sand noch mehr, auf dem Grün +0,1 bis +0,7. Die Abschlagstabelle ist so gewählt, dass ein Spiel
+auf Handicap-40-Niveau im Mittel etwa Par + 2,4 je Loch ergibt (Platzvorgabe etwa 46 bei Slope 135,
+das sind etwa 2,5 Schläge je Loch über Par), und die Tabellen untereinander stimmig bleiben (ein
+Abschlag ist nie schlechter als ein Schlag aus dem Fairway bei gleicher Distanz). Gegen die eigenen
+Daten wurde nur die Plausibilität geprüft (Gesamtbilanz nahe 0 je Loch). Die Werte sind geschätzt und
+ungeprüft; Absolutwerte nicht überinterpretieren, Vergleiche zwischen Runden, Kategorien und
+Zeiträumen mit derselben Tabelle bleiben aussagekräftig.
+"""
+license = "eigene Werte (CC0); keine fremden Tabellen übernommen"
+version = 1
+
+# Jede Tabelle: aufsteigende Distanzen (m) und zugehörige erwartete Restschläge.
+
+[tables.tee]
+distance_m = [90, 120, 150, 180, 220, 260, 300, 350, 400, 450]
+expected   = [4.2, 4.6, 5, 5.4, 5.8, 6.1, 6.4, 6.7, 7.4, 8.1]
+
+[tables.fairway]
+distance_m = [5, 10, 20, 30, 50, 75, 100, 125, 150, 200, 250, 300, 350]
+expected   = [2.32, 2.59, 2.89, 3.13, 3.51, 3.97, 4.38, 4.74, 5.09, 5.71, 6.27, 6.79, 7.3]
+
+[tables.rough]
+distance_m = [5, 10, 20, 30, 50, 75, 100, 125, 150, 200, 250, 300, 350]
+expected   = [2.67, 2.89, 3.23, 3.47, 3.86, 4.31, 4.71, 5.07, 5.47, 6.08, 6.64, 7.19, 7.7]
+
+[tables.sand]
+distance_m = [5, 10, 20, 30, 50, 75, 100, 150, 200, 300]
+expected   = [3.02, 3.24, 3.58, 3.82, 4.2, 4.6, 5, 5.7, 6.4, 7.5]
+
+[tables.green]
+distance_m = [0.5, 1, 2, 3, 5, 8, 12, 20, 30]
+expected   = [1.14, 1.35, 1.71, 1.93, 2.12, 2.32, 2.59, 2.93, 3.3]

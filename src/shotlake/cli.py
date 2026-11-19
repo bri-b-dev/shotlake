@@ -31,7 +31,7 @@ from .backup import (
     is_encrypted,
     restore_backup,
 )
-from .baseline import default_baseline_path, load_baseline
+from .baseline import default_baseline_path, list_baselines, load_baseline, resolve_baseline_path
 from .clubs import CANONICAL_CLUBS
 from .config import default_club_map_path, load_club_map, save_club_map, sync_club_map
 from .connectors.arccos import ArccosConnector, HarArccosClient
@@ -108,7 +108,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     sg.add_argument("--since", type=date.fromisoformat)
     sg.add_argument("--until", type=date.fromisoformat)
-    sg.add_argument("--baseline", type=Path, default=default_baseline_path())
+    sg.add_argument(
+        "--baseline",
+        type=Path,
+        default=default_baseline_path(),
+        help="Baseline-Datei oder Kennung (siehe `baselines`); Standard: eigenes Niveau",
+    )
     sg.add_argument("--reasons", action="store_true", help="Gründe unvollständiger Löcher zeigen")
 
     cs = sub.add_parser("club-set", help="Quell-Schläger einem Schlägertyp zuordnen")
@@ -195,6 +200,7 @@ def build_parser() -> argparse.ArgumentParser:
     ex.add_argument("--zip", action="store_true", help="als ZIP-Datei statt Verzeichnis schreiben")
     bkey = sub.add_parser("backup-key", help="Schlüssel der Zugangsdaten zum getrennten Sichern")
     bkey.add_argument("--out", type=Path, help="in eine Datei schreiben (Rechte 0600)")
+    sub.add_parser("baselines", help="Verfügbare Strokes-Gained-Baselines anzeigen")
     sub.add_parser("sources", help="Verfügbare Quellen und Risiko anzeigen")
 
     for name in ("clubs", "gapping"):
@@ -349,7 +355,7 @@ def _arccos_check(cache_dir: Path) -> int:
 
 
 def _print_sg(con: duckdb.DuckDBPyConnection, args: argparse.Namespace) -> None:
-    base = load_baseline(args.baseline)
+    base = load_baseline(resolve_baseline_path(args.baseline))
     res = strokes_gained(
         con,
         base,
@@ -567,6 +573,12 @@ def main(argv: list[str] | None = None) -> int:
     con = open_db(data / "shotlake.duckdb")
     try:
         sync_club_map(con, args.club_map)
+        if args.cmd == "baselines":
+            default = load_baseline(resolve_baseline_path(default_baseline_path()))
+            for b in list_baselines(default_baseline_path().parent):
+                mark = "Standard" if b.id == default.id else ""
+                print(f"{b.id:<20}{b.title:<28}{b.status:<14}{mark}")
+            return 0
         if args.cmd == "sources":
             for c in CONNECTORS.values():
                 print(f"{c.id:<16}{c.mode:<6}{c.risk:<22}{c.description}")
@@ -626,7 +638,8 @@ def main(argv: list[str] | None = None) -> int:
             from .workspace import Workspace
 
             server = create_server(
-                Workspace(data, args.club_map, args.baseline_path), read_only=args.read_only
+                Workspace(data, args.club_map, resolve_baseline_path(args.baseline_path)),
+                read_only=args.read_only,
             )
             if args.transport == "stdio":
                 server.run("stdio")  # stdout gehört dem Protokoll: hier nichts ausgeben
@@ -639,7 +652,7 @@ def main(argv: list[str] | None = None) -> int:
             uvicorn.run(http_app(server, args.token), host=args.host, port=args.port)
             return 0
         if args.cmd == "insights":
-            base = load_baseline(args.baseline_path)
+            base = load_baseline(resolve_baseline_path(args.baseline_path))
             found = generate_insights(
                 con, base, source=args.source, include_uncertain=args.all, scope=_scope(con, args)
             )
@@ -655,7 +668,7 @@ def main(argv: list[str] | None = None) -> int:
 
             from .web.app import create_app
 
-            app = create_app(data, args.club_map, args.baseline_path)
+            app = create_app(data, args.club_map, resolve_baseline_path(args.baseline_path))
             uvicorn.run(app, host=args.host, port=args.port, log_level="info")
             return 0
         if args.cmd == "arccos-check":

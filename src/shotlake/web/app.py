@@ -55,6 +55,13 @@ SG_NAMES = {
 }
 
 
+def _improved(insight: Any) -> bool | None:
+    """Veränderungen: `besser` oder `schlechter` bestimmt die Farbe, nicht das Vorzeichen."""
+    if insight.kind != "trend":
+        return None
+    return "wahrscheinlich besser" in (insight.headline or insight.text)
+
+
 def create_app(
     data_dir: Path,
     club_map: Path,
@@ -70,6 +77,11 @@ def create_app(
     workspace = Workspace(data_dir, club_map, baseline_path, dedup_config)
     session = workspace.session
     baseline: Baseline = workspace.baseline
+    choices: dict[str, Baseline] = {b.id: b for b in workspace.available_baselines()}
+
+    def base_of(request: Request) -> Baseline:
+        """Baseline der Anfrage (`?b=<ID>`); fehlt sie oder ist unbekannt: der Standard."""
+        return choices.get(request.query_params.get("b", ""), baseline)
 
     def unit_of(request: Request) -> str:
         return "yd" if request.query_params.get("u") == "yd" else "m"
@@ -92,6 +104,8 @@ def create_app(
         params = {
             k: v for k, v in request.query_params.items() if k in ("u", "source", "w", "club")
         }
+        if request.query_params.get("b") in choices:  # nur gültige Kennungen weitergeben
+            params["b"] = request.query_params["b"]
         for k, v in changes.items():
             if v is None:
                 params.pop(k, None)
@@ -105,7 +119,15 @@ def create_app(
     def page(request: Request, name: str, **ctx: Any) -> HTMLResponse:
         unit = unit_of(request)
         return templates.TemplateResponse(
-            request, name, {"unit": unit, "baseline": baseline, "request": request, **ctx}
+            request,
+            name,
+            {
+                "unit": unit,
+                "baseline": base_of(request),
+                "baselines": list(choices.values()),
+                "request": request,
+                **ctx,
+            },
         )
 
     if auth is None:  # `SHOTLAKE_WEB_AUTH=off` nur für Betrieb hinter eigenem Schutz
@@ -151,7 +173,7 @@ def create_app(
             )
             sg = strokes_gained(
                 con,
-                baseline,
+                base_of(request),
                 source=source,
                 exclude_rounds=None if source else scope.exclude("shots"),
             )
@@ -234,7 +256,7 @@ def create_app(
     @app.get("/rounds/{round_id:path}", response_class=HTMLResponse)
     def round_page(request: Request, round_id: str) -> HTMLResponse:
         with session() as con:
-            detail = round_detail(con, round_id, baseline)
+            detail = round_detail(con, round_id, base_of(request))
             if detail is None:
                 raise HTTPException(404, "Runde nicht gefunden")
             return page(
@@ -264,7 +286,7 @@ def create_app(
         back9_slope: Annotated[str, Form()] = "",
     ) -> Any:
         with session() as con:
-            detail = round_detail(con, round_id, baseline)
+            detail = round_detail(con, round_id, base_of(request))
             if detail is None:
                 raise HTTPException(404, "Runde nicht gefunden")
             errors = set_tee_values(
@@ -297,7 +319,7 @@ def create_app(
         back: Annotated[str, Form()] = "",
     ) -> Any:
         with session() as con:
-            detail = round_detail(con, round_id, baseline)
+            detail = round_detail(con, round_id, base_of(request))
             if detail is None:
                 raise HTTPException(404, "Runde nicht gefunden")
             if relevant not in ("yes", "no"):
@@ -326,7 +348,7 @@ def create_app(
         ags: Annotated[str, Form()] = "",
     ) -> Any:
         with session() as con:
-            detail = round_detail(con, round_id, baseline)
+            detail = round_detail(con, round_id, base_of(request))
             if detail is None:
                 raise HTTPException(404, "Runde nicht gefunden")
             errors = set_round_inputs(
@@ -412,7 +434,7 @@ def create_app(
             uncertain = request.query_params.get("uncertain") == "1"
             found = generate_insights(
                 con,
-                baseline,
+                base_of(request),
                 source=source,
                 include_uncertain=uncertain,
                 scope=workspace.scope(con),
@@ -423,13 +445,20 @@ def create_app(
                     reach = max(abs(i.ci.low), abs(i.ci.high), abs(i.effect or 0.0))
                     bounds[i.unit] = max(bounds.get(i.unit, 0.0), reach)
             strips = {
-                i.id: ci_svg(i.effect or 0.0, i.ci.low, i.ci.high, bounds[i.unit] * 1.05)
+                i.id: ci_svg(
+                    i.effect or 0.0,
+                    i.ci.low,
+                    i.ci.high,
+                    bounds[i.unit] * 1.05,
+                    good=_improved(i),
+                )
                 for i in found
                 if i.ci is not None
             }
             return page(
                 request,
                 "insights.html",
+                improved={i.id: _improved(i) for i in found},
                 source=source,
                 sources=round_sources(con),
                 insights=found,
@@ -592,7 +621,7 @@ def create_app(
             if not errors and (a["since"] or a["until"]) and (b["since"] or b["until"]):
                 try:
                     result = reports.compare_report(
-                        con, baseline, a, b, metrics,
+                        con, base_of(request), a, b, metrics,
                         reports.make_filters(source=source),
                         scope=workspace.scope(con),
                     )  # fmt: skip

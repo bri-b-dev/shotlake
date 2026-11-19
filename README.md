@@ -43,6 +43,12 @@ Units (m/yd) and themes (light/dark) can be toggled.
 - Garmin (course, needs `uv sync --extra garmin`): first login with a two-factor code in *Settings* (email and password are used
   once and not stored; only the token is, in `data/garmin/`). Reads from `~/.garminconnect` otherwise.
 
+**Strokes Gained baselines.** Two approximate tables ship in `baselines/`: `hcp40w-approx-v1`
+("Mein Niveau", the default) and `hcp18w-approx-v1` (goal handicap 18). Switch with the selector on
+Overview, Round detail, Insights and Comparison (`?b=<id>`), with `--baseline <id>` on the CLI
+(`uv run shotlake baselines` lists them) or the `baseline` argument of the MCP tools. Both are
+estimates, not measured data: compare rounds, categories and periods against the same table.
+
 **Export.** `uv run shotlake export [--out DIR] [--format parquet|csv|all] [--zip]` (or *Settings →
 Export*) writes every table as Parquet and CSV plus `schema.json` (version, units, columns, row
 counts, SHA-256). It holds your raw values including GPS positions, but no credentials.

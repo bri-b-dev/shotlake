@@ -128,6 +128,7 @@ def create_server(
         only_relevant: bool = False,
         min_n: int | None = None,
         include_duplicates: bool = False,
+        baseline: str | None = None,
     ) -> dict[str, Any]:
         """Kennzahl mit Wert, n, 95-%-Bootstrap-Intervall, Quellen und Warnungen.
 
@@ -137,12 +138,15 @@ def create_server(
         Kennzahlen: differential, gross, to_par_per_hole, putts_per_hole, fir_rate, gir_rate,
         scramble_rate, sg_total_per_hole und sg_<kategorie>_per_hole (kategorie: tee, approach,
         short, green_play, putting, penalty), carry (braucht `club`, z. B. iron_7).
-        `window` = letzte N Runden.
+        `window` = letzte N Runden. `baseline` wählt das Vergleichsniveau der SG-Kennzahlen
+        (Standard: eigenes Niveau, z. B. `hcp18w-approx-v1` für das Ziel Handicap 18).
         """
         f = reports.make_filters(source, since, until, only_relevant, club, window)
         with workspace.session() as con:
             scope = None if include_duplicates else workspace.scope(con)
-            return reports.stats_report(con, workspace.baseline, metric, f, min_n, scope)
+            return reports.stats_report(
+                con, workspace.find_baseline(baseline), metric, f, min_n, scope
+            )
 
     @server.tool(annotations=READ)
     @guarded
@@ -155,6 +159,7 @@ def create_server(
         only_relevant: bool = False,
         min_n: int | None = None,
         include_duplicates: bool = False,
+        baseline: str | None = None,
     ) -> dict[str, Any]:
         """Zeitraum A gegen B: Differenz (A minus B), 95-%-Intervall, n und Einschätzung.
 
@@ -165,7 +170,14 @@ def create_server(
         with workspace.session() as con:
             scope = None if include_duplicates else workspace.scope(con)
             return reports.compare_report(
-                con, workspace.baseline, a.model_dump(), b.model_dump(), metrics, base, min_n, scope
+                con,
+                workspace.find_baseline(baseline),
+                a.model_dump(),
+                b.model_dump(),
+                metrics,
+                base,
+                min_n,
+                scope,
             )
 
     @server.tool(annotations=READ)
@@ -228,7 +240,10 @@ def create_server(
     @server.tool(annotations=READ)
     @guarded
     def get_insights(
-        source: str | None = None, include_uncertain: bool = False, limit: int | None = None
+        source: str | None = None,
+        include_uncertain: bool = False,
+        limit: int | None = None,
+        baseline: str | None = None,
     ) -> dict[str, Any]:
         """Regelbasierte Hinweise, wo Schläge verloren gehen: größte SG-Verluste, belegte
         Veränderungen der letzten Runden, Seiten-Bias und Gapping-Lücken bei Range-Daten.
@@ -238,7 +253,12 @@ def create_server(
         """
         with workspace.session() as con:
             return reports.insights_report(
-                con, workspace.baseline, source, include_uncertain, limit, workspace.scope(con)
+                con,
+                workspace.find_baseline(baseline),
+                source,
+                include_uncertain,
+                limit,
+                workspace.scope(con),
             )
 
     if read_only:

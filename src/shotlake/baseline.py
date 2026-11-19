@@ -13,7 +13,8 @@ LIES = ("tee", "fairway", "rough", "sand", "green")
 
 
 def default_baseline_path() -> Path:
-    return Path(os.environ.get("SHOTLAKE_BASELINE", "baselines/hcp18w-approx-v1.toml"))
+    """Standard: das eigene Niveau (Handicap 40); `SHOTLAKE_BASELINE` überschreibt es."""
+    return Path(os.environ.get("SHOTLAKE_BASELINE", "baselines/hcp40w-approx-v1.toml"))
 
 
 @dataclass(frozen=True)
@@ -22,6 +23,13 @@ class Baseline:
     status: str
     description: str
     tables: dict[str, tuple[tuple[float, ...], tuple[float, ...]]]
+    label: str = ""
+    target_handicap: float | None = None
+
+    @property
+    def title(self) -> str:
+        """Anzeigename für die Oberfläche (Standard: die ID)."""
+        return self.label or self.id
 
     def expected(self, lie: str, distance_m: float) -> float | None:
         """Erwartete Restschläge; None, wenn die Lage keine Tabelle hat (z. B. `other`).
@@ -65,4 +73,31 @@ def load_baseline(path: Path) -> Baseline:
     missing = [lie for lie in LIES if lie not in tables]
     if missing:
         raise ValueError(f"{path}: Tabellen fehlen für {missing}")
-    return Baseline(str(meta["id"]), str(meta["status"]), str(meta["source"]).strip(), tables)
+    handicap = meta.get("target_handicap")
+    return Baseline(
+        str(meta["id"]),
+        str(meta["status"]),
+        str(meta["source"]).strip(),
+        tables,
+        label=str(meta.get("label", "")),
+        target_handicap=float(handicap) if isinstance(handicap, int | float) else None,
+    )
+
+
+def list_baselines(directory: Path) -> list[Baseline]:
+    """Alle Baselines eines Verzeichnisses, das schwächere Niveau (höheres Handicap) zuerst."""
+    found = [load_baseline(p) for p in sorted(directory.glob("*.toml"))]
+    return sorted(found, key=lambda b: (-(b.target_handicap or 0.0), b.id))
+
+
+def resolve_baseline_path(spec: Path | str, directory: Path | None = None) -> Path:
+    """Datei oder Kennung (`hcp18w-approx-v1`, Dateiname ohne `.toml`) zu einem Pfad auflösen."""
+    path = Path(spec)
+    if path.exists():
+        return path
+    folder = directory or default_baseline_path().parent
+    for candidate in sorted(folder.glob("*.toml")):
+        if candidate.stem == str(spec) or load_baseline(candidate).id == str(spec):
+            return candidate
+    known = sorted(p.stem for p in folder.glob("*.toml"))
+    raise ValueError(f"Unbekannte Baseline {str(spec)!r}; verfügbar: {known}")

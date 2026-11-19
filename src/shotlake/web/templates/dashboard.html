@@ -13,6 +13,7 @@
 <p class="notice"><strong>{{ proposals }}</strong> mögliche Dubletten warten auf deine Entscheidung. Solange sie offen sind, zählen diese Runden doppelt. <a href="{{ link(request, '/dedup') }}">Jetzt prüfen</a></p>
 {% endif %}
 
+{% include "_baseline.html" %}
 {% if sg and sg.complete_holes %}
 {% set per_hole = sg_total / sg.complete_holes %}
 <section class="lede" aria-label="Kernaussage">
@@ -20,7 +21,7 @@
   <p class="lede-text">
     {% if sg_worst and sg_worst[1] < 0 %}Am meisten Schläge gehen bei <strong>{{ sg_worst[0] }}</strong> verloren ({{ sg_worst[1]|num(2, true) }} pro Loch).{% else %}Kein Bereich verliert gegenüber der Baseline Schläge.{% endif %}
     {% if sg_best and sg_best[1] > 0 %}Am besten läuft <strong>{{ sg_best[0] }}</strong> ({{ sg_best[1]|num(2, true) }}).{% endif %}
-    <span class="muted">Basis: {{ sg.complete_holes }} von {{ sg.holes|length }} Löchern vollständig erfasst; Baseline {{ baseline.id }} ({{ baseline.status }}), eine eigene Näherung für Handicap 18.</span>
+    <span class="muted">Basis: {{ sg.complete_holes }} von {{ sg.holes|length }} Löchern vollständig erfasst; Vergleich: {{ baseline.title }} ({{ baseline.id }}, {{ 'Näherung' if baseline.status == 'approximation' else baseline.status }}).</span>
   </p>
 </section>
 {% endif %}

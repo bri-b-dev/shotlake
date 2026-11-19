@@ -89,6 +89,14 @@ network the password and session cookie travel unencrypted: use a trusted LAN or
 with TLS in front. Set `SHOTLAKE_SECRET_KEY` to keep the key of the stored credentials outside the
 volume. Update with `docker compose pull && docker compose up -d`.
 
+DuckDB version: Shotlake is pinned to DuckDB 1.x (`duckdb>=1.4,<2`). The Linux build of DuckDB 2.0
+needs AVX2 and crashes with "Illegal instruction" on processors without it (many NAS devices, for
+example Celeron J4025; tested). To move data between machines use *Backup and restore*: the archive
+holds the database in the DuckDB 1.0 file format, readable by every version. A database file written
+by DuckDB 2.x cannot be opened by 1.x; copy it first with
+`uv run --no-project --with "duckdb==2.0.0" python scripts/migrate_duckdb.py data/shotlake.duckdb --replace`
+(stop Shotlake first; the original stays as `shotlake.duckdb.original`).
+
 Health checks (no login): `/healthz` (process alive) and `/readyz` (data directory writable,
 database readable; `busy` while a backup runs). The image's `HEALTHCHECK` uses `/healthz`.
 

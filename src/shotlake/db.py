@@ -208,10 +208,25 @@ def naive_utc(value: datetime | None) -> datetime | None:
     return value.astimezone(UTC).replace(tzinfo=None)
 
 
+class DatabaseVersionError(RuntimeError):
+    """Die Datenbankdatei stammt von einer neueren DuckDB-Version als der installierten."""
+
+
 def open_db(path: str | Path) -> duckdb.DuckDBPyConnection:
     if str(path) != ":memory:":
         Path(path).parent.mkdir(parents=True, exist_ok=True)
-    con = duckdb.connect(str(path))
+    try:
+        con = duckdb.connect(str(path))
+    except duckdb.IOException as exc:
+        if "newer version" in str(exc) or "version number" in str(exc):
+            raise DatabaseVersionError(
+                f"{path} wurde mit einer neueren DuckDB-Version geschrieben als der installierten "
+                f"({duckdb.__version__}). Shotlake nutzt DuckDB 1.x (2.x stürzt auf Prozessoren "
+                "ohne AVX2 ab). Die Datei lässt sich mit der schreibenden Version ins ältere "
+                'Format kopieren: uv run --no-project --with "duckdb==2.0.0" python '
+                f"scripts/migrate_duckdb.py {path} --replace"
+            ) from None
+        raise
     con.execute(SCHEMA)
     _migrate(con)
     return con

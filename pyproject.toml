@@ -5,7 +5,10 @@ description = "Persönliche Golf-Datenplattform: sammelt, vereinheitlicht und we
 requires-python = ">=3.12"
 dependencies = [
     "cryptography>=50.0.2",
-    "duckdb>=1.1",
+    # Nicht 2.x: dessen Linux-Bibliothek braucht AVX2 und bricht auf vielen NAS-Prozessoren mit
+    # "Illegal instruction" ab (Celeron J4025 getestet); 1.x läuft dort und schreibt ein Dateiformat,
+    # das auch 2.x liest.
+    "duckdb>=1.4,<2",
     "fastapi>=0.162.7",
     "jinja2>=3.1.6",
     "mcp>=2.3.0",

@@ -61,6 +61,10 @@ Das System SHALL als Docker-Image (non-root, ein Datenvolumen `/data`, Health-Ch
 - WHEN der Container neu startet
 - THEN bleiben Daten und Sync-Cursor erhalten
 
+#### Scenario: Prozessor ohne AVX2
+- WHEN das Image auf einem x86-64-Prozessor ohne AVX2 (zum Beispiel Celeron J4025) startet
+- THEN läuft es, weil die Datenbankbibliothek auf DuckDB 1.x festgelegt ist; Sicherungen enthalten die Datenbank im Dateiformat von DuckDB 1.0 und lassen sich zwischen DuckDB-Versionen austauschen
+
 #### Scenario: Erster Start
 - WHEN das Image mit leerem Datenvolumen startet
 - THEN wird die Standardkonfiguration nach `/data/config` kopiert, vorhandene Dateien bleiben unverändert, und die Oberfläche fragt nach dem Passwort

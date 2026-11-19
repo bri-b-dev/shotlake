@@ -36,7 +36,7 @@ from .clubs import CANONICAL_CLUBS
 from .config import default_club_map_path, load_club_map, save_club_map, sync_club_map
 from .connectors.arccos import ArccosConnector, HarArccosClient
 from .connectors.registry import API_CONNECTORS, CONNECTORS
-from .db import open_db
+from .db import DatabaseVersionError, open_db
 from .dedup import Scope, default_dedup_config_path, load_config
 from .export import FORMATS, export_all, export_zip
 from .ingest import sync_location
@@ -570,9 +570,15 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd == "export":
         return _export_command(args, data)
     if args.cmd == "serve":  # Fortschritt sofort sichtbar machen (Container-Log), auch bei Hängern
-        print(f"Shotlake startet, Datenverzeichnis {data}", flush=True)
+        print(
+            f"Shotlake startet (DuckDB {duckdb.__version__}), Datenverzeichnis {data}", flush=True
+        )
     use_store(data)  # im Frontend gepflegte Zugangsdaten für Syncs bereitstellen
-    con = open_db(data / "shotlake.duckdb")
+    try:
+        con = open_db(data / "shotlake.duckdb")
+    except DatabaseVersionError as exc:
+        print(f"Fehler: {exc}", file=sys.stderr)
+        return 1
     try:
         sync_club_map(con, args.club_map)
         if args.cmd == "baselines":

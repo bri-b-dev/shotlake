@@ -6,7 +6,7 @@ import argparse
 import getpass
 import os
 import sys
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 
 import duckdb
@@ -38,6 +38,7 @@ from .connectors.arccos import ArccosConnector, HarArccosClient
 from .connectors.registry import API_CONNECTORS, CONNECTORS
 from .db import open_db
 from .dedup import Scope, default_dedup_config_path, load_config
+from .export import FORMATS, export_all, export_zip
 from .ingest import sync_location
 from .ingest_api import reprocess_raw, sync_api
 from .secret_store import use_store
@@ -186,6 +187,12 @@ def build_parser() -> argparse.ArgumentParser:
     rs.add_argument("--yes", action="store_true", help="ohne Rückfrage")
     vf = sub.add_parser("backup-verify", help="Sicherung prüfen, ohne etwas zu ändern")
     vf.add_argument("archive", type=Path)
+    ex = sub.add_parser("export", help="Alle Tabellen als Parquet und CSV exportieren")
+    ex.add_argument(
+        "--out", type=Path, help="Zielverzeichnis (Standard: <data-dir>/exports/<Zeit>)"
+    )
+    ex.add_argument("--format", choices=[*FORMATS, "all"], default="all")
+    ex.add_argument("--zip", action="store_true", help="als ZIP-Datei statt Verzeichnis schreiben")
     bkey = sub.add_parser("backup-key", help="Schlüssel der Zugangsdaten zum getrennten Sichern")
     bkey.add_argument("--out", type=Path, help="in eine Datei schreiben (Rechte 0600)")
     sub.add_parser("sources", help="Verfügbare Quellen und Risiko anzeigen")
@@ -470,6 +477,29 @@ def _backup_password(encrypted: bool, ask_twice: bool) -> str | None:
     return value
 
 
+def _export_command(args: argparse.Namespace, data: Path) -> int:
+    formats = FORMATS if args.format == "all" else (args.format,)
+    stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    try:
+        if args.zip:
+            target = args.out or data / "exports" / f"shotlake-export-{stamp}.zip"
+            result = export_zip(data / "shotlake.duckdb", target, formats=formats)
+        else:
+            target = args.out or data / "exports" / f"export-{stamp}"
+            result = export_all(data / "shotlake.duckdb", target, formats=formats)
+    except (FileNotFoundError, FileExistsError, ValueError, duckdb.Error) as exc:
+        print(f"Fehler: {exc}", file=sys.stderr)
+        return 1
+    rows = sum(result.tables.values())
+    print(
+        f"Export: {target} ({len(result.tables)} Tabellen, {rows} Zeilen, {result.files} Dateien)"
+    )
+    print(
+        "  Beschreibung und Prüfsummen: schema.json; enthält keine Zugangsdaten, aber GPS-Rohwerte."
+    )
+    return 0
+
+
 def _backup_command(args: argparse.Namespace, data: Path) -> int:
     """Sichern und Wiederherstellen brauchen die Datenbank ungeöffnet, deshalb vor `open_db`."""
     try:
@@ -531,6 +561,8 @@ def main(argv: list[str] | None = None) -> int:
     data = Path(args.data_dir)
     if args.cmd in ("backup", "restore", "backup-verify", "backup-key"):
         return _backup_command(args, data)
+    if args.cmd == "export":
+        return _export_command(args, data)
     use_store(data)  # im Frontend gepflegte Zugangsdaten für Syncs bereitstellen
     con = open_db(data / "shotlake.duckdb")
     try:

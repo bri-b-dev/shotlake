@@ -44,11 +44,15 @@ Die Wiederherstellung SHALL vor jeder Änderung Format, Pfade (keine absoluten P
 - THEN enthält sie den Schlüssel nicht, und `backup-key` gibt ihn zum getrennten Sichern aus
 
 ### Requirement: Gesamt-Export
-Es SHALL ein Export aller canonical- und Notiz-Daten als Parquet und CSV (inkl. Schema-Beschreibung) geben.
+Es SHALL einen Export aller Tabellen (Canonical, Eingaben, Notizen, Herkunft) als Parquet und CSV geben, per Befehl (`export`) und als ZIP-Download in der Oberfläche. Er SHALL ein `schema.json` mit Format- und Programmversion, Konventionen (Zeit, Einheiten, Kodierung), je Tabelle Beschreibung, Spalten mit Typ, Nullbarkeit und Einheit, Primärschlüssel, Zeilenzahl sowie Datei und SHA-256 enthalten. Der Export SHALL einen einheitlichen Stand der Datenbank lesen, deterministisch sein und weder Zugangsdaten noch Schlüssel enthalten. Jede Tabelle der Datenbank SHALL eine Beschreibung haben.
 
 #### Scenario: Export
-- WHEN `export --all` läuft
-- THEN entstehen Dateien je Entität mit Schema und Versionsangabe
+- WHEN `export` läuft
+- THEN entstehen Dateien je Tabelle in `parquet/` und `csv/` mit `schema.json` und Versionsangabe
+
+#### Scenario: Vollständigkeit
+- WHEN die Zeilenzahlen von Datenbank, Parquet, CSV und `schema.json` verglichen werden
+- THEN stimmen sie für jede Tabelle überein
 
 ### Requirement: Deployment
 Das System SHALL als Docker-Image (non-root, ein Datenvolume) mit docker-compose-Beispiel bereitgestellt werden und mit K8s-Manifesten/Helm lauffähig sein (PVC, Secret, ConfigMap, Liveness/Readiness, `replicas: 1` bei DuckDB).

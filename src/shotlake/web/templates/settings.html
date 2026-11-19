@@ -107,6 +107,12 @@
   </ul>
 {% endif %}
 
+<h2 class="section" id="export">Export</h2>
+<section class="band narrow">
+  <p class="muted lead">Alle Tabellen als Parquet und CSV in einer ZIP-Datei, mit <code>schema.json</code> (Spalten, Einheiten, Version, Prüfsummen). Für eigene Auswertungen in Excel, Python oder DuckDB. Enthält deine Rohwerte inklusive GPS-Positionen, aber keine Zugangsdaten. Zum Wiederherstellen dient die Sicherung, nicht der Export.</p>
+  <form method="post" action="/settings/export/download"><button class="primary" type="submit">Export herunterladen</button></form>
+</section>
+
 <h2 class="section">Passwort der Oberfläche</h2>
 <section class="band" style="max-width:26rem">
   <form method="post" action="/settings/password" class="inputs">

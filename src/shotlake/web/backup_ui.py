@@ -73,6 +73,28 @@ def install_backup(app: FastAPI, workspace: Workspace, auth: AuthStore) -> None:
             background=BackgroundTask(tmp.unlink, missing_ok=True),
         )
 
+    @app.post("/settings/export/download")
+    async def export_download() -> Response:
+        fd, tmp_name = tempfile.mkstemp(dir=workspace.data_dir, prefix=".export-")
+        os.close(fd)
+        tmp = Path(tmp_name)
+        try:
+            await run_in_threadpool(workspace.export, tmp)
+        except BackupError as exc:
+            tmp.unlink(missing_ok=True)
+            return back(str(exc))
+        except Exception:
+            tmp.unlink(missing_ok=True)
+            raise
+        stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+        return FileResponse(
+            tmp,
+            filename=f"shotlake-export-{stamp}.zip",
+            media_type="application/zip",
+            headers={"Cache-Control": "no-store"},
+            background=BackgroundTask(tmp.unlink, missing_ok=True),
+        )
+
     @app.get("/settings/backup/file/{name}")
     def safety_file(name: str) -> Response:
         match = next((p for p in list_safety_backups(workspace.data_dir) if p.name == name), None)

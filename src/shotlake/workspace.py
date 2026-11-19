@@ -25,6 +25,7 @@ from .dedup import (
     load_config,
 )
 from .dedup import run as run_dedup
+from .export import ExportResult, export_zip
 from .ingest import ImportReport
 from .ingest_api import sync_api
 from .secret_store import use_store
@@ -73,6 +74,16 @@ class Workspace:
         try:
             with self._lock:
                 return create_backup(self.data_dir, target, password=password)
+        finally:
+            self._sync_lock.release()
+
+    def export(self, target: Path) -> ExportResult:
+        """Gesamt-Export als ZIP; hält Seiten und Syncs an (einheitlicher Stand)."""
+        if not self._sync_lock.acquire(blocking=False):
+            raise BackupError("Es läuft gerade ein Sync: später erneut versuchen")
+        try:
+            with self._lock:
+                return export_zip(self.data_dir / "shotlake.duckdb", target)
         finally:
             self._sync_lock.release()
 

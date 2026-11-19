@@ -43,6 +43,10 @@ Units (m/yd) and themes (light/dark) can be toggled.
 - Garmin (course, needs `uv sync --extra garmin`): first login with a two-factor code in *Settings* (email and password are used
   once and not stored; only the token is, in `data/garmin/`). Reads from `~/.garminconnect` otherwise.
 
+**Export.** `uv run shotlake export [--out DIR] [--format parquet|csv|all] [--zip]` (or *Settings →
+Export*) writes every table as Parquet and CSV plus `schema.json` (version, units, columns, row
+counts, SHA-256). It holds your raw values including GPS positions, but no credentials.
+
 **Backup and restore.** *Settings → Sicherung* downloads an archive (database snapshot, raw data,
 uploads, the encrypted credentials file, checksums) and restores one by upload. The same from the
 command line:

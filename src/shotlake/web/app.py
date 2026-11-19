@@ -38,7 +38,7 @@ from ..service import (
 )
 from ..workspace import Workspace
 from .auth import install_auth
-from .charts import Marker, bars_svg, reach_svg, scatter_svg, trend_svg
+from .charts import Marker, bars_svg, ci_svg, reach_svg, scatter_svg, trend_svg
 from .sync import install_settings
 
 HERE = Path(__file__).parent
@@ -415,12 +415,23 @@ def create_app(
                 include_uncertain=uncertain,
                 scope=workspace.scope(con),
             )
+            bounds: dict[str | None, float] = {}
+            for i in found:
+                if i.ci is not None:
+                    reach = max(abs(i.ci.low), abs(i.ci.high), abs(i.effect or 0.0))
+                    bounds[i.unit] = max(bounds.get(i.unit, 0.0), reach)
+            strips = {
+                i.id: ci_svg(i.effect or 0.0, i.ci.low, i.ci.high, bounds[i.unit] * 1.05)
+                for i in found
+                if i.ci is not None
+            }
             return page(
                 request,
                 "insights.html",
                 source=source,
                 sources=round_sources(con),
                 insights=found,
+                strips=strips,
                 uncertain=uncertain,
             )
 

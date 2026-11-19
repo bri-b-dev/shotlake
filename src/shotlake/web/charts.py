@@ -168,6 +168,26 @@ def reach_svg(
     return "".join(out)
 
 
+def ci_svg(effect: float, low: float, high: float, bound: float) -> str:
+    """Effekt mit 95-%-Intervall auf einer Achse um 0 (gemeinsame Skala `-bound` bis `bound`)."""
+    w, h, pad = 340, 26, 8
+    bound = max(bound, 1e-9)
+
+    def x(v: float) -> float:
+        return pad + (v + bound) / (2 * bound) * (w - 2 * pad)
+
+    lo, hi = sorted((low, high))
+    cls = "pos" if effect >= 0 else "neg"
+    return (
+        f'<svg class="chart ci" viewBox="0 0 {w} {h}" role="img" '
+        f'aria-label="Effekt {effect:+.1f}, 95-%-Intervall {lo:.1f} bis {hi:.1f}">'
+        f'<line class="grid" x1="{pad}" x2="{w - pad}" y1="13" y2="13"/>'
+        f'<line class="zero" x1="{x(0):.1f}" x2="{x(0):.1f}" y1="3" y2="23"/>'
+        f'<line class="whisker {cls}" x1="{x(lo):.1f}" x2="{x(hi):.1f}" y1="13" y2="13"/>'
+        f'<circle class="est {cls}" cx="{x(effect):.1f}" cy="13" r="4.5"/></svg>'
+    )
+
+
 def scatter_svg(group: ScatterGroup, factor: float = 1.0, unit: str = "m") -> str:
     """Streuung: links/rechts waagerecht, Carry senkrecht, gleicher Maßstab, 95-%-Ellipse."""
     pts = [(x * factor, y * factor) for x, y in group.points]

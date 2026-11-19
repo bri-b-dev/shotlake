@@ -132,3 +132,16 @@ details[open] > summary { margin-bottom: .6rem; }
 .chart .med { stroke: var(--fg); stroke-width: 3; stroke-linecap: round; }
 .chart .thin { opacity: .45; }
 .chart .val { fill: var(--fg); }
+.insight { display: grid; grid-template-columns: 9rem minmax(0, 1fr); gap: .3rem 1.6rem;
+  border-top: 1px solid var(--line); padding: 1.1rem 0; }
+.insight-num { font: 700 2.4rem/1 var(--serif); letter-spacing: -.01em; }
+.insight-num small { display: block; font: 400 .8rem/1.3 var(--sans); letter-spacing: 0;
+  color: var(--muted); margin-top: .35rem; }
+.insight-body p { margin: 0 0 .5rem; max-width: 62ch; }
+.insight-body .facts { margin: .3rem 0 0; }
+.chart.ci { width: 340px; max-width: 100%; }
+.chart .zero { stroke: var(--fg); stroke-width: 1.5; }
+.chart .whisker { stroke-width: 3; stroke-linecap: round; }
+.chart .whisker.pos { stroke: var(--pos); } .chart .whisker.neg { stroke: var(--neg); }
+.chart .est.pos { fill: var(--pos); } .chart .est.neg { fill: var(--neg); }
+@media (max-width: 600px) { .insight { grid-template-columns: 1fr; } }

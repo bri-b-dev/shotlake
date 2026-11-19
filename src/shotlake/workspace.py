@@ -63,6 +63,20 @@ class Workspace:
             finally:
                 con.close()
 
+    def ping(self) -> str:
+        """Health-Check: `ok` oder `busy` (Sicherung läuft, kein Fehler); sonst eine Ausnahme."""
+        if not self._lock.acquire(blocking=False):
+            return "busy"
+        try:
+            con = open_db(self.data_dir / "shotlake.duckdb")
+            try:
+                con.execute("select 1").fetchone()
+            finally:
+                con.close()
+        finally:
+            self._lock.release()
+        return "ok"
+
     def scope(self, con: duckdb.DuckDBPyConnection) -> Scope:
         """Dedup-Sicht für Auswertungen ohne Quellenfilter."""
         return Scope.build(con, self.dedup_cfg)

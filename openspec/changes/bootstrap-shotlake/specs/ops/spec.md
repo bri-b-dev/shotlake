@@ -55,11 +55,15 @@ Es SHALL einen Export aller Tabellen (Canonical, Eingaben, Notizen, Herkunft) al
 - THEN stimmen sie für jede Tabelle überein
 
 ### Requirement: Deployment
-Das System SHALL als Docker-Image (non-root, ein Datenvolume) mit docker-compose-Beispiel bereitgestellt werden und mit K8s-Manifesten/Helm lauffähig sein (PVC, Secret, ConfigMap, Liveness/Readiness, `replicas: 1` bei DuckDB).
+Das System SHALL als Docker-Image (non-root, ein Datenvolumen `/data`, Health-Check) mit docker-compose-Beispiel (nur lokal gebunden, schreibgeschütztes Wurzeldateisystem, ohne zusätzliche Rechte) bereitgestellt werden. Das Image SHALL weder Daten noch Zugangsdaten enthalten. Ein CI-Workflow SHALL Tests ausführen und das Image für amd64 und arm64 nach ghcr.io veröffentlichen (nur bei Pushes auf `main` und Versions-Tags, nie bei Pull Requests, mit minimalen Rechten). K8s-Manifeste/Helm (PVC, Secret, ConfigMap, Probes, `replicas: 1` bei DuckDB) SHALL optional bereitgestellt werden. `/healthz` (Liveness) und `/readyz` (Bereitschaft) SHALL ohne Anmeldung erreichbar sein und keine Pfade oder Zugangsdaten nennen.
 
 #### Scenario: Neustart
 - WHEN der Container neu startet
 - THEN bleiben Daten und Sync-Cursor erhalten
+
+#### Scenario: Erster Start
+- WHEN das Image mit leerem Datenvolumen startet
+- THEN wird die Standardkonfiguration nach `/data/config` kopiert, vorhandene Dateien bleiben unverändert, und die Oberfläche fragt nach dem Passwort
 
 ### Requirement: Observability
 Sync-Läufe SHALL strukturiert geloggt werden (Run-ID, Quelle, Dauer, Zähler, Fehler); Health-Endpunkt und optional Prometheus-Metriken SHALL vorhanden sein.

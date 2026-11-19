@@ -30,7 +30,7 @@ COOKIE = "shotlake_session"
 SESSION_DAYS = 30
 MIN_PASSWORD = 10
 MAX_FAILURES, LOCK_SECONDS = 5, 60
-OPEN_PATHS = ("/static/", "/login", "/setup")
+OPEN_PATHS = ("/static/", "/login", "/setup", "/healthz", "/readyz")
 
 
 class AuthStore:

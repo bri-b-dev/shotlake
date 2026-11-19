@@ -5,12 +5,13 @@ from __future__ import annotations
 import os
 from collections.abc import Callable
 from datetime import date, timedelta
+from importlib import metadata
 from pathlib import Path
 from typing import Annotated, Any
 from urllib.parse import quote, urlencode
 
 from fastapi import FastAPI, Form, HTTPException, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -53,6 +54,13 @@ SG_NAMES = {
     "putting": "Putten",
     "penalty": "Strafschläge",
 }
+
+
+def _version() -> str:
+    try:
+        return metadata.version("shotlake")
+    except metadata.PackageNotFoundError:
+        return "unbekannt"
 
 
 def _improved(insight: Any) -> bool | None:
@@ -132,6 +140,23 @@ def create_app(
 
     if auth is None:  # `SHOTLAKE_WEB_AUTH=off` nur für Betrieb hinter eigenem Schutz
         auth = os.environ.get("SHOTLAKE_WEB_AUTH", "on").lower() != "off"
+
+    @app.get("/healthz")
+    def healthz() -> dict[str, str]:
+        """Liveness: der Prozess antwortet (ohne Anmeldung, ohne Datenbankzugriff)."""
+        return {"status": "ok", "version": _version()}
+
+    @app.get("/readyz")
+    def readyz() -> Response:
+        """Readiness: Datenverzeichnis beschreibbar und Datenbank lesbar (ohne Anmeldung)."""
+        try:
+            if not os.access(data_dir, os.W_OK):
+                raise OSError("Datenverzeichnis nicht beschreibbar")
+            state = workspace.ping()
+        except Exception as exc:  # jede Störung heißt: nicht bereit, ohne Details nach außen
+            return JSONResponse({"status": "unavailable", "error": type(exc).__name__}, 503)
+        return JSONResponse({"status": "ok", "db": state, "version": _version()})
+
     auth_store = install_auth(app, data_dir, page, enabled=auth)
     sync_manager = install_settings(
         app, workspace, auth_store, page, connector_factory, garmin_factory

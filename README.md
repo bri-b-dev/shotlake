@@ -72,6 +72,28 @@ By default the server binds only to `127.0.0.1`. When exposing it, put it behind
 cookie is marked `Secure` over HTTPS). `SHOTLAKE_WEB_AUTH=off` disables the password check (only for
 setups protected otherwise).
 
+## Docker (NAS or home server)
+
+    docker compose up -d        # uses docker-compose.yml and ghcr.io/bri-b-dev/shotlake:latest
+
+Open `http://<host>:8000` and set the interface password on first start. Everything that persists
+lives in one volume (`/data`: database, raw data, uploads, credentials, configuration, backups). The
+image runs as user 10001 without root, with a read-only root filesystem; with a bind mount instead of
+a volume run `chown 10001:10001 data` first. On first start the default configuration is copied to
+`/data/config` and kept there (edit it, or use *Settings*). The compose file publishes the port on
+`127.0.0.1` only: for access from the network put a reverse proxy with TLS in front (the password and
+session cookie must not travel unencrypted) and publish `8000:8000`. Set `SHOTLAKE_SECRET_KEY` to keep
+the key of the stored credentials outside the volume. Update with `docker compose pull && docker
+compose up -d`.
+
+Health checks (no login): `/healthz` (process alive) and `/readyz` (data directory writable,
+database readable; `busy` while a backup runs). The image's `HEALTHCHECK` uses `/healthz`.
+
+The GitHub workflow `.github/workflows/ci.yml` runs lint, types and tests, then builds the image for
+`linux/amd64` and `linux/arm64` and pushes it to `ghcr.io/<owner>/shotlake` on every push to `main`
+(tags `latest`, `main`, short commit) and on version tags `v*` (`1.2.3`, `1.2`). Pull requests only
+build. Build locally with `docker build -t shotlake .`.
+
 ## MCP Server (for AI Assistants)
 
 uv run shotlake mcp --read-only              # stdio, read-only tools

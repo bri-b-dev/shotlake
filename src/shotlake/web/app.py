@@ -40,7 +40,7 @@ from ..service import (
 from ..workspace import Workspace
 from .auth import install_auth
 from .backup_ui import install_backup
-from .charts import Marker, bars_svg, ci_svg, reach_svg, scatter_svg, trend_svg
+from .charts import Marker, bars_svg, box_row, boxplot_svg, ci_svg, scatter_svg, trend_svg
 from .sync import install_settings
 
 HERE = Path(__file__).parent
@@ -424,6 +424,15 @@ def create_app(
                     else []
                 )
             ]
+            box_rows = []
+            for c in sorted(course, key=lambda c: club_sort_key(c.club)):
+                if c.club == "putter" or not c.values:
+                    continue
+                if c.p25_m is None or c.median_m is None or c.p75_m is None:
+                    continue
+                box_rows.append(
+                    box_row(c.club, c.values, c.p25_m, c.median_m, c.p75_m, ok=c.warning is None)
+                )
             return page(
                 request,
                 "clubs.html",
@@ -433,22 +442,7 @@ def create_app(
                 source=source,
                 sources=round_sources(con),
                 course=course,
-                reach=reach_svg(
-                    [
-                        (
-                            c.club,
-                            c.p10_m or 0.0,
-                            c.median_m or 0.0,
-                            c.p90_m or 0.0,
-                            c.n,
-                            c.warning is None,
-                        )
-                        for c in sorted(course, key=lambda c: club_sort_key(c.club))
-                        if c.club != "putter" and None not in (c.p10_m, c.median_m, c.p90_m)
-                    ],
-                    factor,
-                    unit_of(request),
-                ),
+                boxplot=boxplot_svg(box_rows, factor, unit_of(request)),
                 range_stats=club_stats(con, min_n=10, min_speed_ratio=DEFAULT_MIN_SPEED_RATIO),
             )
 

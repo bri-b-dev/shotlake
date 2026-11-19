@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import date, datetime, time
 from html import escape
@@ -122,24 +123,56 @@ def bars_svg(items: list[tuple[str, float]], unit: str = "") -> str:
     return "".join(out)
 
 
-def reach_svg(
-    items: list[tuple[str, float, float, float, int, bool]], factor: float = 1.0, unit: str = "m"
-) -> str:
-    """Distanzbereich je Schläger: Balken P10 bis P90, Strich = Median (Reihenfolge wie im Bag).
+@dataclass(frozen=True)
+class BoxRow:
+    """Eine Zeile des Boxplots (Werte in Metern)."""
 
-    Eintrag: (Schläger, P10, Median, P90, n, belastbar); Werte in Metern, `factor` rechnet um.
+    label: str
+    n: int
+    q1: float
+    median: float
+    q3: float
+    whisker_lo: float
+    whisker_hi: float
+    outliers: tuple[float, ...]
+    ok: bool = True  # genug Schläge für eine belastbare Darstellung
+
+
+def box_row(
+    label: str,
+    values: Sequence[float],
+    q1: float,
+    median: float,
+    q3: float,
+    *,
+    ok: bool = True,
+) -> BoxRow:
+    """Boxplot-Zeile nach Tukey: Antennen bis zum äußersten Wert innerhalb 1,5 x (Q3 - Q1)."""
+    reach = 1.5 * (q3 - q1)
+    inside = [v for v in values if q1 - reach <= v <= q3 + reach]
+    low = min(inside) if inside else q1
+    high = max(inside) if inside else q3
+    outliers = tuple(v for v in values if v < q1 - reach or v > q3 + reach)
+    return BoxRow(label, len(values), q1, median, q3, min(low, q1), max(high, q3), outliers, ok)
+
+
+def boxplot_svg(rows: list[BoxRow], factor: float = 1.0, unit: str = "m") -> str:
+    """Boxplot der Schlagdistanz je Schläger (Reihenfolge wie im Bag).
+
+    Kasten Q1 bis Q3, Strich = Median, Antennen bis zum äußersten Wert innerhalb 1,5 x Kasten,
+    Punkte = Ausreißer. Der Median steht als Tooltip über der ganzen Zeile, nicht als Zahl.
     """
-    if not items:
+    if not rows:
         return ""
-    row_h, label_w, width, right_pad = 30, 150, 680, 46
-    top = max(p90 for _, _, _, p90, _, _ in items) * factor
+    row_h, label_w, width, right_pad = 30, 130, 680, 30
+    top = max(max([r.whisker_hi, *r.outliers]) for r in rows) * factor
     step = 50 if top > 150 else 25
     hi = math.ceil(top / step) * step
     scale = (width - label_w - right_pad) / hi
-    height = row_h * len(items) + 30
+    height = row_h * len(rows) + 30
     out = [
-        f'<svg class="chart reach" viewBox="0 0 {width} {height}" role="img" '
-        f'aria-label="Distanzbereich je Schläger (P10 bis P90, Median als Strich)">'
+        f'<svg class="chart box" viewBox="0 0 {width} {height}" role="img" '
+        f'aria-label="Boxplot der Schlagdistanz je Schläger">'
     ]
     for t in range(0, int(hi) + 1, step):
         gx = label_w + t * scale
@@ -150,20 +183,43 @@ def reach_svg(
     out.append(
         f'<text class="axis" x="{width - 2}" y="{height - 6}" text-anchor="end">{unit}</text>'
     )
-    for i, (label, p10, med, p90, n, ok) in enumerate(items):
-        yy = 4 + i * row_h
-        a, m, b = (label_w + v * factor * scale for v in (p10, med, p90))
-        title = escape(f"{label}: Median {med * factor:.0f} {unit}, P10 {p10 * factor:.0f}, "
-                       f"P90 {p90 * factor:.0f}, n = {n}")  # fmt: skip
-        out.append(
-            f'<g class="{"" if ok else "thin"}"><title>{title}</title>'
-            f'<text class="axis" x="{label_w - 8}" y="{yy + 17}" text-anchor="end">'
-            f"{escape(label)}</text>"
-            f'<rect class="reach-bar" x="{a:.1f}" y="{yy + 5}" width="{max(b - a, 2):.1f}" '
-            f'height="16" rx="3"/>'
-            f'<line class="med" x1="{m:.1f}" x2="{m:.1f}" y1="{yy + 2}" y2="{yy + 24}"/>'
-            f'<text class="val" x="{b + 6:.1f}" y="{yy + 17}">{med * factor:.0f}</text></g>'
+
+    def x(v: float) -> float:
+        return label_w + v * factor * scale
+
+    for i, r in enumerate(rows):
+        y = 4 + i * row_h
+        mid = y + 13
+        title = escape(
+            f"{r.label}: Median {r.median * factor:.0f} {unit}; "
+            f"Kasten (Q1 bis Q3) {r.q1 * factor:.0f} bis {r.q3 * factor:.0f} {unit}; "
+            f"Antennen {r.whisker_lo * factor:.0f} bis {r.whisker_hi * factor:.0f} {unit}; "
+            f"Ausreißer {len(r.outliers)}; n = {r.n}"
         )
+        parts = [
+            f'<g class="{"" if r.ok else "thin"}"><title>{title}</title>',
+            # unsichtbare Trefferfläche über die ganze Zeile: der Tooltip erscheint überall
+            f'<rect class="hit" x="0" y="{y}" width="{width}" height="{row_h}"/>',
+            f'<text class="axis" x="{label_w - 8}" y="{mid + 4}" text-anchor="end">'
+            f"{escape(r.label)}</text>",
+            f'<line class="whisker" x1="{x(r.whisker_lo):.1f}" x2="{x(r.q1):.1f}" '
+            f'y1="{mid}" y2="{mid}"/>',
+            f'<line class="whisker" x1="{x(r.q3):.1f}" x2="{x(r.whisker_hi):.1f}" '
+            f'y1="{mid}" y2="{mid}"/>',
+            f'<line class="whisker" x1="{x(r.whisker_lo):.1f}" x2="{x(r.whisker_lo):.1f}" '
+            f'y1="{mid - 5}" y2="{mid + 5}"/>',
+            f'<line class="whisker" x1="{x(r.whisker_hi):.1f}" x2="{x(r.whisker_hi):.1f}" '
+            f'y1="{mid - 5}" y2="{mid + 5}"/>',
+            f'<rect class="box-rect" x="{x(r.q1):.1f}" y="{mid - 8}" '
+            f'width="{max(x(r.q3) - x(r.q1), 2):.1f}" height="16" rx="2"/>',
+            f'<line class="med" x1="{x(r.median):.1f}" x2="{x(r.median):.1f}" '
+            f'y1="{mid - 8}" y2="{mid + 8}"/>',
+        ]
+        parts += [
+            f'<circle class="box-out" cx="{x(v):.1f}" cy="{mid}" r="2.6"/>' for v in r.outliers
+        ]
+        parts.append("</g>")
+        out.append("".join(parts))
     out.append("</svg>")
     return "".join(out)
 

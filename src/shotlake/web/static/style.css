@@ -133,8 +133,12 @@ td.strong { font-weight: 650; }
 td.left.muted { white-space: normal; min-width: 7rem; }
 details > summary { cursor: pointer; font-weight: 650; padding: .2rem 0; }
 details[open] > summary { margin-bottom: .6rem; }
-.chart.reach text { font-size: 13px; }
-.chart .reach-bar { fill: var(--accent); fill-opacity: .3; stroke: var(--accent); stroke-width: 1; }
+.chart.box text { font-size: 13px; }
+.chart .box-rect { fill: var(--accent); fill-opacity: .3; stroke: var(--accent); stroke-width: 1.5; }
+.chart .whisker { stroke: var(--accent); stroke-width: 1.5; }
+.chart .box-out { fill: var(--accent); fill-opacity: .55; }
+.chart .hit { fill: transparent; }
+.chart .hit:hover { fill: var(--accent); fill-opacity: .06; }
 .chart .med { stroke: var(--fg); stroke-width: 3; stroke-linecap: round; }
 .chart .thin { opacity: .45; }
 .chart .val { fill: var(--fg); }
@@ -207,7 +211,7 @@ body.auth header { border-bottom: 0; }
   .chart.trend circle { r: 7px; }
   .chart.trend .dot { stroke-width: 3.5; }
   .chart.trend .avg { stroke-width: 5; }
-  .chart.reach text, .chart.bars text { font-size: 19px; }
+  .chart.box text, .chart.bars text { font-size: 19px; }
   form.inputs { grid-template-columns: 1fr; }
   input, select, button { min-height: 2.5rem; }
 }

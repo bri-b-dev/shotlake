@@ -59,6 +59,9 @@ class ClubDistance:
     p90_m: float | None
     max_m: float | None
     warning: str | None
+    p25_m: float | None = None
+    p75_m: float | None = None
+    values: tuple[float, ...] = ()  # alle Distanzen (für Boxplot-Ausreißer)
 
 
 def club_distances(
@@ -78,7 +81,9 @@ def club_distances(
         select coalesce(s.club_type, m.club_type, s.club_raw) club,
                bool_and(coalesce(s.club_type, m.club_type) is not null),
                count(*), median(s.distance_m), quantile_cont(s.distance_m, 0.1),
-               quantile_cont(s.distance_m, 0.9), max(s.distance_m)
+               quantile_cont(s.distance_m, 0.9), max(s.distance_m),
+               quantile_cont(s.distance_m, 0.25), quantile_cont(s.distance_m, 0.75),
+               list(s.distance_m order by s.distance_m)
         {_BASE} and s.club_raw is not null and s.distance_m is not null
             and coalesce(s.start_lie, '') <> 'green' {extra}
         group by 1 order by 4 desc
@@ -95,6 +100,9 @@ def club_distances(
             r[5],
             r[6],
             "insufficient_data" if r[2] < min_n else None,
+            r[7],
+            r[8],
+            tuple(r[9]),
         )
         for r in rows
     ]

@@ -7,15 +7,15 @@
     <h2 id="h-course">Auf dem Platz – Schlagdistanz</h2>
     {% set path = '/clubs' %}{% set allow_all = True %}
     {% include "_chips.html" %}
-    {% if reach %}{{ reach|safe }}<p class="facts"><span>Balken: P10 bis P90 der Schlagdistanz</span><span>Strich: Median</span><span>blass: weniger als 5 Schläge</span></p>{% endif %}
+    {% if boxplot %}{{ boxplot|safe }}<p class="facts"><span>Kasten: mittlere 50 % der Schläge (Q1 bis Q3)</span><span>Strich im Kasten: Median (Tooltip)</span><span>Antennen: bis 1,5 × Kastenbreite</span><span>Punkte: Ausreißer</span><span>blass: weniger als 5 Schläge</span></p>{% endif %}
     <div class="scroll"><table>
-      <thead><tr><th>Schläger</th><th>n</th><th>Median ({{ unit }})</th><th>P10</th><th>P90</th><th>Max</th><th class="left">Hinweis</th></tr></thead>
+      <thead><tr><th>Schläger</th><th>n</th><th>P10</th><th>Q1</th><th>Median ({{ unit }})</th><th>Q3</th><th>P90</th><th>Max</th><th class="left">Hinweis</th></tr></thead>
       <tbody>
       {% for c in course %}
-        <tr><td>{{ c.club }}</td><td>{{ c.n }}</td><td>{{ c.median_m|dist(unit) }}</td><td>{{ c.p10_m|dist(unit) }}</td>
-            <td>{{ c.p90_m|dist(unit) }}</td><td>{{ c.max_m|dist(unit) }}</td>
+        <tr><td>{{ c.club }}</td><td>{{ c.n }}</td><td>{{ c.p10_m|dist(unit) }}</td><td>{{ c.p25_m|dist(unit) }}</td>
+            <td>{{ c.median_m|dist(unit) }}</td><td>{{ c.p75_m|dist(unit) }}</td><td>{{ c.p90_m|dist(unit) }}</td><td>{{ c.max_m|dist(unit) }}</td>
             <td class="left muted">{{ 'zu wenige Schläge' if c.warning else ('' if c.mapped else 'nicht zugeordnet (config/club_map.toml)') }}</td></tr>
-      {% else %}<tr><td colspan="7" class="muted">Keine Platzschläge.</td></tr>
+      {% else %}<tr><td colspan="9" class="muted">Keine Platzschläge.</td></tr>
       {% endfor %}
       </tbody>
     </table></div>

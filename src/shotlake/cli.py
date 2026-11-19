@@ -404,12 +404,16 @@ def _print_course_shots(con: duckdb.DuckDBPyConnection, args: argparse.Namespace
         "exclude_rounds": _excluded(_scope(con, args), args, "shots"),
     }
     print(f"Schlagdistanz je Schläger ({args.units}, GPS Start-Ende inkl. Rollen, kein Carry)")
-    print(f"{'Schläger':<22}{'n':>4} {'Median':>7} {'P10':>6} {'P90':>6} {'Max':>6}  Hinweis")
+    print(
+        f"{'Schläger':<22}{'n':>4} {'P10':>6} {'Q1':>6} {'Median':>7} {'Q3':>6} {'P90':>6} "
+        f"{'Max':>6}  Hinweis"
+    )
     for c in club_distances(con, min_n=args.min_n, **kw):
         note = c.warning or ("" if c.mapped else "nicht zugeordnet (club-set)")
         print(
-            f"{c.club:<22}{c.n:>4} {_fmt(c.median_m, f):>7} {_fmt(c.p10_m, f):>6} "
-            f"{_fmt(c.p90_m, f):>6} {_fmt(c.max_m, f):>6}  {note}"
+            f"{c.club:<22}{c.n:>4} {_fmt(c.p10_m, f):>6} {_fmt(c.p25_m, f):>6} "
+            f"{_fmt(c.median_m, f):>7} {_fmt(c.p75_m, f):>6} {_fmt(c.p90_m, f):>6} "
+            f"{_fmt(c.max_m, f):>6}  {note}"
         )
     print("\nAbschläge: Landelage")
     for t in tee_shot_outcomes(con, **kw):

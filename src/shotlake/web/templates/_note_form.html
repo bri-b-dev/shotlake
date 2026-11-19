@@ -27,7 +27,7 @@
       {% for c in clubs %}<option value="{{ c }}">{% endfor %}
     </datalist>
   {% endif %}
-  <label style="grid-column:1/-1">Notiz
+  <label class="full">Notiz
     <textarea name="text" required maxlength="2000">{{ f.get('text') or '' }}</textarea></label>
   <div><button class="primary" type="submit">{{ submit or 'Speichern' }}</button></div>
 </form>

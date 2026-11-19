@@ -6,7 +6,7 @@
 {% include "_chips.html" %}
 {% for n in notes %}<p class="notice"><strong>{{ n.type }}</strong> {{ n.date }}: {{ n.text }}</p>{% endfor %}
 {% for e in errors %}<p class="error" role="alert">{{ e }}</p>{% endfor %}
-<form class="inputs card" method="get" action="/compare">
+<form class="inputs band" method="get" action="/compare">
   <input type="hidden" name="source" value="{{ source or '' }}">
   <label>A von <input type="date" name="a_since" value="{{ a.since or '' }}"></label>
   <label>A bis <input type="date" name="a_until" value="{{ a.until or '' }}"></label>
@@ -15,7 +15,7 @@
   <div><button class="primary" type="submit">Vergleichen</button></div>
 </form>
 {% if result %}
-<div class="card scroll" style="margin-top:12px"><table>
+<div class="scroll band"><table>
   <thead><tr><th>Kennzahl</th><th>n A / B</th><th>A</th><th>B</th><th>Δ (A − B)</th><th>95-%-Intervall</th><th class="left">Einschätzung</th></tr></thead>
   <tbody>
   {% for r in result.results %}
@@ -23,7 +23,7 @@
     <tr><td>{{ r.label }} <span class="muted">({{ r.unit }})</span></td>
         <td>{{ r.a.n }} / {{ r.b.n }}</td>
         <td>{{ r.a.value|num(2) }}</td><td>{{ r.b.value|num(2) }}</td>
-        <td>{{ r.delta_a_minus_b|num(2, true) }}</td>
+        <td class="strong">{{ r.delta_a_minus_b|num(2, true) }}</td>
         <td>{% if r.ci %}{{ r.ci.low|num(2) }} bis {{ r.ci.high|num(2) }}{% else %}–{% endif %}</td>
         <td class="left {{ 'pos' if r.assessment == 'wahrscheinlich_besser' else ('neg' if r.assessment == 'wahrscheinlich_schlechter' else 'muted') }}">{{ labels.get(r.assessment, r.assessment) }}
           {% for w in r.warnings %}<br><span class="muted">{{ w.split(':')[0] }}</span>{% endfor %}</td></tr>

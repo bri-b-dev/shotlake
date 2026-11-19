@@ -1,8 +1,10 @@
 {% extends "base.html" %}
 {% block title %}Passwort festlegen · Shotlake{% endblock %}
+{% block bodyclass %}auth{% endblock %}
 {% block content %}
-<h1>Passwort festlegen</h1>
-<section class="card" style="max-width:26rem">
+<section class="auth-box">
+  <img src="/static/logo.svg" alt="" width="72" height="72">
+  <h1>Passwort festlegen</h1>
   <p class="muted">Erster Start: Lege ein Passwort für die Oberfläche fest (mindestens {{ min_length }} Zeichen). Damit sind Zugangsdaten und Syncs geschützt.</p>
   {% if error %}<p class="neg" role="alert">{{ error }}</p>{% endif %}
   <form method="post" action="/setup" class="inputs">

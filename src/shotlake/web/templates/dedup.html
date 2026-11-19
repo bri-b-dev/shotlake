@@ -1,21 +1,21 @@
 {% extends "base.html" %}
 {% block title %}Dubletten · Shotlake{% endblock %}
 {% block content %}
-<h1>Dubletten: dieselbe Runde in mehreren Quellen</h1>
+<h1>Dubletten</h1>
 {% if msg %}<p class="notice" role="status">{{ msg }}</p>{% endif %}
-<p class="muted">Der Abgleich prüft Club (Name/Alias oder Koordinaten), Startzeit (höchstens {{ cfg.max_minutes|int }} Minuten Abstand), Lochzahl und Score.
+<p class="muted lead">Dieselbe Runde in mehreren Quellen. Der Abgleich prüft Club (Name/Alias oder Koordinaten), Startzeit (höchstens {{ cfg.max_minutes|int }} Minuten Abstand), Lochzahl und Score.
   Automatisch verknüpft wird nur bei eindeutigem Treffer mit gleicher Lochzahl und gleichem Score; alles andere ist ein Vorschlag.
   Deine Entscheidungen bleiben bei jedem neuen Abgleich bestehen. Alle Rohwerte bleiben erhalten, Auswertungen nutzen die führende Quelle.</p>
-<form method="post" action="{{ link(request, '/dedup/run') }}" style="margin-bottom:12px">
+<form method="post" action="{{ link(request, '/dedup/run') }}" class="actionbar">
   <button class="primary" type="submit">Abgleich neu berechnen</button>
   <span class="muted">{{ n_rounds }} Runden, davon {{ n_unlinked }} ohne Verknüpfung.</span>
 </form>
 
-<div class="grid">
-  <section class="card wide" aria-labelledby="h-prop">
+<div>
+  <section class="band" aria-labelledby="h-prop">
     <h2 id="h-prop">Vorschläge ({{ proposals|length }})</h2>
     {% if proposals %}
-    <form method="post" action="{{ link(request, '/dedup/accept-all') }}" style="margin-bottom:8px">
+    <form method="post" action="{{ link(request, '/dedup/accept-all') }}" class="actionbar">
       <button type="submit">Alle Vorschläge bestätigen</button>
     </form>
     <div class="scroll"><table>
@@ -28,15 +28,15 @@
             <td>{{ m.minutes_apart|num(0) }} min</td>
             <td class="left muted">{{ m.confidence }}: {{ {'score_weicht_ab': 'Score weicht ab', 'lochzahl_weicht_ab': 'Lochzahl weicht ab', 'mehrdeutig': 'mehrere Kandidaten', 'score_unbekannt': 'Score fehlt'}.get(m.rule, m.rule) }}</td>
             <td class="left">
-              <form method="post" action="{{ link(request, '/dedup/confirm') }}" style="display:inline"><input type="hidden" name="a" value="{{ m.a.round_id }}"><input type="hidden" name="b" value="{{ m.b.round_id }}"><button type="submit">gleiche Runde</button></form>
-              <form method="post" action="{{ link(request, '/dedup/reject') }}" style="display:inline"><input type="hidden" name="a" value="{{ m.a.round_id }}"><input type="hidden" name="b" value="{{ m.b.round_id }}"><button type="submit">verschieden</button></form>
+              <form method="post" action="{{ link(request, '/dedup/confirm') }}" class="inline"><input type="hidden" name="a" value="{{ m.a.round_id }}"><input type="hidden" name="b" value="{{ m.b.round_id }}"><button class="primary" type="submit">gleiche Runde</button></form>
+              <form method="post" action="{{ link(request, '/dedup/reject') }}" class="inline"><input type="hidden" name="a" value="{{ m.a.round_id }}"><input type="hidden" name="b" value="{{ m.b.round_id }}"><button type="submit">verschieden</button></form>
             </td></tr>
       {% endfor %}
       </tbody></table></div>
     {% else %}<p class="muted">Keine offenen Vorschläge.</p>{% endif %}
   </section>
 
-  <section class="card wide" aria-labelledby="h-grp">
+  <section class="band" aria-labelledby="h-grp">
     <h2 id="h-grp">Verknüpfte Runden ({{ groups|length }})</h2>
     {% if groups %}
     <div class="scroll"><table>
@@ -47,13 +47,14 @@
             <td class="left">{% for f in g %}<a href="{{ link(request, '/rounds/' ~ (f.round_id|urlq)) }}">{{ f.source }}</a> ({{ f.gross if f.gross is not none else '–' }}){{ ', ' if not loop.last }}{% endfor %}</td>
             <td class="left muted">Score {{ lead.score }}, Schläge {{ lead.shots }}</td>
             <td class="left">{% for f in g[1:] %}
-              <form method="post" action="{{ link(request, '/dedup/reject') }}" style="display:inline"><input type="hidden" name="a" value="{{ g[0].round_id }}"><input type="hidden" name="b" value="{{ f.round_id }}"><button type="submit" title="{{ g[0].source }} und {{ f.source }} trennen">{{ f.source }} trennen</button></form>{% endfor %}</td></tr>
+              <form method="post" action="{{ link(request, '/dedup/reject') }}" class="inline"><input type="hidden" name="a" value="{{ g[0].round_id }}"><input type="hidden" name="b" value="{{ f.round_id }}"><button type="submit" title="{{ g[0].source }} und {{ f.source }} trennen">{{ f.source }} trennen</button></form>{% endfor %}</td></tr>
       {% endfor %}
       </tbody></table></div>
     {% else %}<p class="muted">Noch keine verknüpften Runden.</p>{% endif %}
   </section>
 
-  <section class="card" aria-labelledby="h-man">
+  <div class="cols">
+<section class="band" aria-labelledby="h-man">
     <h2 id="h-man">Runden von Hand zusammenführen</h2>
     <form class="inputs" method="post" action="{{ link(request, '/dedup/confirm') }}">
       <label>Runde A <select name="a">{% for r in round_choices %}<option value="{{ r[0] }}">{{ r[2].strftime('%d.%m.%Y') }} {{ r[1] }} ({{ r[3] }} L, {{ r[4] if r[4] is not none else '–' }})</option>{% endfor %}</select></label>
@@ -63,12 +64,13 @@
     <p class="muted">Gilt auch, wenn die Regeln nicht passen (z. B. Startzeiten weit auseinander). Zwei Runden derselben Quelle lassen sich nicht zusammenlegen.</p>
   </section>
 
-  <section class="card" aria-labelledby="h-rej">
+  <section class="band" aria-labelledby="h-rej">
     <h2 id="h-rej">Als verschieden festgelegt ({{ rejected|length }})</h2>
     {% for m in rejected %}
       <p class="muted">{{ m.a.start.strftime('%d.%m.%Y') }}: {{ m.a.source }} ({{ m.a.gross if m.a.gross is not none else '–' }}) ≠ {{ m.b.source }} ({{ m.b.gross if m.b.gross is not none else '–' }})
-        <form method="post" action="{{ link(request, '/dedup/confirm') }}" style="display:inline"><input type="hidden" name="a" value="{{ m.a.round_id }}"><input type="hidden" name="b" value="{{ m.b.round_id }}"><button type="submit">doch dieselbe Runde</button></form></p>
+        <form method="post" action="{{ link(request, '/dedup/confirm') }}" class="inline"><input type="hidden" name="a" value="{{ m.a.round_id }}"><input type="hidden" name="b" value="{{ m.b.round_id }}"><button type="submit">doch dieselbe Runde</button></form></p>
     {% else %}<p class="muted">Keine.</p>{% endfor %}
   </section>
+</div>
 </div>
 {% endblock %}

@@ -11,7 +11,7 @@
   try { var t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
 </script>
 </head>
-<body>
+<body class="{% block bodyclass %}{% endblock %}">
 <header><div class="bar">
   <a class="brand" href="{{ link(request, '/') }}" aria-label="Shotlake, Übersicht"><img src="/static/logo.svg" alt="" width="30" height="30"><span>Shot<b>lake</b></span></a>
   <nav aria-label="Hauptnavigation">

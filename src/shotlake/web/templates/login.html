@@ -1,8 +1,10 @@
 {% extends "base.html" %}
 {% block title %}Anmelden · Shotlake{% endblock %}
+{% block bodyclass %}auth{% endblock %}
 {% block content %}
-<h1>Anmelden</h1>
-<section class="card" style="max-width:26rem">
+<section class="auth-box">
+  <img src="/static/logo.svg" alt="" width="72" height="72">
+  <h1>Anmelden</h1>
   {% if error %}<p class="neg" role="alert">{{ error }}</p>{% endif %}
   <form method="post" action="/login" class="inputs">
     <input type="hidden" name="next" value="{{ next }}">

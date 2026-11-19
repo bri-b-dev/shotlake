@@ -1,7 +1,8 @@
 """Sicherung und Wiederherstellung des Datenverzeichnisses.
 
 Archiv: `tar.gz` mit `manifest.json` als erstem Eintrag, dann
-- `db/shotlake.duckdb`: konsistenter Schnappschuss (`COPY FROM DATABASE`),
+- `db/shotlake.duckdb`: konsistenter Schnappschuss (`COPY FROM DATABASE`) im Format von DuckDB 1.0,
+  damit sich Sicherungen zwischen DuckDB-Versionen (zum Beispiel Mac und NAS) einspielen lassen,
 - `raw/` (Rohdaten, Quelle der Wahrheit für `reprocess`) und `inbox/` (hochgeladene Dateien),
 - `secrets.enc` (verschlüsselte Zugangsdaten, nur wenn vorhanden).
 Nie im Archiv: `secret.key` (Schlüssel), `auth.json` (Passwort der Oberfläche), `garmin/` (Token),
@@ -50,6 +51,7 @@ CHUNK = 1024 * 1024
 MAX_TOTAL_BYTES = 8 * 1024**3  # Obergrenze gegen entpackte Riesen-Archive
 MAX_MEMBERS = 200_000
 KEEP_SAFETY = 5
+COMPAT_STORAGE = "v1.0.0"  # Dateiformat des Schnappschusses (lesbar ab DuckDB 1.0)
 REQUIRED_TABLES = ("round", "course_shot", "shot", "session", "raw_object", "import_run")
 _MEMBER = re.compile(
     r"manifest\.json|db/shotlake\.duckdb|secrets\.enc|(?:raw|inbox)/[^/\x00\n][^\x00\n]*"
@@ -142,7 +144,15 @@ def _snapshot_db(db: Path, target: Path) -> dict[str, int]:
     con = duckdb.connect(":memory:")
     try:
         con.execute(f"ATTACH '{_sql_path(db)}' AS src (READ_ONLY)")
-        con.execute(f"ATTACH '{_sql_path(target)}' AS snap")
+        try:  # altes, überall lesbares Dateiformat: Sicherungen gehen zwischen DuckDB-Versionen
+            con.execute(
+                f"ATTACH '{_sql_path(target)}' AS snap (STORAGE_VERSION '{COMPAT_STORAGE}')"
+            )
+        except (
+            duckdb.Error
+        ):  # ältere DuckDB-Version ohne diese Option schreibt ohnehin das alte Format
+            target.unlink(missing_ok=True)
+            con.execute(f"ATTACH '{_sql_path(target)}' AS snap")
         con.execute("COPY FROM DATABASE src TO snap")
         tables = [
             r[0]

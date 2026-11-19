@@ -364,3 +364,21 @@ def test_analyses_are_identical_after_restore_on_empty_instance(tmp_path: Path) 
     con.close()
     assert after_scores == before_scores and after_clubs == before_clubs
     assert (fresh / "raw" / "trackman").is_dir() and any((fresh / "raw" / "trackman").iterdir())
+
+
+def test_snapshot_uses_the_portable_storage_format(tmp_path: Path) -> None:
+    """Der Schnappschuss hat die Dateiversion von DuckDB 1.0 (64), nicht die der laufenden Version.
+
+    DuckDB 2.x schreibt sonst ein Format (Version 999), das DuckDB 1.x nicht öffnen kann.
+    """
+    import struct
+    import tarfile
+
+    archive = tmp_path / "b.tar.gz"
+    create_backup(make_data(tmp_path / "data"), archive)
+    with tarfile.open(archive, "r:gz") as tar:
+        member = tar.extractfile("db/shotlake.duckdb")
+        assert member is not None
+        header = member.read(32)
+    assert header[8:12] == b"DUCK"
+    assert struct.unpack("<Q", header[12:20])[0] == 64

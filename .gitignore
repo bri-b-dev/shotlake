@@ -20,3 +20,6 @@ __pycache__/
 
 # Anonymisierte Test-Fixtures sind gewollt (globales *.csv-Ignore übersteuern)
 !tests/fixtures/**/*.csv
+
+# macOS
+.DS_Store

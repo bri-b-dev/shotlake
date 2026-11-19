@@ -38,7 +38,7 @@ from ..service import (
 )
 from ..workspace import Workspace
 from .auth import install_auth
-from .charts import Marker, bars_svg, scatter_svg, trend_svg
+from .charts import Marker, bars_svg, reach_svg, scatter_svg, trend_svg
 from .sync import install_settings
 
 HERE = Path(__file__).parent
@@ -361,6 +361,12 @@ def create_app(
             if club not in scatter_clubs:
                 club = scatter_clubs[0] if scatter_clubs else None
             factor = M_TO_YD if unit_of(request) == "yd" else 1.0
+            course = club_distances(
+                con,
+                min_n=5,
+                source=source,
+                exclude_rounds=None if source else scope.exclude("shots"),
+            )
             plots = [
                 (g, scatter_svg(g, factor, unit_of(request)))
                 for g in (
@@ -377,11 +383,22 @@ def create_app(
                 plots=plots,
                 source=source,
                 sources=round_sources(con),
-                course=club_distances(
-                    con,
-                    min_n=5,
-                    source=source,
-                    exclude_rounds=None if source else scope.exclude("shots"),
+                course=course,
+                reach=reach_svg(
+                    [
+                        (
+                            c.club,
+                            c.p10_m or 0.0,
+                            c.median_m or 0.0,
+                            c.p90_m or 0.0,
+                            c.n,
+                            c.warning is None,
+                        )
+                        for c in sorted(course, key=lambda c: club_sort_key(c.club))
+                        if c.club != "putter" and None not in (c.p10_m, c.median_m, c.p90_m)
+                    ],
+                    factor,
+                    unit_of(request),
                 ),
                 range_stats=club_stats(con, min_n=10, min_speed_ratio=DEFAULT_MIN_SPEED_RATIO),
             )

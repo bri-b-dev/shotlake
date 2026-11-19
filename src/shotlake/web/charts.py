@@ -122,6 +122,52 @@ def bars_svg(items: list[tuple[str, float]], unit: str = "") -> str:
     return "".join(out)
 
 
+def reach_svg(
+    items: list[tuple[str, float, float, float, int, bool]], factor: float = 1.0, unit: str = "m"
+) -> str:
+    """Distanzbereich je Schläger: Balken P10 bis P90, Strich = Median (Reihenfolge wie im Bag).
+
+    Eintrag: (Schläger, P10, Median, P90, n, belastbar); Werte in Metern, `factor` rechnet um.
+    """
+    if not items:
+        return ""
+    row_h, label_w, width, right_pad = 30, 120, 640, 46
+    top = max(p90 for _, _, _, p90, _, _ in items) * factor
+    step = 50 if top > 150 else 25
+    hi = math.ceil(top / step) * step
+    scale = (width - label_w - right_pad) / hi
+    height = row_h * len(items) + 30
+    out = [
+        f'<svg class="chart reach" viewBox="0 0 {width} {height}" role="img" '
+        f'aria-label="Distanzbereich je Schläger (P10 bis P90, Median als Strich)">'
+    ]
+    for t in range(0, int(hi) + 1, step):
+        gx = label_w + t * scale
+        out.append(
+            f'<line class="grid" x1="{gx:.1f}" x2="{gx:.1f}" y1="0" y2="{height - 22}"/>'
+            f'<text class="axis" x="{gx:.1f}" y="{height - 6}" text-anchor="middle">{t}</text>'
+        )
+    out.append(
+        f'<text class="axis" x="{width - 2}" y="{height - 6}" text-anchor="end">{unit}</text>'
+    )
+    for i, (label, p10, med, p90, n, ok) in enumerate(items):
+        yy = 4 + i * row_h
+        a, m, b = (label_w + v * factor * scale for v in (p10, med, p90))
+        title = escape(f"{label}: Median {med * factor:.0f} {unit}, P10 {p10 * factor:.0f}, "
+                       f"P90 {p90 * factor:.0f}, n = {n}")  # fmt: skip
+        out.append(
+            f'<g class="{"" if ok else "thin"}"><title>{title}</title>'
+            f'<text class="axis" x="{label_w - 8}" y="{yy + 17}" text-anchor="end">'
+            f"{escape(label)}</text>"
+            f'<rect class="reach-bar" x="{a:.1f}" y="{yy + 5}" width="{max(b - a, 2):.1f}" '
+            f'height="16" rx="3"/>'
+            f'<line class="med" x1="{m:.1f}" x2="{m:.1f}" y1="{yy + 2}" y2="{yy + 24}"/>'
+            f'<text class="val" x="{b + 6:.1f}" y="{yy + 17}">{med * factor:.0f}</text></g>'
+        )
+    out.append("</svg>")
+    return "".join(out)
+
+
 def scatter_svg(group: ScatterGroup, factor: float = 1.0, unit: str = "m") -> str:
     """Streuung: links/rechts waagerecht, Carry senkrecht, gleicher Maßstab, 95-%-Ellipse."""
     pts = [(x * factor, y * factor) for x, y in group.points]

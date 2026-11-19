@@ -127,3 +127,8 @@ td.strong { font-weight: 650; }
 td.left.muted { white-space: normal; min-width: 7rem; }
 details > summary { cursor: pointer; font-weight: 650; padding: .2rem 0; }
 details[open] > summary { margin-bottom: .6rem; }
+.chart.reach text { font-size: 13px; }
+.chart .reach-bar { fill: var(--accent); fill-opacity: .3; stroke: var(--accent); stroke-width: 1; }
+.chart .med { stroke: var(--fg); stroke-width: 3; stroke-linecap: round; }
+.chart .thin { opacity: .45; }
+.chart .val { fill: var(--fg); }

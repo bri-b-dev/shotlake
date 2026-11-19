@@ -2,11 +2,12 @@
 {% block title %}Schläger · Shotlake{% endblock %}
 {% block content %}
 <h1>Schläger</h1>
-<div class="grid">
-  <section class="card wide" aria-labelledby="h-course">
+<div>
+  <section class="band" aria-labelledby="h-course">
     <h2 id="h-course">Auf dem Platz – Schlagdistanz</h2>
     {% set path = '/clubs' %}{% set allow_all = True %}
     {% include "_chips.html" %}
+    {% if reach %}{{ reach|safe }}<p class="facts"><span>Balken: P10 bis P90 der Schlagdistanz</span><span>Strich: Median</span><span>blass: weniger als 5 Schläge</span></p>{% endif %}
     <div class="scroll"><table>
       <thead><tr><th>Schläger</th><th>n</th><th>Median ({{ unit }})</th><th>P10</th><th>P90</th><th>Max</th><th class="left">Hinweis</th></tr></thead>
       <tbody>
@@ -21,7 +22,7 @@
     <p class="muted">GPS-Strecke von Start bis Ende inkl. Rollen, <strong>kein Carry</strong>; mit Range-Werten nicht vergleichbar. Putts sind ausgeschlossen. {{ 'Quelle ' ~ source if source else 'Alle Quellen, dedupliziert (führende Quelle für Schläge).' }}</p>
   </section>
 
-  <section class="card wide" aria-labelledby="h-range">
+  <section class="band" aria-labelledby="h-range">
     <h2 id="h-range">Range – Carry und Streuung</h2>
     <div class="scroll"><table>
       <thead><tr><th>Schläger</th><th>Quelle</th><th>Methode</th><th>n</th><th>Carry-Median ({{ unit }})</th><th>P10</th><th>P90</th><th>Seitenversatz Ø</th><th class="left">Hinweis</th></tr></thead>
@@ -38,7 +39,7 @@
     <p class="muted">Je Quelle und Messmethode getrennt, da Radar-Systeme systematisch unterschiedlich messen. Seitenversatz: rechts positiv. Ausreißer sind markiert und ausgeschlossen; Teilschläge (Ballgeschwindigkeit unter 70 % des Schläger-Medians je Methode) zählen nicht mit.</p>
   </section>
 
-  <section class="card wide" aria-labelledby="h-scatter">
+  <section class="band" aria-labelledby="h-scatter">
     <h2 id="h-scatter">Streuung</h2>
     <div class="chips" role="group" aria-label="Schläger">
       {% for c in scatter_clubs %}

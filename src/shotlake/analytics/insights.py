@@ -56,6 +56,7 @@ class Insight:
     n: int | None
     source: str | None
     links: dict[str, Any] = field(default_factory=dict)
+    headline: str = ""  # Kurzfassung für die Oberfläche; Zahlen stehen in effect/ci/n/source
 
 
 def _de(value: float, digits: int = 1) -> str:
@@ -117,6 +118,9 @@ def sg_insights(
                 "erfasst, deshalb gibt es dazu keine Hinweise.",
                 coverage, "Anteil", None, total, source,
                 {"tool": "get_strokes_gained", "args": _args(source)},
+                f"Strokes Gained ist nur eingeschränkt belastbar: {coverage:.0%} der Löcher "
+                f"({res.complete_holes} von {total}) sind vollständig erfasst, deshalb gibt es "
+                "dazu keine Hinweise.",
             )
         ]  # fmt: skip
     out: list[Insight] = []
@@ -152,6 +156,8 @@ def sg_insights(
                     len(values),
                     source,
                     link,
+                    f"{name} {'kosten' if plural else 'kostet'} ca. {_de(-per18)} Schläge pro "
+                    "18 Löcher.",
                 )
             )
         elif status == "belegt":
@@ -173,6 +179,8 @@ def sg_insights(
                     len(values),
                     source,
                     link,
+                    f"{name} {'bringen' if plural else 'bringt'} ca. {_de(per18)} Schläge pro "
+                    "18 Löcher.",
                 )
             )
     return out
@@ -218,6 +226,8 @@ def trend_insights(
             delta18, "Schläge/18 Löcher", ci18, len(recent) + len(before), source,
             {"tool": "compare_periods",
              "args": _args(source, metrics=[metric], a={"window": len(recent)})},
+            f"{label} sind in den letzten {len(recent)} Runden wahrscheinlich {direction} "
+            f"als in den {len(before)} davor.",
         ))  # fmt: skip
     return out
 
@@ -257,6 +267,7 @@ def bias_insights(con: duckdb.DuckDBPyConnection) -> list[Insight]:
             (50 if status == "belegt" else 8) + abs(mean), text, mean, "m (rechts positiv)", ci,
             len(values), source,
             {"tool": "get_club_gapping", "args": {"source": source}},
+            f"{club}: Treffer landen im Mittel {_de(abs(mean))} m {side} der Ziellinie.",
         ))  # fmt: skip
     return out
 
@@ -300,6 +311,7 @@ def gap_insights(con: duckdb.DuckDBPyConnection) -> list[Insight]:
             f"gap:{g.longer_club}:{g.shorter_club}:{g.source}:{g.method}", "gap", status,
             40 if status == "belegt" else 6, text, g.gap_m, "m", ci, min(len(a), len(b)),
             g.source, {"tool": "get_club_gapping", "args": {"source": g.source}},
+            f"{g.longer_club} und {g.shorter_club} {what}.",
         ))  # fmt: skip
     return out
 

@@ -17,11 +17,15 @@
       <div class="insight-num muted">{% if i.effect is not none %}{{ '%.0f'|format(i.effect * 100) }} %{% else %}–{% endif %}<small>{{ i.unit or '' }}</small></div>
     {% endif %}
     <div class="insight-body">
-      <p>{{ i.text }}</p>
+      <p>{{ i.headline or i.text }}</p>
       {% if strips.get(i.id) %}{{ strips[i.id]|safe }}{% endif %}
+      {% if i.headline %}<p class="detail muted">
+        {% if i.ci %}95-%-Intervall {% set lo, hi = ([i.ci.low, i.ci.high]|sort) %}{{ ('%.1f'|format(lo))|replace('.', ',')|replace('-', '−') }} bis {{ ('%.1f'|format(hi))|replace('.', ',')|replace('-', '−') }}{% if i.n %}, {% endif %}{% endif %}{% if i.n %}n = {{ i.n }}{% endif %}
+        · {{ i.source or 'alle Quellen, dedupliziert' }}{% if i.kind in ('sg_loss', 'sg_strength', 'trend') %} · Baseline {{ baseline.id }}{% endif %}
+        {% if i.status == 'unsicher' %}· unsicher: das Intervall schließt 0 ein{% endif %}</p>{% endif %}
       <p class="facts">
         <span>{{ kind }}</span>
-        <span class="{{ 'pos' if i.status == 'belegt' else '' }}">{{ i.status }}{% if i.n %}, n = {{ i.n }}{% endif %}</span>
+        <span class="{{ 'pos' if i.status == 'belegt' else '' }}">{{ i.status }}</span>
         {% if i.kind in ('sg_loss', 'sg_strength', 'trend') %}<a href="{{ link(request, '/rounds', source=i.source) }}">Runden{% if i.source %} ({{ i.source }}){% endif %}</a>{% endif %}
         {% if i.kind in ('club_bias', 'gap') %}<a href="{{ link(request, '/clubs', source=i.source) }}">Schläger</a>{% endif %}
         <span>Nachprüfen per MCP: <code>{{ i.links.get('tool', '') }}</code></span>

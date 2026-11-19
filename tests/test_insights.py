@@ -281,3 +281,12 @@ def test_web_insights_page(ws: Workspace):
     assert "Nachprüfen per MCP" in html and "Hinweise" in html
     assert "Keine belegten Hinweise" in client.get("/insights?source=garmin_platform").text
     assert client.get("/insights?uncertain=1").status_code == 200
+
+
+def test_headline_is_short_and_text_stays_complete(con):
+    """Die Oberfläche zeigt `headline`; CLI und MCP behalten den vollständigen `text`."""
+    seed_many(con, 8, putts_by_round=[3] * 8)
+    putting = next(i for i in _sg(con) if i.id == "sg_loss:putting:arccos")
+    assert putting.headline == "Putten kostet ca. 18,9 Schläge pro 18 Löcher."
+    assert "Intervall" not in putting.headline and "n =" not in putting.headline
+    assert "Intervall" in putting.text and "n = 8 Runden" in putting.text

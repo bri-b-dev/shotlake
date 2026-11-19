@@ -191,3 +191,4 @@ body.auth header { border-bottom: 0; }
 .auth-box button[type=submit] { background: var(--accent); color: var(--bg); border-color: var(--accent);
   cursor: pointer; }
 .auth-box form.inputs { grid-template-columns: 1fr; }
+.insight-body .detail { font-size: .85rem; margin: .2rem 0 .5rem; }

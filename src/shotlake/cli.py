@@ -569,6 +569,8 @@ def main(argv: list[str] | None = None) -> int:
         return _backup_command(args, data)
     if args.cmd == "export":
         return _export_command(args, data)
+    if args.cmd == "serve":  # Fortschritt sofort sichtbar machen (Container-Log), auch bei Hängern
+        print(f"Shotlake startet, Datenverzeichnis {data}", flush=True)
     use_store(data)  # im Frontend gepflegte Zugangsdaten für Syncs bereitstellen
     con = open_db(data / "shotlake.duckdb")
     try:
@@ -668,7 +670,9 @@ def main(argv: list[str] | None = None) -> int:
 
             from .web.app import create_app
 
+            print("Datenbank geöffnet, baue die Oberfläche auf", flush=True)
             app = create_app(data, args.club_map, resolve_baseline_path(args.baseline_path))
+            print(f"Oberfläche bereit, lausche auf {args.host}:{args.port}", flush=True)
             uvicorn.run(app, host=args.host, port=args.port, log_level="info")
             return 0
         if args.cmd == "arccos-check":

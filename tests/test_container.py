@@ -75,6 +75,8 @@ def test_entrypoint_seeds_config_without_overwriting() -> None:
     script = REPO / "docker" / "entrypoint.sh"
     body = script.read_text()
     assert '[ -e "$target" ] ||' in body and body.rstrip().endswith('exec "$@"')
+    assert 'echo "shotlake:' in body  # Start ist im Container-Log sichtbar
+    assert "PYTHONFAULTHANDLER=1" in text("Dockerfile")  # harte Abstürze nennen die Ursache
     assert script.stat().st_mode & stat.S_IXUSR
 
 

@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{% block title %}Shotlake{% endblock %}</title>
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="/static/fonts/space-grotesk-700.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/static/style.css">
 <script>
   try { var t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
@@ -11,7 +13,7 @@
 </head>
 <body>
 <header><div class="bar">
-  <a class="brand" href="{{ link(request, '/') }}">Shotlake</a>
+  <a class="brand" href="{{ link(request, '/') }}" aria-label="Shotlake, Übersicht"><img src="/static/logo.svg" alt="" width="30" height="30"><span>Shot<b>lake</b></span></a>
   <nav aria-label="Hauptnavigation">
     {% set here = request.url.path %}
     <span class="navgroup">

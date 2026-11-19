@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Shotlake">
+  <defs><clipPath id="r"><rect width="64" height="64" rx="14"/></clipPath></defs>
+  <g clip-path="url(#r)">
+    <rect width="64" height="64" fill="#103A45"/>
+    <rect y="38" width="64" height="26" fill="#14606B"/>
+    <ellipse cx="36" cy="46" rx="22" ry="6.4" fill="none" stroke="#8FE0D4" stroke-opacity=".45" stroke-width="2"/>
+    <ellipse cx="36" cy="46" rx="14" ry="4.2" fill="none" stroke="#8FE0D4" stroke-opacity=".9" stroke-width="2.4"/>
+  </g>
+  <path d="M11.5 37.5C14 28 18 21 23 21c6 0 10 11 13 25" fill="none" stroke="#fff" stroke-width="4.6" stroke-linecap="round"/>
+  <circle cx="36" cy="46" r="4.6" fill="#C9F04A"/>
+</svg>

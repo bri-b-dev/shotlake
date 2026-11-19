@@ -131,7 +131,7 @@ def reach_svg(
     """
     if not items:
         return ""
-    row_h, label_w, width, right_pad = 30, 120, 640, 46
+    row_h, label_w, width, right_pad = 30, 150, 680, 46
     top = max(p90 for _, _, _, p90, _, _ in items) * factor
     step = 50 if top > 150 else 25
     hi = math.ceil(top / step) * step

@@ -192,3 +192,22 @@ body.auth header { border-bottom: 0; }
   cursor: pointer; }
 .auth-box form.inputs { grid-template-columns: 1fr; }
 .insight-body .detail { font-size: .85rem; margin: .2rem 0 .5rem; }
+/* Handy: kompakte Kopfzeile (Navigation als eine verschiebbare Zeile), lesbare Diagramme */
+@media (max-width: 640px) {
+  .bar { flex-wrap: wrap; gap: .3rem .8rem; padding: .5rem 12px; }
+  .brand { order: 1; margin-right: auto; }
+  .tools { order: 2; }
+  nav { order: 3; flex-basis: 100%; flex-wrap: nowrap; overflow-x: auto; gap: 0; margin: 0 -12px;
+    padding: 0 12px .2rem; scrollbar-width: none; }
+  nav::-webkit-scrollbar { display: none; }
+  .navgroup { flex-wrap: nowrap; flex: none; }
+  .navgroup + .navgroup { border-left: 1px solid var(--line); padding-left: .3rem; margin-left: .3rem; }
+  nav a { white-space: nowrap; }
+  .chart.trend .axis { font-size: 18px; }
+  .chart.trend circle { r: 7px; }
+  .chart.trend .dot { stroke-width: 3.5; }
+  .chart.trend .avg { stroke-width: 5; }
+  .chart.reach text, .chart.bars text { font-size: 19px; }
+  form.inputs { grid-template-columns: 1fr; }
+  input, select, button { min-height: 2.5rem; }
+}

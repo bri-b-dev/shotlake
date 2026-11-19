@@ -48,7 +48,7 @@ def trend_svg(points: list[TrendPoint], window: int, markers: list[Marker] | Non
         return _scale(lo, hi, H - PAD_B, PAD_T, v)
 
     parts = [
-        f'<svg class="chart" viewBox="0 0 {W} {H}" role="img" '
+        f'<svg class="chart trend" viewBox="0 0 {W} {H}" role="img" '
         f'aria-label="Score Differential mit gleitendem Durchschnitt über {window} Runden">'
     ]
     for i in range(5):  # Hilfslinien mit Beschriftung

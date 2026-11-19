@@ -2,6 +2,7 @@
 
 import math
 import random
+import re
 from collections.abc import Sequence
 from pathlib import Path
 
@@ -91,3 +92,43 @@ def test_clubs_page_shows_scatter(tmp_path: Path) -> None:
     html = TestClient(app).get("/clubs?club=iron_7").text
     assert "Streuung" in html and 'class="chart scatter"' in html and "12 Schläge" in html
     assert TestClient(app).get("/clubs?club=nonsense").status_code == 200
+
+
+def test_scatter_axes_are_labelled_with_numbers_and_unit(tmp_path: Path) -> None:
+    con = open_db(tmp_path / "t.duckdb")
+    insert_shots(con, [("mevo", "radar", float(i % 9) - 4.0, 100.0 + i, None) for i in range(12)])
+    (group,) = scatter_groups(con, "iron_7")
+    svg = scatter_svg(group, 1.0, "m")
+    assert "seitlich (m)" in svg and "Länge (m)" in svg  # Einheit an beiden Achsen
+    assert "&#8592; links" in svg and "rechts &#8594;" in svg
+    ticks = re.findall(
+        r'class="axis" x="[\d.]+" y="3[0-9.]+" text-anchor="middle">([\d.]+)</text>', svg
+    )
+    side = [t for t in ticks if t != "0"]
+    assert ticks.count("0") == 1 and side  # Mitte einmal, Marken beidseits davon
+    assert all(side.count(t) == 2 for t in side)  # jede Marke links und rechts
+    yd = scatter_svg(group, 1.0936, "yd")
+    assert "seitlich (yd)" in yd and "Länge (yd)" in yd
+
+
+def test_every_point_has_a_large_hit_area_with_length_and_side_tooltip(tmp_path: Path) -> None:
+    con = open_db(tmp_path / "t.duckdb")
+    sides = [-3.5, 2.0] + [0.0] * 10
+    insert_shots(con, [("mevo", "radar", side, 120.0 + i, None) for i, side in enumerate(sides)])
+    (group,) = scatter_groups(con, "iron_7")
+    svg = scatter_svg(group, 1.0, "m")
+    assert svg.count('class="pt-hit"') == svg.count('class="pt"') == 12  # Trefferkreis je Punkt
+    assert 'r="9"' in svg and 'r="3"' in svg
+    assert "Länge 120 m, seitlich 3.5 m links" in svg
+    assert "Länge 121 m, seitlich 2.0 m rechts" in svg
+    assert "95-%-Ellipse: Mitte Länge" in svg and "Halbachsen" in svg
+    yd = scatter_svg(group, 1.0936, "yd")
+    assert "Länge 131 yd, seitlich 3.8 yd links" in yd  # 120 m und 3,5 m umgerechnet
+
+
+def test_scatter_points_do_not_reuse_the_trend_chart_dot_style(tmp_path: Path) -> None:
+    """`.dot` zeichnet im Differential-Diagramm einen Kreisrand; die Streuung erbt ihn nicht."""
+    con = open_db(tmp_path / "t.duckdb")
+    insert_shots(con, [("mevo", "radar", float(i % 5), 100.0 + i, None) for i in range(12)])
+    (group,) = scatter_groups(con, "iron_7")
+    assert 'class="dot"' not in scatter_svg(group, 1.0, "m")

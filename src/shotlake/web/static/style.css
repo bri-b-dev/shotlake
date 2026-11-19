@@ -225,3 +225,6 @@ form.inputs.stack { grid-template-columns: 1fr; }
 .band.narrow { max-width: 34rem; }
 .baseline-switch { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .8rem; margin: .4rem 0 1rem;
   font-size: .88rem; color: var(--muted); }
+.chart .pt-hit { fill: transparent; }
+.chart .pt-wrap:hover .pt { fill-opacity: 1; r: 5px; }
+.chart .grid.mid { stroke-width: 1.5; }

@@ -244,8 +244,20 @@ def ci_svg(effect: float, low: float, high: float, bound: float, good: bool | No
     )
 
 
+def _nice_step(span: float, max_ticks: int = 4) -> float:
+    """Schrittweite für Achsenmarken: kleinster 'runder' Wert mit höchstens `max_ticks` Marken."""
+    for step in (1, 2, 5, 10, 20, 25, 50, 100):
+        if span / step <= max_ticks:
+            return float(step)
+    return 100.0
+
+
 def scatter_svg(group: ScatterGroup, factor: float = 1.0, unit: str = "m") -> str:
-    """Streuung: links/rechts waagerecht, Carry senkrecht, gleicher Maßstab, 95-%-Ellipse."""
+    """Streuung: links/rechts waagerecht, Länge (Carry) senkrecht, gleicher Maßstab, 95-%-Ellipse.
+
+    Beide Achsen tragen Zahlen und Einheit; jeder Punkt hat einen Tooltip mit Länge und seitlicher
+    Abweichung (mit Richtung), die Ellipse einen mit Mittelpunkt und Halbachsen.
+    """
     pts = [(x * factor, y * factor) for x, y in group.points]
     ell = [(x * factor, y * factor) for x, y in group.ellipse.outline()] if group.ellipse else []
     every = pts + ell
@@ -253,7 +265,7 @@ def scatter_svg(group: ScatterGroup, factor: float = 1.0, unit: str = "m") -> st
     y_lo, y_hi = min(y for _, y in every), max(y for _, y in every)
     y_pad = max((y_hi - y_lo) * 0.08, 2.0 * factor)
     y_lo, y_hi = y_lo - y_pad, y_hi + y_pad
-    w, h, pl, pr, pt, pb = 420, 340, 44, 14, 12, 28
+    w, h, pl, pr, pt, pb = 420, 372, 52, 16, 26, 56
     scale = min((w - pl - pr) / (2 * half), (h - pt - pb) / (y_hi - y_lo))
     cx = pl + (w - pl - pr) / 2
 
@@ -263,33 +275,58 @@ def scatter_svg(group: ScatterGroup, factor: float = 1.0, unit: str = "m") -> st
     def sy(v: float) -> float:
         return h - pb - (v - y_lo) * scale
 
+    def side_text(value: float) -> str:
+        return f"{abs(value):.1f} {unit} {'rechts' if value >= 0 else 'links'}"
+
     out = [
         f'<svg class="chart scatter" viewBox="0 0 {w} {h}" role="img" '
         f'aria-label="Streuung {escape(group.club_type)} ({escape(group.source)}, '
         f'{escape(group.method)}), {len(pts)} Schläge">',
-        f'<line class="grid" x1="{cx:.1f}" x2="{cx:.1f}" y1="{pt}" y2="{h - pb}"/>',
+        f'<text class="axis" x="2" y="12" text-anchor="start">Länge ({unit})</text>',
     ]
-    step = 10 if (y_hi - y_lo) > 40 * factor else 5
-    v = math.ceil(y_lo / (step * factor)) * step * factor
-    while v <= y_hi:
+    y_step = 10 if (y_hi - y_lo) > 40 * factor else 5
+    v = math.ceil(y_lo / (y_step * factor)) * y_step * factor
+    while v <= y_hi:  # Längenachse
         out.append(
             f'<line class="grid" x1="{pl}" x2="{w - pr}" y1="{sy(v):.1f}" y2="{sy(v):.1f}"/>'
             f'<text class="axis" x="{pl - 6}" y="{sy(v) + 4:.1f}" text-anchor="end">{v:.0f}</text>'
         )
-        v += step * factor
+        v += y_step * factor
+    x_step = _nice_step(
+        half
+    )  # Seitenachse: Marken beidseits der Mitte, Beschriftung ohne Vorzeichen
+    k = 1
+    out.append(f'<line class="grid mid" x1="{cx:.1f}" x2="{cx:.1f}" y1="{pt}" y2="{h - pb}"/>')
+    while k * x_step <= half:
+        for sign in (-1, 1):
+            gx = sx(sign * k * x_step)
+            out.append(
+                f'<line class="grid" x1="{gx:.1f}" x2="{gx:.1f}" y1="{pt}" y2="{h - pb}"/>'
+                f'<text class="axis" x="{gx:.1f}" y="{h - pb + 16}" text-anchor="middle">'
+                f"{k * x_step:g}</text>"
+            )
+        k += 1
     out.append(
-        f'<text class="axis" x="{pl}" y="{h - 8}" text-anchor="start">links</text>'
-        f'<text class="axis" x="{w - pr}" y="{h - 8}" text-anchor="end">rechts</text>'
-        f'<text class="axis" x="{cx:.1f}" y="{h - 8}" text-anchor="middle">{unit}</text>'
+        f'<text class="axis" x="{cx:.1f}" y="{h - pb + 16}" text-anchor="middle">0</text>'
+        f'<text class="axis" x="{pl}" y="{h - 8}" text-anchor="start">&#8592; links</text>'
+        f'<text class="axis" x="{cx:.1f}" y="{h - 8}" text-anchor="middle">seitlich ({unit})</text>'
+        f'<text class="axis" x="{w - pr}" y="{h - 8}" text-anchor="end">rechts &#8594;</text>'
     )
-    if ell:
+    if group.ellipse and ell:
+        e = group.ellipse
+        title = escape(
+            f"95-%-Ellipse: Mitte Länge {e.cy * factor:.0f} {unit}, seitlich "
+            f"{side_text(e.cx * factor)}; Halbachsen {e.semi_major * factor:.0f} und "
+            f"{e.semi_minor * factor:.0f} {unit}"
+        )
         path = " ".join(f"{sx(x):.1f},{sy(y):.1f}" for x, y in ell)
-        out.append(f'<polygon class="ell" points="{path}"/>')
+        out.append(f'<polygon class="ell" points="{path}"><title>{title}</title></polygon>')
     for x, y in pts:
-        title = escape(f"Carry {y:.0f} {unit}, Seite {x:+.1f} {unit}")
+        title = escape(f"Länge {y:.0f} {unit}, seitlich {side_text(x)}")
         out.append(
-            f'<circle class="pt" cx="{sx(x):.1f}" cy="{sy(y):.1f}" r="3">'
-            f"<title>{title}</title></circle>"
+            f'<g class="pt-wrap"><circle class="pt" cx="{sx(x):.1f}" cy="{sy(y):.1f}" r="3"/>'
+            f'<circle class="pt-hit" cx="{sx(x):.1f}" cy="{sy(y):.1f}" r="9">'
+            f"<title>{title}</title></circle></g>"
         )
     out.append("</svg>")
     return "".join(out)

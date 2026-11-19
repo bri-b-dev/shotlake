@@ -151,3 +151,27 @@ details[open] > summary { margin-bottom: .6rem; }
 .chart .whisker.pos { stroke: var(--pos); } .chart .whisker.neg { stroke: var(--neg); }
 .chart .est.pos { fill: var(--pos); } .chart .est.neg { fill: var(--neg); }
 @media (max-width: 600px) { .insight { grid-template-columns: 1fr; } }
+/* Quellen: je Quelle ein Abschnitt mit Zahlen, Lauf-Status und Aktionen */
+.sources { display: grid; gap: 0; }
+.source { display: grid; grid-template-columns: 11.5rem 14rem 14.5rem minmax(0, 1fr);
+  gap: .6rem 1.6rem; align-items: center; border-top: 1px solid var(--line); padding: 1rem 0; }
+.source h2 { font: 700 1.15rem/1.2 var(--display); margin: 0; }
+.source-head .facts { margin: .2rem 0 0; }
+.counts { display: flex; gap: 1.4rem; margin: 0; }
+.counts dt { font-size: .78rem; color: var(--muted); }
+.counts dd { margin: 0; font: 700 1.25rem/1.2 var(--display); }
+.dot-state { font-size: .88rem; color: var(--muted); }
+.dot-state::before { content: ""; display: inline-block; width: .55rem; height: .55rem;
+  border-radius: 50%; background: var(--line); margin-right: .45rem; }
+.dot-state.ok::before { background: var(--pos); } .dot-state.bad::before { background: var(--neg); }
+.dot-state.run::before { background: var(--avg); }
+.source-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; justify-content: flex-end; }
+.source-actions form { display: flex; gap: .4rem; align-items: center; }
+.source-actions input[type=file] { max-width: 13rem; font-size: .8rem; }
+.source-note { grid-column: 1 / -1; margin: 0; white-space: pre-wrap; font: .85rem/1.45 var(--sans);
+  color: var(--muted); background: var(--card); border-radius: 6px; padding: .5rem .7rem; }
+button:disabled { opacity: .5; cursor: not-allowed; }
+h2.section { margin-top: 1.8rem; }
+.credgrid { display: grid; gap: 0 2.4rem; grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr)); }
+.credgrid .band h3 { font: 700 1.05rem var(--display); margin: 0 0 .6rem; }
+@media (max-width: 900px) { .source { grid-template-columns: 1fr; } .source-actions { justify-content: flex-start; } }

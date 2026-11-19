@@ -9,6 +9,7 @@ from pathlib import Path
 
 import duckdb
 
+from .backup import BackupError, Manifest, RestoreReport, create_backup, restore_backup
 from .baseline import Baseline, load_baseline
 from .config import sync_club_map
 from .connectors.api import ApiConnector
@@ -64,6 +65,26 @@ class Workspace:
     def scope(self, con: duckdb.DuckDBPyConnection) -> Scope:
         """Dedup-Sicht für Auswertungen ohne Quellenfilter."""
         return Scope.build(con, self.dedup_cfg)
+
+    def backup(self, target: Path, password: str | None = None) -> Manifest:
+        """Sicherung schreiben; hält Seiten und Syncs an, damit kein Schreiber dazwischenfunkt."""
+        if not self._sync_lock.acquire(blocking=False):
+            raise BackupError("Es läuft gerade ein Sync: später erneut versuchen")
+        try:
+            with self._lock:
+                return create_backup(self.data_dir, target, password=password)
+        finally:
+            self._sync_lock.release()
+
+    def restore(self, archive: Path, password: str | None = None) -> RestoreReport:
+        """Sicherung einspielen (ersetzt Datenbank, Rohdaten und Uploads)."""
+        if not self._sync_lock.acquire(blocking=False):
+            raise BackupError("Es läuft gerade ein Sync: später erneut versuchen")
+        try:
+            with self._lock:
+                return restore_backup(self.data_dir, archive, password=password)
+        finally:
+            self._sync_lock.release()
 
     @property
     def garmin_dir(self) -> Path:

@@ -36,6 +36,7 @@ OPEN_PATHS = ("/static/", "/login", "/setup")
 class AuthStore:
     def __init__(self, data_dir: Path) -> None:
         self.path = data_dir / "auth.json"
+        self.enabled = True  # install_auth setzt den tatsächlichen Zustand
 
     def _read(self) -> dict[str, str]:
         if not self.path.exists():
@@ -116,6 +117,7 @@ def install_auth(
     enabled: bool,
 ) -> AuthStore:
     store = AuthStore(data_dir)
+    store.enabled = enabled
     failures: list[float] = []
 
     if enabled:

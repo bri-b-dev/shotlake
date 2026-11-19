@@ -58,6 +58,55 @@
 </section>
 </div>
 
+<h2 class="section" id="sicherung">Sicherung</h2>
+<p class="muted lead">Die Sicherung enthält Datenbank (mit deinen Eingaben wie Notizen und Dubletten-Entscheidungen), Rohdaten und hochgeladene Dateien, dazu die verschlüsselte Zugangsdaten-Datei. <strong>Nie enthalten</strong> sind der Schlüssel, das Passwort der Oberfläche und das Garmin-Token. Lege Kopien an einem anderen Ort ab.</p>
+<div class="credgrid">
+  <section class="band" aria-labelledby="h-bk-down">
+    <h3 id="h-bk-down">Sicherung herunterladen</h3>
+    <form method="post" action="/settings/backup/download" class="inputs stack">
+      <label>Passwort für die Datei <span class="muted">(optional, verschlüsselt das Archiv)</span>
+        <input type="password" name="password" autocomplete="new-password" data-lpignore="true"></label>
+      <button class="primary" type="submit">Sicherung herunterladen</button>
+    </form>
+    <p class="muted">Ein Passwort kann nicht zurückgeholt werden. Ohne es lässt sich ein verschlüsseltes Archiv nicht einspielen.</p>
+  </section>
+  <section class="band" aria-labelledby="h-bk-key">
+    <h3 id="h-bk-key">Schlüssel sichern</h3>
+    {% if key_source == 'env' %}
+      <p class="muted">Der Schlüssel kommt aus der Umgebungsvariable <code>SHOTLAKE_SECRET_KEY</code>. Sichere ihn dort (zum Beispiel im Container-Secret).</p>
+    {% elif key_source == 'none' %}
+      <p class="muted">Es gibt noch keinen Schlüssel, weil noch keine Zugangsdaten gespeichert sind.</p>
+    {% else %}
+      <p class="muted">Ohne diesen Schlüssel sind die gesicherten Zugangsdaten nach einem Verlust unlesbar. Bewahre ihn getrennt von der Sicherung auf, zum Beispiel im Passwortmanager.</p>
+      <form method="post" action="/settings/backup/key" class="inputs stack">
+        <label>Passwort der Oberfläche <input type="password" name="password" autocomplete="new-password" data-lpignore="true" required></label>
+        <button type="submit">Schlüssel herunterladen</button>
+      </form>
+    {% endif %}
+  </section>
+  <section class="band" aria-labelledby="h-bk-up">
+    <h3 id="h-bk-up">Wiederherstellen</h3>
+    <form method="post" action="/settings/backup/restore" enctype="multipart/form-data" class="inputs stack">
+      <label>Sicherung (Datei) <input type="file" name="archive" required></label>
+      <label>Passwort der Datei <span class="muted">(nur wenn verschlüsselt)</span>
+        <input type="password" name="password" autocomplete="new-password" data-lpignore="true"></label>
+      <label class="check"><input type="checkbox" name="confirm" value="yes" required>
+        Aktuelle Daten ersetzen. Der jetzige Stand wird vorher unten abgelegt.</label>
+      <button class="danger" type="submit">Wiederherstellen</button>
+    </form>
+    <p class="muted">Schlüssel, Passwort der Oberfläche und Garmin-Token bleiben unverändert. Gesicherte Zugangsdaten werden nur übernommen, wenn der vorhandene Schlüssel sie lesen kann.</p>
+  </section>
+</div>
+{% if safety_backups %}
+  <h3>Automatische Sicherungen vor einer Wiederherstellung</h3>
+  <p class="muted">Die letzten fünf bleiben erhalten.</p>
+  <ul class="plain">
+  {% for b in safety_backups %}
+    <li><a href="/settings/backup/file/{{ b.name }}">{{ b.name }}</a> <span class="muted">{{ b.when }}, {{ '%.1f'|format(b.mb) }} MB</span></li>
+  {% endfor %}
+  </ul>
+{% endif %}
+
 <h2 class="section">Passwort der Oberfläche</h2>
 <section class="band" style="max-width:26rem">
   <form method="post" action="/settings/password" class="inputs">

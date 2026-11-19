@@ -25,11 +25,23 @@ Das System SHALL keine Golfdaten an Dritte senden außer an die jeweilige Quelle
 - THEN funktionieren Analysen und Datei-Import vollständig
 
 ### Requirement: Backup und Restore
-Es SHALL einen Befehl für Backup (DB + raw + Config ohne Secrets) und Restore geben, mit Konsistenzprüfung und dokumentiertem, getestetem Ablauf.
+Es SHALL Befehle (`backup`, `restore`, `backup-verify`, `backup-key`) und eine Funktion in der Oberfläche für Backup und Restore geben, mit Konsistenzprüfung und dokumentiertem, getestetem Ablauf.
+
+Das Archiv SHALL enthalten: einen konsistenten Schnappschuss der Datenbank, `raw/`, `inbox/`, die verschlüsselte Zugangsdaten-Datei und ein Manifest mit Prüfsummen. Es SHALL niemals enthalten: den Schlüssel der Zugangsdaten, das Passwort der Oberfläche, Tokens (Garmin) und Caches. Es SHALL optional mit einem Passwort verschlüsselt werden können (nie als Kommandozeilenargument).
+
+Die Wiederherstellung SHALL vor jeder Änderung Format, Pfade (keine absoluten Pfade, kein `..`, keine Verknüpfungen), Manifest, Größen und Prüfsummen prüfen, den vorherigen Stand sichern und bei einem Fehler zurückrollen. Schlüssel, Passwort und Tokens SHALL unangetastet bleiben; gesicherte Zugangsdaten SHALL nur übernommen werden, wenn der vorhandene Schlüssel sie lesen kann.
 
 #### Scenario: Restore
 - WHEN ein Backup auf leerer Instanz eingespielt wird
 - THEN liefern Analysen identische Ergebnisse wie vorher
+
+#### Scenario: Manipuliertes Archiv
+- WHEN ein Archiv einen Pfad mit `..`, eine Verknüpfung, eine falsche Prüfsumme oder einen Eintrag außerhalb des Manifests enthält
+- THEN wird die Wiederherstellung abgelehnt und nichts geändert
+
+#### Scenario: Schlüssel getrennt
+- WHEN eine Sicherung erstellt wird
+- THEN enthält sie den Schlüssel nicht, und `backup-key` gibt ihn zum getrennten Sichern aus
 
 ### Requirement: Gesamt-Export
 Es SHALL ein Export aller canonical- und Notiz-Daten als Parquet und CSV (inkl. Schema-Beschreibung) geben.

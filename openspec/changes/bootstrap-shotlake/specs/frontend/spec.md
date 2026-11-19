@@ -89,3 +89,10 @@ Jede Kennzahl SHALL n, Quelle/Messmethode und ggf. Warnung anzeigen; NULL SHALL 
 #### Scenario: Fehlender Wert
 - WHEN Spin NULL ist
 - THEN zeigt die UI „–"
+
+### Requirement: Sicherung in der Oberfläche
+Die Einstellungen SHALL das Herunterladen einer Sicherung (optional mit Passwort), das Herunterladen des Schlüssels nach erneuter Eingabe des Passworts der Oberfläche und das Wiederherstellen per Datei-Upload mit ausdrücklicher Bestätigung bieten. Während eines Syncs SHALL beides abgelehnt werden. Passwörter und Schlüssel SHALL nie in Meldungen oder Logs stehen.
+
+#### Scenario: Schlüssel nur mit Passwort
+- WHEN der Schlüssel ohne korrektes Passwort der Oberfläche angefordert wird
+- THEN gibt die Oberfläche ihn nicht aus

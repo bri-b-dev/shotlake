@@ -38,6 +38,7 @@ from ..service import (
 )
 from ..workspace import Workspace
 from .auth import install_auth
+from .backup_ui import install_backup
 from .charts import Marker, bars_svg, ci_svg, reach_svg, scatter_svg, trend_svg
 from .sync import install_settings
 
@@ -113,6 +114,7 @@ def create_app(
     sync_manager = install_settings(
         app, workspace, auth_store, page, connector_factory, garmin_factory
     )
+    install_backup(app, workspace, auth_store)
 
     @app.get("/", response_class=HTMLResponse)
     def dashboard(request: Request) -> HTMLResponse:

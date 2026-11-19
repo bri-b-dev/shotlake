@@ -29,6 +29,7 @@ from ..ingest import sync_location
 from ..secret_store import CREDENTIAL_FIELDS, SecretStoreError
 from ..workspace import Workspace
 from .auth import COOKIE, MIN_PASSWORD, SESSION_DAYS, AuthStore
+from .backup_ui import backup_context
 
 MAX_UPLOAD_BYTES = 25 * 1024 * 1024
 SAFE_NAME = re.compile(r"[^A-Za-z0-9._-]+")
@@ -153,6 +154,7 @@ def install_settings(
             "settings.html",
             creds=credentials_view(),
             min_password=MIN_PASSWORD,
+            **backup_context(workspace),
             garmin_tokens=garmin.tokens_present(),
             garmin_pending=garmin.pending(),
             garmin_notice=notice.get("garmin_platform", ""),

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import getpass
 import os
 import sys
 from datetime import date
@@ -21,6 +22,15 @@ from .analytics.insights import generate as generate_insights
 from .analytics.score import PCC_MAX, PCC_MIN, RoundScore, round_scores
 from .analytics.sg import CATEGORIES, strokes_gained
 from .analytics.trend import differential_trend
+from .backup import (
+    BackupError,
+    create_backup,
+    default_archive_name,
+    export_key,
+    inspect_backup,
+    is_encrypted,
+    restore_backup,
+)
 from .baseline import default_baseline_path, load_baseline
 from .clubs import CANONICAL_CLUBS
 from .config import default_club_map_path, load_club_map, save_club_map, sync_club_map
@@ -164,6 +174,20 @@ def build_parser() -> argparse.ArgumentParser:
         p.add_argument("round_a")
         p.add_argument("round_b")
     dds.add_parser("accept-all", help="alle offenen Vorschläge bestätigen")
+    bk = sub.add_parser("backup", help="Sicherung des Datenverzeichnisses schreiben")
+    bk.add_argument("--out", type=Path, help="Zieldatei (Standard: <data-dir>/backups/…)")
+    bk.add_argument(
+        "--password",
+        action="store_true",
+        help="Archiv verschlüsseln (Passwort aus SHOTLAKE_BACKUP_PASSWORD oder Abfrage)",
+    )
+    rs = sub.add_parser("restore", help="Sicherung einspielen (ersetzt Datenbank und Rohdaten)")
+    rs.add_argument("archive", type=Path)
+    rs.add_argument("--yes", action="store_true", help="ohne Rückfrage")
+    vf = sub.add_parser("backup-verify", help="Sicherung prüfen, ohne etwas zu ändern")
+    vf.add_argument("archive", type=Path)
+    bkey = sub.add_parser("backup-key", help="Schlüssel der Zugangsdaten zum getrennten Sichern")
+    bkey.add_argument("--out", type=Path, help="in eine Datei schreiben (Rechte 0600)")
     sub.add_parser("sources", help="Verfügbare Quellen und Risiko anzeigen")
 
     for name in ("clubs", "gapping"):
@@ -431,9 +455,82 @@ def _auto_dedup(con: duckdb.DuckDBPyConnection, args: argparse.Namespace) -> Non
     print(dd.run(con, load_config(args.dedup_config)).as_text())
 
 
+def _backup_password(encrypted: bool, ask_twice: bool) -> str | None:
+    """Passwort aus der Umgebung oder per Abfrage; nie als Argument (History)."""
+    if not encrypted:
+        return None
+    value = os.environ.get("SHOTLAKE_BACKUP_PASSWORD")
+    if value:
+        return value
+    value = getpass.getpass("Passwort für das Archiv: ")
+    if ask_twice and getpass.getpass("Passwort wiederholen: ") != value:
+        raise BackupError("Die Passwörter stimmen nicht überein")
+    if not value:
+        raise BackupError("Leeres Passwort")
+    return value
+
+
+def _backup_command(args: argparse.Namespace, data: Path) -> int:
+    """Sichern und Wiederherstellen brauchen die Datenbank ungeöffnet, deshalb vor `open_db`."""
+    try:
+        if args.cmd == "backup":
+            password = _backup_password(args.password, ask_twice=True)
+            target = args.out or data / "backups" / default_archive_name(password is not None)
+            manifest = create_backup(data, target, password=password)
+            rows = sum(manifest.tables.values())
+            print(f"Sicherung: {target} ({target.stat().st_size / 1024**2:.1f} MB)")
+            print(
+                f"  {len(manifest.files)} Dateien, {rows} Zeilen in {len(manifest.tables)} Tabellen"
+            )
+            print("  Nicht enthalten: Schlüssel, Passwort der Oberfläche, Garmin-Token.")
+            print("  Lege eine Kopie an einem anderen Ort ab (`backup-key` sichert den Schlüssel).")
+            return 0
+        if args.cmd == "backup-verify":
+            password = _backup_password(is_encrypted(args.archive), ask_twice=False)
+            manifest = inspect_backup(args.archive, password)
+            print(
+                f"In Ordnung: erstellt {manifest.created}, {len(manifest.files)} Dateien, "
+                f"{sum(manifest.tables.values())} Zeilen, Format {manifest.format}"
+            )
+            return 0
+        if args.cmd == "backup-key":
+            key = export_key(data)
+            if args.out:
+                if args.out.exists():
+                    raise BackupError(f"{args.out} existiert schon")
+                fd = os.open(args.out, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+                with os.fdopen(fd, "w") as fh:
+                    fh.write(key + "\n")
+                print(f"Schlüssel geschrieben nach {args.out} (Rechte 0600)")
+            else:
+                print(key)
+            return 0
+        # restore
+        password = _backup_password(is_encrypted(args.archive), ask_twice=False)
+        manifest = inspect_backup(args.archive, password)
+        print(f"Sicherung vom {manifest.created}: {sum(manifest.tables.values())} Zeilen.")
+        if not args.yes:
+            answer = input("Datenbank, Rohdaten und Uploads in diesem Verzeichnis ersetzen? [j/N] ")
+            if answer.strip().lower() not in ("j", "ja", "y", "yes"):
+                print("Abgebrochen, nichts geändert.")
+                return 1
+        report = restore_backup(data, args.archive, password=password)
+        print(f"Wiederhergestellt: {report.restored['rows']} Zeilen.")
+        if report.safety_backup:
+            print(f"Vorheriger Stand gesichert unter {report.safety_backup}")
+        for note in report.notes:
+            print(f"Hinweis: {note}")
+        return 0
+    except BackupError as exc:
+        print(f"Fehler: {exc}", file=sys.stderr)
+        return 1
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     data = Path(args.data_dir)
+    if args.cmd in ("backup", "restore", "backup-verify", "backup-key"):
+        return _backup_command(args, data)
     use_store(data)  # im Frontend gepflegte Zugangsdaten für Syncs bereitstellen
     con = open_db(data / "shotlake.duckdb")
     try:

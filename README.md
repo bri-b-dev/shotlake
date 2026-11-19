@@ -43,6 +43,21 @@ Units (m/yd) and themes (light/dark) can be toggled.
 - Garmin (course, needs `uv sync --extra garmin`): first login with a two-factor code in *Settings* (email and password are used
   once and not stored; only the token is, in `data/garmin/`). Reads from `~/.garminconnect` otherwise.
 
+**Backup and restore.** *Settings → Sicherung* downloads an archive (database snapshot, raw data,
+uploads, the encrypted credentials file, checksums) and restores one by upload. The same from the
+command line:
+
+    uv run shotlake backup [--out FILE] [--password]   # --password encrypts; reads SHOTLAKE_BACKUP_PASSWORD or asks
+    uv run shotlake backup-verify FILE                 # checks structure and checksums only
+    uv run shotlake restore FILE [--yes]               # replaces database, raw data and uploads
+    uv run shotlake backup-key [--out FILE]            # the key for secrets.enc, store it separately
+
+A backup never contains the key, the interface password or the Garmin token, so a lost archive
+reveals no access. Keep the key apart from the archive (password manager). Restoring first saves the
+current state under `data/backups/` (last five kept), never touches key, password or tokens, and
+adopts stored credentials only if the existing key can read them (else `secrets.enc.from-backup`).
+Stop the server before a command-line `restore`.
+
 By default the server binds only to `127.0.0.1`. When exposing it, put it behind HTTPS (the session
 cookie is marked `Secure` over HTTPS). `SHOTLAKE_WEB_AUTH=off` disables the password check (only for
 setups protected otherwise).

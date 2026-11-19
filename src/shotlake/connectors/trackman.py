@@ -181,7 +181,7 @@ def parse_round(data: dict[str, Any]) -> ParsedRound:
     tees = tuple(
         TeeRecord(
             name=str(t.get("name") or ""),
-            handicap_type={"FEMALE": "WOMEN", "MALE": "MEN"}.get(str(t.get("gender"))),
+            handicap_type={"FEMALE": "WOMEN", "MALE": "MEN"}.get(str(t.get("gender")).upper()),
             rating=_num(t.get("rating")),
             slope=_int(t.get("slope")),
         )

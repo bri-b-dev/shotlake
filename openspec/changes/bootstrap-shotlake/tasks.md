@@ -3,7 +3,7 @@
 ## Phase 0 – Recherche & Beispielexporte
 Vorab ausgewertet: `phase0-findings.md` (aus `../analytics-platform`, `../arccos-fetch`).
 - [x] 0.0 Entscheidung Verhältnis zu `analytics-platform`: **A (eigenständig)**, 2026-11-14
-- [~] 0.1 BeBrassie: Live-Sync läuft (2026-11-14: Login, Rundenliste und `show-round` funktionieren, die Listen-Reihenfolge wird nicht ausgenutzt; reine Score-Runden liefern HTTP 400 und werden als Kopfzeilen-Runden importiert). **Offen:** anonymisierte Beispielrunde als Fixture, `docs/sources/bebrassie.md`, manueller Import als Fallback
+- [~] 0.1 BeBrassie: Live-Sync läuft (2026-11-14: Login, Rundenliste und `show-round` funktionieren, die Listen-Reihenfolge wird nicht ausgenutzt; reine Score-Runden liefern HTTP 400 und werden als Kopfzeilen-Runden importiert). Fixtures (Score-Runde, Teilrunde, 9 Loch mit Strafschlag) und `docs/sources/bebrassie.md` (2026-11-19); reine Score-Runden halten den Cursor nicht mehr zurück. **Offen:** manueller Import als Fallback
 - [~] 0.2b Arccos neues Dashboard: Live-Sync läuft (2026-11-14: 60 Runden, 3339 Schläge; Hash-Entdeckung aus dem JS-Bundle, devalue-Decoder, Credentials aus HAR per Skript). **Offen:** Laufzeit von `accessKey/secret` und Session, Einmaligkeit des Magic-Link-Tokens, Rotation der Zugangsdaten und HAR-Dateien löschen, anonymisierte Fixtures je Funktion
 - [x] 0.2 (überholt durch 0.2b) Arccos: Detail-Endpoint und Terrain-Werte sind über das neue Dashboard geklärt; alte API abgeschaltet
 - [x] 0.2a Arccos: Beispiel-Runden (61 Stück) und `clubs.json` vorhanden – Fixtures anonymisieren (userId, Klarnamen, GPS-Heimnähe)
@@ -12,9 +12,9 @@ Vorab ausgewertet: `phase0-findings.md` (aus `../analytics-platform`, `../arccos
 - [x] 0.3a Garmin **Range (CSV)**: 8 Beispiel-CSVs in `/Volumes/golf/sessions` ausgewertet (`phase0-findings.md` §4a); als Fixtures kopieren und `Spieler` anonymisieren; Annahmen bestätigen (Spin-Einheit rpm, Zeitzone, 24-h-Stunde mit PM-Suffix)
 - [ ] 0.3b Arccos-Alternative prüfen: offizielle On-Course-Data-API (OAuth2, Swagger `api.arccosgolf.com/swagger`) – Zugang/Antrag und Bedingungen klären
 - [~] 0.3c Secrets: entschieden 2026-11-15, Zugangsdaten über die Oberfläche in verschlüsseltem Speicher (Fernet) statt sops; offen: Schlüssel-Backup (`SHOTLAKE_SECRET_KEY` bzw. `secret.key` sichern), Ablösung der `secrets/*.env` und Rotation der Arccos-Zugangsdaten
-- [x] 0.4 Trackman (2026-11-14: Connector gebaut und live gelaufen: 40 Sessions mit 1199 Schlägen, 15 Sim-Runden mit 598 Platzschlägen; eigene GraphQL-Abfragen gegen die offene Schema-Introspection geprüft; Einheiten SI bestätigt). **Offen:** anonymisierte Fixtures je Aktivitätsart, `docs/sources/trackman.md`, Token-Laufzeit (ca. 7 Tage laut Referenz) beobachten
+- [x] 0.4 Trackman (2026-11-14: Connector gebaut und live gelaufen: 40 Sessions mit 1199 Schlägen, 15 Sim-Runden mit 598 Platzschlägen; eigene GraphQL-Abfragen gegen die offene Schema-Introspection geprüft; Einheiten SI bestätigt). Fixtures je Aktivitätsart (sieben Rohdokumente) und `docs/sources/trackman.md` (2026-11-19); Tee-Geschlecht `Female`/`Male` wird erkannt. **Offen:** Token-Laufzeit (ca. 7 Tage laut Referenz) beobachten
 - [ ] 0.5 Mevo+: myflightscope-CSV-Export mit Beispielen
-- [ ] 0.6 Anonymisierte Beispielexporte als Fixtures unter `tests/fixtures/<source>/`
+- [~] 0.6 Anonymisierte Beispielexporte als Fixtures unter `tests/fixtures/<source>/`: Mevo, Garmin Range, BeBrassie und Trackman vorhanden; Werkzeug `scripts/anonymize_fixture.py` (2026-11-19). **Offen:** Arccos und Garmin (Platz)
 - [x] 0.7 Bestehende „handycap"-App gesichtet (`phase0-findings.md` §4e): Abweichungen PCC-Skalierung, 26,5-Bremse, Mindestanzahl; Entscheidungen offen (Open Question 12a)
 - [ ] 0.8 Offene Fragen (`open-questions.md`) mit dem Nutzer klären
 

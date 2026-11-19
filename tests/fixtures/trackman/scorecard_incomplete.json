@@ -1,0 +1,277 @@
+{
+ "_kind": "round",
+ "bayKind": "SIMULATOR_BAY",
+ "course": {
+  "displayName": "Senoja Valley",
+  "numbersOfHoles": 9,
+  "worldLocation": {
+   "latitude": 40.0209962,
+   "longitude": -100.939166
+  }
+ },
+ "courseHcp": 42,
+ "createdAt": "2023-12-13T17:29:58.8844023Z",
+ "finishedAt": "2023-12-13T17:33:25.1048853Z",
+ "grossScore": 6,
+ "holes": [
+  {
+   "distance": 67,
+   "greenInRegulation": true,
+   "grossScore": 3,
+   "holeNumber": 1,
+   "isPlayed": true,
+   "par": 3,
+   "pinPosition": {
+    "worldLocation": {
+     "latitude": 40.0241213,
+     "longitude": -100.9351017
+    },
+    "x": 350.4695129394531,
+    "y": 13.685083389282227,
+    "z": 343.2242126464844
+   },
+   "putts": 2,
+   "shots": [
+    {
+     "club": "52Wedge",
+     "dropPosition": null,
+     "finalLie": "Green",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 40.0241926,
+       "longitude": -100.9351692
+      },
+      "x": 344.79833984375,
+      "y": 13.72043228149414,
+      "z": 351.1976623535156
+     },
+     "launchLie": "Tee",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 40.0236175,
+       "longitude": -100.9348454
+      },
+      "x": 371.7566223144531,
+      "y": 14.622069358825684,
+      "z": 287.07440185546875
+     },
+     "launchTime": "2023-12-13T17:31:57.9057697Z",
+     "shotNumber": 1,
+     "shotResult": "AutoPutt",
+     "total": 69.55962572261727
+    }
+   ],
+   "strokeIndex": 3
+  },
+  {
+   "distance": 72,
+   "greenInRegulation": true,
+   "grossScore": 3,
+   "holeNumber": 2,
+   "isPlayed": true,
+   "par": 3,
+   "pinPosition": {
+    "worldLocation": {
+     "latitude": 40.0247497,
+     "longitude": -100.9347487
+    },
+    "x": 381.33056640625,
+    "y": 6.476407051086426,
+    "z": 412.6514587402344
+   },
+   "putts": 2,
+   "shots": [
+    {
+     "club": "9Iron",
+     "dropPosition": null,
+     "finalLie": "Green",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 40.0247673,
+       "longitude": -100.9346917
+      },
+      "x": 386.2110595703125,
+      "y": 6.54220724105835,
+      "z": 414.55474853515625
+     },
+     "launchLie": "Tee",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 40.0244965,
+       "longitude": -100.9354968
+      },
+      "x": 317.193359375,
+      "y": 15.784109115600586,
+      "z": 385.2202453613281
+     },
+     "launchTime": "2023-12-13T17:33:01.9928806Z",
+     "shotNumber": 1,
+     "shotResult": "AutoPutt",
+     "total": 74.99303978840551
+    }
+   ],
+   "strokeIndex": 5
+  },
+  {
+   "distance": 36.57600000000001,
+   "greenInRegulation": null,
+   "grossScore": null,
+   "holeNumber": 3,
+   "isPlayed": false,
+   "par": 3,
+   "pinPosition": {
+    "worldLocation": {
+     "latitude": 40.024924,
+     "longitude": -100.9357916
+    },
+    "x": 292.53594970703125,
+    "y": 11.725513458251953,
+    "z": 432.93902587890625
+   },
+   "putts": null,
+   "shots": null,
+   "strokeIndex": 15
+  },
+  {
+   "distance": 61.26480000000001,
+   "greenInRegulation": null,
+   "grossScore": null,
+   "holeNumber": 4,
+   "isPlayed": false,
+   "par": 3,
+   "pinPosition": {
+    "worldLocation": {
+     "latitude": 40.0240192,
+     "longitude": -100.9363604
+    },
+    "x": 242.95013427734375,
+    "y": 18.662071228027344,
+    "z": 333.0147399902344
+   },
+   "putts": null,
+   "shots": null,
+   "strokeIndex": 1
+  },
+  {
+   "distance": 92.35440000000001,
+   "greenInRegulation": null,
+   "grossScore": null,
+   "holeNumber": 5,
+   "isPlayed": false,
+   "par": 3,
+   "pinPosition": {
+    "worldLocation": {
+     "latitude": 40.022968,
+     "longitude": -100.9359412
+    },
+    "x": 277.48974609375,
+    "y": 14.888124465942383,
+    "z": 215.96914672851562
+   },
+   "putts": null,
+   "shots": null,
+   "strokeIndex": 17
+  },
+  {
+   "distance": 75.8952,
+   "greenInRegulation": null,
+   "grossScore": null,
+   "holeNumber": 6,
+   "isPlayed": false,
+   "par": 3,
+   "pinPosition": {
+    "worldLocation": {
+     "latitude": 40.0230906,
+     "longitude": -100.9347434
+    },
+    "x": 379.8500671386719,
+    "y": 15.649147987365723,
+    "z": 228.49667358398438
+   },
+   "putts": null,
+   "shots": null,
+   "strokeIndex": 13
+  },
+  {
+   "distance": 64.00800000000001,
+   "greenInRegulation": null,
+   "grossScore": null,
+   "holeNumber": 7,
+   "isPlayed": false,
+   "par": 3,
+   "pinPosition": {
+    "worldLocation": {
+     "latitude": 40.0229067,
+     "longitude": -100.9338062
+    },
+    "x": 459.6074523925781,
+    "y": 14.261340141296387,
+    "z": 207.24525451660156
+   },
+   "putts": null,
+   "shots": null,
+   "strokeIndex": 11
+  },
+  {
+   "distance": 46.63440000000001,
+   "greenInRegulation": null,
+   "grossScore": null,
+   "holeNumber": 8,
+   "isPlayed": false,
+   "par": 3,
+   "pinPosition": {
+    "worldLocation": {
+     "latitude": 40.0236417,
+     "longitude": -100.9333789
+    },
+    "x": 496.9224548339844,
+    "y": 19.254348754882812,
+    "z": 288.44915771484375
+   },
+   "putts": null,
+   "shots": null,
+   "strokeIndex": 9
+  },
+  {
+   "distance": 43.891200000000005,
+   "greenInRegulation": null,
+   "grossScore": null,
+   "holeNumber": 9,
+   "isPlayed": false,
+   "par": 3,
+   "pinPosition": {
+    "worldLocation": {
+     "latitude": 40.0234996,
+     "longitude": -100.9343243
+    },
+    "x": 416.0873718261719,
+    "y": 17.672977447509766,
+    "z": 273.5269470214844
+   },
+   "putts": null,
+   "shots": null,
+   "strokeIndex": 7
+  }
+ ],
+ "id": "U2NvcmVjYXJkCjg0NTdkNGUxLWQ5ZGMtZjQ1MC1mZjAyLWI0MGJiOTQ0MThhYzo0M2JmNDJjOS0xMzBjLTMzZTAtMTNhNy04M2NlYzk3NjM4OGM",
+ "isCompleted": false,
+ "isInHcp": false,
+ "kind": "CoursePlay",
+ "lastUpdatedAt": "2023-12-13T17:33:29.9517874Z",
+ "numberOfHolesPlayed": 2,
+ "numberOfHolesToPlay": 9,
+ "par": 27,
+ "startedAt": "2023-12-13T17:29:59.0343308Z",
+ "teeName": "Sparrow",
+ "tees": [
+  {
+   "distance": 559.6128000000001,
+   "gender": "Female",
+   "name": "Sparrow",
+   "par": 27,
+   "rating": 26.7,
+   "slope": 110
+  }
+ ],
+ "toPar": 0
+}

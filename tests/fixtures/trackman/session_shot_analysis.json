@@ -1,0 +1,62 @@
+{
+ "_kind": "session",
+ "id": "U2hvdEFuYWx5c2lzU2Vzc2lvbkFjdGl2aXR5CjIwOWU0YTdlLTcwYjQtYzlkMy1hZTZlLWQzNDFkYTUwNmRlMA==",
+ "kind": "SHOT_ANALYSIS",
+ "strokes": [
+  {
+   "club": "9Iron",
+   "measurement": {
+    "attackAngle": null,
+    "ballSpeed": 27.146999999999995,
+    "carry": 24.334078566110918,
+    "carrySide": 8.39554773111711,
+    "clubPath": null,
+    "clubSpeed": null,
+    "curve": 1.6307348551580585,
+    "dynamicLoft": null,
+    "faceAngle": null,
+    "faceToPath": null,
+    "hangTime": 0.9911953735351569,
+    "landingAngle": 9.311882027449634,
+    "launchAngle": 7.898000000000005,
+    "launchDirection": 16.34,
+    "maxHeight": 0.921373568200237,
+    "smashFactor": null,
+    "spinAxis": 55.266,
+    "spinLoft": null,
+    "spinRate": 5511.840000000001,
+    "total": 53.69591966547942,
+    "totalSide": 21.600550268522944
+   },
+   "strokeTime": "2024-06-26T13:54:23.634517Z"
+  },
+  {
+   "club": "9Iron",
+   "measurement": {
+    "attackAngle": null,
+    "ballSpeed": 26.200000000000006,
+    "carry": 55.13534630389894,
+    "carrySide": 8.311179638111275,
+    "clubPath": 1.43,
+    "clubSpeed": 25.09,
+    "curve": 2.177002275945676,
+    "dynamicLoft": 36.629,
+    "faceAngle": 8.317,
+    "faceToPath": 6.887,
+    "hangTime": 3.1132211303710715,
+    "landingAngle": 37.39003500406774,
+    "launchAngle": 27.61099999999999,
+    "launchDirection": 6.406999999999999,
+    "maxHeight": 9.228975427894545,
+    "smashFactor": 1.0442407333599046,
+    "spinAxis": 11.134,
+    "spinLoft": null,
+    "spinRate": 5311.37,
+    "total": 67.42334041656386,
+    "totalSide": 11.092286497770504
+   },
+   "strokeTime": "2024-06-26T13:55:07.515225Z"
+  }
+ ],
+ "time": "2024-06-26T13:52:49.0476322Z"
+}

@@ -1,0 +1,89 @@
+{
+ "_kind": "session",
+ "id": "U2Vzc2lvbkFjdGl2aXR5CmU5YzVmNmZkLTcyYjgtZGE5MC0wODY0LWQ2YTlhYTU5ODA0MQ==",
+ "kind": "SESSION",
+ "strokes": [
+  {
+   "club": "7Iron",
+   "measurement": {
+    "attackAngle": null,
+    "ballSpeed": 19.2363,
+    "carry": 16.423,
+    "carrySide": 3.478,
+    "clubPath": null,
+    "clubSpeed": 23.806,
+    "curve": null,
+    "dynamicLoft": null,
+    "faceAngle": null,
+    "faceToPath": null,
+    "hangTime": 0.914382,
+    "landingAngle": 12.143514,
+    "launchAngle": 11.062,
+    "launchDirection": 12.225,
+    "maxHeight": 0.845,
+    "smashFactor": 0.808,
+    "spinAxis": null,
+    "spinLoft": null,
+    "spinRate": 2070,
+    "total": 36.763,
+    "totalSide": 7.785
+   },
+   "strokeTime": "2021-01-22T09:57:32.6743773Z"
+  },
+  {
+   "club": "7Iron",
+   "measurement": {
+    "attackAngle": -5.6,
+    "ballSpeed": 26.282,
+    "carry": 34.465,
+    "carrySide": -4.546,
+    "clubPath": 10.4,
+    "clubSpeed": 23.182,
+    "curve": -2.058,
+    "dynamicLoft": null,
+    "faceAngle": null,
+    "faceToPath": null,
+    "hangTime": 1.514813,
+    "landingAngle": 14.642436,
+    "launchAngle": 11.99,
+    "launchDirection": -4.156,
+    "maxHeight": 2.051,
+    "smashFactor": 1.1337,
+    "spinAxis": -33.758,
+    "spinLoft": null,
+    "spinRate": 3880,
+    "total": 58.622,
+    "totalSide": -9.179
+   },
+   "strokeTime": "2021-01-22T09:57:53.6698917Z"
+  },
+  {
+   "club": "7Iron",
+   "measurement": {
+    "attackAngle": null,
+    "ballSpeed": 27.6306,
+    "carry": 11.559,
+    "carrySide": 0.262,
+    "clubPath": null,
+    "clubSpeed": null,
+    "curve": null,
+    "dynamicLoft": null,
+    "faceAngle": null,
+    "faceToPath": null,
+    "hangTime": 0.42958,
+    "landingAngle": 3.452092,
+    "launchAngle": 3.16,
+    "launchDirection": 1.298,
+    "maxHeight": 0.167,
+    "smashFactor": null,
+    "spinAxis": null,
+    "spinLoft": null,
+    "spinRate": 1510,
+    "total": 46.91,
+    "totalSide": 1.062
+   },
+   "strokeTime": "2021-01-22T09:56:51.9968309Z"
+  }
+ ],
+ "time": "2021-01-22T09:55:37.700027Z"
+}

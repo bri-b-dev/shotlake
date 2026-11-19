@@ -333,14 +333,17 @@ class BeBrassieConnector(ApiConnector):
             when = _utc(item.get("startedAt"))
             if when is None or (since is not None and when <= since):
                 continue
-            detail = self.client.show_round(str(item["_id"]))
-            if detail is None:
+            # Reine Score-Runden haben nie Details (show-round antwortet mit HTTP 400): der
+            # Listeneintrag ist vollständig, die Anfrage entfällt und der Cursor darf vorrücken.
+            score_only = item.get("scoreOnly") is True
+            detail = None if score_only else self.client.show_round(str(item["_id"]))
+            if detail is None and not score_only:
                 failed += 1  # nur Listeneintrag: Runde wird beim nächsten Lauf erneut versucht
             doc = slim({**item, **(detail or {})})
             for key in DROP_FOR_STORAGE:
                 doc.pop(key, None)
             records.append(RawRecord(str(item["_id"]), doc, "round"))
-            if detail is not None:
+            if detail is not None or score_only:
                 newest = when if newest is None or when > newest else newest
         if failed:
             self.notes.append(f"{failed} Runden ohne Detaildaten (show-round fehlgeschlagen)")

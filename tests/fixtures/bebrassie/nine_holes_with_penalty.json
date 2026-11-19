@@ -1,0 +1,2873 @@
+{
+ "__v": 0,
+ "_id": "0e4e71b91e3bd3d40e8bc789",
+ "averageSpeed": 1.1312602758407593,
+ "ball": "5ffebc149ec1667b5effd681",
+ "batteryFinish": 79,
+ "batteryStart": 90,
+ "burnedCalories": 1360,
+ "clubs": [
+  "205f48e33876f2285f5ae64a",
+  "ea2c02818ece23ae5d5f122f",
+  "d9c7c4d1e92b7942e012ccb6",
+  "8a7e4b8ced7af4c3a548db38",
+  "7f2db31bd0ac6f403ae19499",
+  "556af95fc3f30450280876f5",
+  "da9cefa5782123f6a76e61d5",
+  "78cced0f636ab8629f44d086",
+  "af094c92a3a2c4ce41d0e176",
+  "282a1a2002a88e6a2aee1907",
+  "7db245dbf73e6ad8b9b21da8"
+ ],
+ "clubsDistances": {
+  "205f48e33876f2285f5ae64a": 154,
+  "282a1a2002a88e6a2aee1907": 50,
+  "556af95fc3f30450280876f5": 90,
+  "78cced0f636ab8629f44d086": 70,
+  "7f2db31bd0ac6f403ae19499": 95,
+  "8a7e4b8ced7af4c3a548db38": 110,
+  "9f39de6ad152e6bd47f7e919": 150,
+  "af094c92a3a2c4ce41d0e176": 60,
+  "d9c7c4d1e92b7942e012ccb6": 120,
+  "da9cefa5782123f6a76e61d5": 80,
+  "ea2c02818ece23ae5d5f122f": 140
+ },
+ "course": {
+  "__v": 0,
+  "_id": "8027a280d86f49cfc954afe7",
+  "checkedAt": "2024-10-27T01:00:19.633Z",
+  "createdAt": "2022-12-24T03:00:54.887Z",
+  "deprecated": false,
+  "golfClub": {
+   "__v": 0,
+   "_id": "1cfc509cd1b2a3050f5b8523",
+   "address": {
+    "__v": 0,
+    "_id": "195c9eaea9e7664f42e1fe21",
+    "city": "Musterstadt",
+    "createdAt": "2022-12-24T03:00:54.884Z",
+    "location": {
+     "coordinates": [
+      34.3950096,
+      49.301828834511
+     ],
+     "type": "Point"
+    },
+    "phone": "",
+    "street": "Musterweg 1",
+    "updatedAt": "2022-12-24T03:00:54.884Z",
+    "url": "example.org",
+    "zip": "00000"
+   },
+   "createdAt": "2022-12-24T03:00:54.886Z",
+   "name": "Golfclub Musterstadt",
+   "updatedAt": "2022-12-24T03:00:54.886Z"
+  },
+  "igolfId": "TESTID",
+  "name": "Golfclub Musterstadt",
+  "updatedAt": "2024-10-27T01:00:19.634Z"
+ },
+ "courseHoles": [
+  {
+   "__v": 0,
+   "_id": "7b02cdf50664acf2f5e9fc3d",
+   "course": "8027a280d86f49cfc954afe7",
+   "courseTee": "3cf940475afb1d915343f599",
+   "createdAt": "2022-12-24T03:00:55.002Z",
+   "distanceToGreen": 271,
+   "handicapMan": 5,
+   "handicapWomen": 5,
+   "holeNumber": 1,
+   "location": {
+    "coordinates": [
+     34.3897458,
+     49.301194866677
+    ],
+    "type": "Point"
+   },
+   "parMen": 4,
+   "parWomen": 4,
+   "updatedAt": "2022-12-24T03:00:55.002Z"
+  },
+  {
+   "__v": 0,
+   "_id": "03990848c49bdffbd6d19b57",
+   "course": "8027a280d86f49cfc954afe7",
+   "courseTee": "3cf940475afb1d915343f599",
+   "createdAt": "2022-12-24T03:00:55.002Z",
+   "distanceToGreen": 131,
+   "handicapMan": 13,
+   "handicapWomen": 13,
+   "holeNumber": 2,
+   "location": {
+    "coordinates": [
+     34.3899735,
+     49.300321619783
+    ],
+    "type": "Point"
+   },
+   "parMen": 3,
+   "parWomen": 3,
+   "updatedAt": "2022-12-24T03:00:55.002Z"
+  },
+  {
+   "__v": 0,
+   "_id": "1a233969358043ccfcd8acef",
+   "course": "8027a280d86f49cfc954afe7",
+   "courseTee": "3cf940475afb1d915343f599",
+   "createdAt": "2022-12-24T03:00:55.002Z",
+   "distanceToGreen": 452,
+   "handicapMan": 3,
+   "handicapWomen": 3,
+   "holeNumber": 3,
+   "location": {
+    "coordinates": [
+     34.3829238,
+     49.30117586668587
+    ],
+    "type": "Point"
+   },
+   "parMen": 5,
+   "parWomen": 5,
+   "updatedAt": "2022-12-24T03:00:55.002Z"
+  },
+  {
+   "__v": 0,
+   "_id": "32df977c9ed365c18eb59646",
+   "course": "8027a280d86f49cfc954afe7",
+   "courseTee": "3cf940475afb1d915343f599",
+   "createdAt": "2022-12-24T03:00:55.002Z",
+   "distanceToGreen": 307,
+   "handicapMan": 15,
+   "handicapWomen": 15,
+   "holeNumber": 4,
+   "location": {
+    "coordinates": [
+     34.3866064,
+     49.299601985249
+    ],
+    "type": "Point"
+   },
+   "parMen": 4,
+   "parWomen": 4,
+   "updatedAt": "2022-12-24T03:00:55.002Z"
+  },
+  {
+   "__v": 0,
+   "_id": "c0962bd3b1c67344dc5ceea0",
+   "course": "8027a280d86f49cfc954afe7",
+   "courseTee": "3cf940475afb1d915343f599",
+   "createdAt": "2022-12-24T03:00:55.002Z",
+   "distanceToGreen": 382,
+   "handicapMan": 11,
+   "handicapWomen": 11,
+   "holeNumber": 5,
+   "location": {
+    "coordinates": [
+     34.3907854,
+     49.299997981289
+    ],
+    "type": "Point"
+   },
+   "parMen": 5,
+   "parWomen": 5,
+   "updatedAt": "2022-12-24T03:00:55.002Z"
+  },
+  {
+   "__v": 0,
+   "_id": "b3bc9cca98d63a68bad5dbe3",
+   "course": "8027a280d86f49cfc954afe7",
+   "courseTee": "3cf940475afb1d915343f599",
+   "createdAt": "2022-12-24T03:00:55.002Z",
+   "distanceToGreen": 339,
+   "handicapMan": 7,
+   "handicapWomen": 7,
+   "holeNumber": 6,
+   "location": {
+    "coordinates": [
+     34.3882201,
+     49.29883723299654
+    ],
+    "type": "Point"
+   },
+   "parMen": 4,
+   "parWomen": 4,
+   "updatedAt": "2022-12-24T03:00:55.002Z"
+  },
+  {
+   "__v": 0,
+   "_id": "f4610add7ceebd4ebdd65e36",
+   "course": "8027a280d86f49cfc954afe7",
+   "courseTee": "3cf940475afb1d915343f599",
+   "createdAt": "2022-12-24T03:00:55.002Z",
+   "distanceToGreen": 171,
+   "handicapMan": 9,
+   "handicapWomen": 9,
+   "holeNumber": 7,
+   "location": {
+    "coordinates": [
+     34.3853537,
+     49.297975480986125
+    ],
+    "type": "Point"
+   },
+   "parMen": 3,
+   "parWomen": 3,
+   "updatedAt": "2022-12-24T03:00:55.002Z"
+  },
+  {
+   "__v": 0,
+   "_id": "9518853803d2decd3a9591fe",
+   "course": "8027a280d86f49cfc954afe7",
+   "courseTee": "3cf940475afb1d915343f599",
+   "createdAt": "2022-12-24T03:00:55.002Z",
+   "distanceToGreen": 457,
+   "handicapMan": 1,
+   "handicapWomen": 1,
+   "holeNumber": 8,
+   "location": {
+    "coordinates": [
+     34.3912601,
+     49.297104112087
+    ],
+    "type": "Point"
+   },
+   "parMen": 5,
+   "parWomen": 5,
+   "updatedAt": "2022-12-24T03:00:55.002Z"
+  },
+  {
+   "__v": 0,
+   "_id": "2cdfe28e47514b1483a351a5",
+   "course": "8027a280d86f49cfc954afe7",
+   "courseTee": "3cf940475afb1d915343f599",
+   "createdAt": "2022-12-24T03:00:55.002Z",
+   "distanceToGreen": 226,
+   "handicapMan": 17,
+   "handicapWomen": 17,
+   "holeNumber": 9,
+   "location": {
+    "coordinates": [
+     34.3942151,
+     49.299275232704
+    ],
+    "type": "Point"
+   },
+   "parMen": 4,
+   "parWomen": 4,
+   "updatedAt": "2022-12-24T03:00:55.002Z"
+  },
+  {
+   "__v": 0,
+   "_id": "6e9057ef2990db8f99f056e0",
+   "course": "8027a280d86f49cfc954afe7",
+   "courseTee": "3cf940475afb1d915343f599",
+   "createdAt": "2022-12-24T03:00:55.002Z",
+   "distanceToGreen": 210,
+   "handicapMan": 18,
+   "handicapWomen": 18,
+   "holeNumber": 10,
+   "location": {
+    "coordinates": [
+     34.3935675,
+     49.297136739136974
+    ],
+    "type": "Point"
+   },
+   "parMen": 4,
+   "parWomen": 4,
+   "updatedAt": "2022-12-24T03:00:55.002Z"
+  },
+  {
+   "__v": 0,
+   "_id": "46ff0b3f859b97e44f1728f1",
+   "course": "8027a280d86f49cfc954afe7",
+   "courseTee": "3cf940475afb1d915343f599",
+   "createdAt": "2022-12-24T03:00:55.002Z",
+   "distanceToGreen": 187,
+   "handicapMan": 8,
+   "handicapWomen": 8,
+   "holeNumber": 11,
+   "location": {
+    "coordinates": [
+     34.3916829,
+     49.296414739481
+    ],
+    "type": "Point"
+   },
+   "parMen": 3,
+   "parWomen": 3,
+   "updatedAt": "2022-12-24T03:00:55.002Z"
+  },
+  {
+   "__v": 0,
+   "_id": "487921112d2cbec8a3daaf51",
+   "course": "8027a280d86f49cfc954afe7",
+   "courseTee": "3cf940475afb1d915343f599",
+   "createdAt": "2022-12-24T03:00:55.002Z",
+   "distanceToGreen": 373,
+   "handicapMan": 4,
+   "handicapWomen": 4,
+   "holeNumber": 12,
+   "location": {
+    "coordinates": [
+     34.3845055,
+     49.296778980285495
+    ],
+    "type": "Point"
+   },
+   "parMen": 5,
+   "parWomen": 5,
+   "updatedAt": "2022-12-24T03:00:55.002Z"
+  },
+  {
+   "__v": 0,
+   "_id": "a0ee958fe97eedefbe6c6635",
+   "course": "8027a280d86f49cfc954afe7",
+   "courseTee": "3cf940475afb1d915343f599",
+   "createdAt": "2022-12-24T03:00:55.002Z",
+   "distanceToGreen": 313,
+   "handicapMan": 6,
+   "handicapWomen": 6,
+   "holeNumber": 13,
+   "location": {
+    "coordinates": [
+     34.3819162,
+     49.295491868403275
+    ],
+    "type": "Point"
+   },
+   "parMen": 4,
+   "parWomen": 4,
+   "updatedAt": "2022-12-24T03:00:55.002Z"
+  },
+  {
+   "__v": 0,
+   "_id": "e5f95005dab37ef944c81ae5",
+   "course": "8027a280d86f49cfc954afe7",
+   "courseTee": "3cf940475afb1d915343f599",
+   "createdAt": "2022-12-24T03:00:55.002Z",
+   "distanceToGreen": 345,
+   "handicapMan": 10,
+   "handicapWomen": 10,
+   "holeNumber": 14,
+   "location": {
+    "coordinates": [
+     34.3834697,
+     49.296647983661
+    ],
+    "type": "Point"
+   },
+   "parMen": 4,
+   "parWomen": 4,
+   "updatedAt": "2022-12-24T03:00:55.002Z"
+  },
+  {
+   "__v": 0,
+   "_id": "e86e0f878e3caa1456db29ca",
+   "course": "8027a280d86f49cfc954afe7",
+   "courseTee": "3cf940475afb1d915343f599",
+   "createdAt": "2022-12-24T03:00:55.002Z",
+   "distanceToGreen": 323,
+   "handicapMan": 14,
+   "handicapWomen": 14,
+   "holeNumber": 15,
+   "location": {
+    "coordinates": [
+     34.3896358,
+     49.2980733658891
+    ],
+    "type": "Point"
+   },
+   "parMen": 4,
+   "parWomen": 4,
+   "updatedAt": "2022-12-24T03:00:55.002Z"
+  },
+  {
+   "__v": 0,
+   "_id": "1656b827df7a1d123a95e5d6",
+   "course": "8027a280d86f49cfc954afe7",
+   "courseTee": "3cf940475afb1d915343f599",
+   "createdAt": "2022-12-24T03:00:55.002Z",
+   "distanceToGreen": 102,
+   "handicapMan": 16,
+   "handicapWomen": 16,
+   "holeNumber": 16,
+   "location": {
+    "coordinates": [
+     34.3900541,
+     49.296944108867
+    ],
+    "type": "Point"
+   },
+   "parMen": 3,
+   "parWomen": 3,
+   "updatedAt": "2022-12-24T03:00:55.002Z"
+  },
+  {
+   "__v": 0,
+   "_id": "b25839a0f366292a704a24dd",
+   "course": "8027a280d86f49cfc954afe7",
+   "courseTee": "3cf940475afb1d915343f599",
+   "createdAt": "2022-12-24T03:00:55.002Z",
+   "distanceToGreen": 148,
+   "handicapMan": 12,
+   "handicapWomen": 12,
+   "holeNumber": 17,
+   "location": {
+    "coordinates": [
+     34.3904842,
+     49.29775886428897
+    ],
+    "type": "Point"
+   },
+   "parMen": 3,
+   "parWomen": 3,
+   "updatedAt": "2022-12-24T03:00:55.002Z"
+  },
+  {
+   "__v": 0,
+   "_id": "294ef25ae11e008670c646fe",
+   "course": "8027a280d86f49cfc954afe7",
+   "courseTee": "3cf940475afb1d915343f599",
+   "createdAt": "2022-12-24T03:00:55.002Z",
+   "distanceToGreen": 419,
+   "handicapMan": 2,
+   "handicapWomen": 2,
+   "holeNumber": 18,
+   "location": {
+    "coordinates": [
+     34.3935438,
+     49.30030610653436
+    ],
+    "type": "Point"
+   },
+   "parMen": 5,
+   "parWomen": 5,
+   "updatedAt": "2022-12-24T03:00:55.002Z"
+  }
+ ],
+ "courseTee": {
+  "__v": 0,
+  "_id": "3cf940475afb1d915343f599",
+  "color": "#0000FF",
+  "colorName": "Blue",
+  "course": "8027a280d86f49cfc954afe7",
+  "createdAt": "2022-12-24T03:00:54.918Z",
+  "distance10To18": 2420,
+  "distance1To9": 2736,
+  "distanceToGreen": 5156,
+  "name": "Blue",
+  "ratingMen": 74.3,
+  "ratingWomen": 0,
+  "slopeMen": 129,
+  "slopeWomen": 0,
+  "totalPar": 72,
+  "updatedAt": "2022-12-24T03:00:54.918Z"
+ },
+ "createdAt": "2024-09-27T15:12:57.846Z",
+ "finishedAt": "2024-09-27T13:45:00.000Z",
+ "firAvg": 28.57142857142857,
+ "firAvg10": 60.714285714285715,
+ "girAvg": 0,
+ "girAvg10": 8.333333333333332,
+ "gpsWalkedDistance": 4500,
+ "hasAiReport": true,
+ "hci": 35.4,
+ "hciAvg10": 36.3,
+ "isRoundOwner": true,
+ "parCounts": [
+  {
+   "_id": "e1243d00a7f743ccbd7bf093",
+   "count": 5,
+   "par": 3
+  },
+  {
+   "_id": "648b29acdce6648c7870a94c",
+   "count": 8,
+   "par": 4
+  },
+  {
+   "_id": "406392d77aff4852dd9fc931",
+   "count": 5,
+   "par": 5
+  }
+ ],
+ "percentCompleted": 100,
+ "pinPositions": {
+  "0": {
+   "coordinates": [
+    34.3897458,
+    49.30119486667701
+   ],
+   "type": "Point"
+  },
+  "1": {
+   "coordinates": [
+    34.390042,
+    49.300338118917836
+   ],
+   "type": "Point"
+  },
+  "10": {
+   "coordinates": [],
+   "type": "Point"
+  },
+  "11": {
+   "coordinates": [],
+   "type": "Point"
+  },
+  "12": {
+   "coordinates": [],
+   "type": "Point"
+  },
+  "13": {
+   "coordinates": [],
+   "type": "Point"
+  },
+  "14": {
+   "coordinates": [],
+   "type": "Point"
+  },
+  "15": {
+   "coordinates": [],
+   "type": "Point"
+  },
+  "16": {
+   "coordinates": [],
+   "type": "Point"
+  },
+  "17": {
+   "coordinates": [],
+   "type": "Point"
+  },
+  "2": {
+   "coordinates": [
+    34.3829503,
+    49.30116977984744
+   ],
+   "type": "Point"
+  },
+  "3": {
+   "coordinates": [
+    34.386607,
+    49.29960120192521
+   ],
+   "type": "Point"
+  },
+  "4": {
+   "coordinates": [
+    34.3908602,
+    49.30001292809848
+   ],
+   "type": "Point"
+  },
+  "5": {
+   "coordinates": [
+    34.3881805,
+    49.29887095588194
+   ],
+   "type": "Point"
+  },
+  "6": {
+   "coordinates": [
+    34.3853375,
+    49.29801054553539
+   ],
+   "type": "Point"
+  },
+  "7": {
+   "coordinates": [
+    34.3913104,
+    49.29715510082224
+   ],
+   "type": "Point"
+  },
+  "8": {
+   "coordinates": [
+    34.3942258,
+    49.299293207650464
+   ],
+   "type": "Point"
+  },
+  "9": {
+   "coordinates": [],
+   "type": "Point"
+  }
+ },
+ "playedHoles": [
+  {
+   "courseHole": "7b02cdf50664acf2f5e9fc3d",
+   "courseHolePar": 4,
+   "distanceToGreen": 271,
+   "hole": {
+    "isBetter": false,
+    "isPar": false,
+    "isWorse": true
+   },
+   "holeIndex": 0,
+   "holeNumber": 1,
+   "isPickup": false,
+   "numShots": 7,
+   "overall": {
+    "isBetter": false,
+    "isPar": false,
+    "isWorse": true,
+    "score": 3
+   }
+  },
+  {
+   "courseHole": "03990848c49bdffbd6d19b57",
+   "courseHolePar": 3,
+   "distanceToGreen": 131,
+   "hole": {
+    "isBetter": false,
+    "isPar": false,
+    "isWorse": true
+   },
+   "holeIndex": 1,
+   "holeNumber": 2,
+   "isPickup": false,
+   "numShots": 4,
+   "overall": {
+    "isBetter": false,
+    "isPar": false,
+    "isWorse": true,
+    "score": 4
+   }
+  },
+  {
+   "courseHole": "1a233969358043ccfcd8acef",
+   "courseHolePar": 5,
+   "distanceToGreen": 452,
+   "hole": {
+    "isBetter": false,
+    "isPar": false,
+    "isWorse": true
+   },
+   "holeIndex": 2,
+   "holeNumber": 3,
+   "isPickup": false,
+   "numShots": 7,
+   "overall": {
+    "isBetter": false,
+    "isPar": false,
+    "isWorse": true,
+    "score": 6
+   }
+  },
+  {
+   "courseHole": "32df977c9ed365c18eb59646",
+   "courseHolePar": 4,
+   "distanceToGreen": 307,
+   "hole": {
+    "isBetter": false,
+    "isPar": false,
+    "isWorse": true
+   },
+   "holeIndex": 3,
+   "holeNumber": 4,
+   "isPickup": false,
+   "numShots": 6,
+   "overall": {
+    "isBetter": false,
+    "isPar": false,
+    "isWorse": true,
+    "score": 8
+   }
+  },
+  {
+   "courseHole": "c0962bd3b1c67344dc5ceea0",
+   "courseHolePar": 5,
+   "distanceToGreen": 382,
+   "hole": {
+    "isBetter": false,
+    "isPar": false,
+    "isWorse": true
+   },
+   "holeIndex": 4,
+   "holeNumber": 5,
+   "isPickup": false,
+   "numShots": 7,
+   "overall": {
+    "isBetter": false,
+    "isPar": false,
+    "isWorse": true,
+    "score": 10
+   }
+  },
+  {
+   "courseHole": "b3bc9cca98d63a68bad5dbe3",
+   "courseHolePar": 4,
+   "distanceToGreen": 339,
+   "hole": {
+    "isBetter": false,
+    "isPar": false,
+    "isWorse": true
+   },
+   "holeIndex": 5,
+   "holeNumber": 6,
+   "isPickup": false,
+   "numShots": 6,
+   "overall": {
+    "isBetter": false,
+    "isPar": false,
+    "isWorse": true,
+    "score": 12
+   }
+  },
+  {
+   "courseHole": "f4610add7ceebd4ebdd65e36",
+   "courseHolePar": 3,
+   "distanceToGreen": 171,
+   "hole": {
+    "isBetter": false,
+    "isPar": false,
+    "isWorse": true
+   },
+   "holeIndex": 6,
+   "holeNumber": 7,
+   "isPickup": false,
+   "numShots": 5,
+   "overall": {
+    "isBetter": false,
+    "isPar": false,
+    "isWorse": true,
+    "score": 14
+   }
+  },
+  {
+   "courseHole": "9518853803d2decd3a9591fe",
+   "courseHolePar": 5,
+   "distanceToGreen": 457,
+   "hole": {
+    "isBetter": false,
+    "isPar": false,
+    "isWorse": true
+   },
+   "holeIndex": 7,
+   "holeNumber": 8,
+   "isPickup": false,
+   "numShots": 10,
+   "overall": {
+    "isBetter": false,
+    "isPar": false,
+    "isWorse": true,
+    "score": 19
+   }
+  },
+  {
+   "courseHole": "2cdfe28e47514b1483a351a5",
+   "courseHolePar": 4,
+   "distanceToGreen": 226,
+   "hole": {
+    "isBetter": false,
+    "isPar": false,
+    "isWorse": true
+   },
+   "holeIndex": 8,
+   "holeNumber": 9,
+   "isPickup": false,
+   "numShots": 5,
+   "overall": {
+    "isBetter": false,
+    "isPar": false,
+    "isWorse": true,
+    "score": 20
+   }
+  }
+ ],
+ "proPlayerType": "WOMEN18",
+ "roundRating": 0,
+ "roundType": "social",
+ "scoreOnly": false,
+ "scorecard": "a9260448b90864a81d37644b",
+ "sd": 37.4,
+ "sgAvg10": -7.336347775000002,
+ "sharedHoles": [],
+ "sharingStatus": "none",
+ "shots": [
+  {
+   "_id": "48c8c0e628d3e8abc4725b2f",
+   "calculatedDistance": 164.15,
+   "club": {
+    "__v": 0,
+    "_id": "205f48e33876f2285f5ae64a",
+    "clubName": "G Le4",
+    "clubShortcut": "D1",
+    "clubType": "driver",
+    "createdAt": "2024-06-11T06:14:01.239Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "Ping",
+    "updatedAt": "2024-06-11T06:14:01.239Z"
+   },
+   "courseHole": "7b02cdf50664acf2f5e9fc3d",
+   "destination": {
+    "coordinates": [
+     34.3907697,
+     49.300790606457554
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3930116,
+     49.30099573839556
+    ],
+    "type": "Point"
+   },
+   "number": 0,
+   "remainingDistance": 252.25,
+   "shotFrom": "tee",
+   "shotTo": "bunker",
+   "shotType": "teeShot"
+  },
+  {
+   "_id": "d0f870d2bb917a3f64f87343",
+   "calculatedDistance": 93.62,
+   "club": {
+    "__v": 0,
+    "_id": "d9c7c4d1e92b7942e012ccb6",
+    "clubName": "G Le",
+    "clubShortcut": "H6",
+    "clubType": "hybrid",
+    "createdAt": "2015-04-06T14:47:33.445Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "Ping",
+    "updatedAt": "2023-06-18T11:22:56.067Z"
+   },
+   "courseHole": "03990848c49bdffbd6d19b57",
+   "destination": {
+    "coordinates": [
+     34.3896716,
+     49.30060084316551
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3885664,
+     49.30103614179109
+    ],
+    "type": "Point"
+   },
+   "number": 0,
+   "remainingDistance": 132.18,
+   "shotFrom": "tee",
+   "shotTo": "fairway",
+   "shotType": "teeShot"
+  },
+  {
+   "_id": "8b091abdcb1427273c705270",
+   "calculatedDistance": 141.98,
+   "club": {
+    "__v": 0,
+    "_id": "205f48e33876f2285f5ae64a",
+    "clubName": "G Le4",
+    "clubShortcut": "D1",
+    "clubType": "driver",
+    "createdAt": "2024-06-11T06:14:01.239Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "Ping",
+    "updatedAt": "2024-06-11T06:14:01.239Z"
+   },
+   "courseHole": "1a233969358043ccfcd8acef",
+   "destination": {
+    "coordinates": [
+     34.3870098,
+     49.30046235999791
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3888623,
+     49.30004861086644
+    ],
+    "type": "Point"
+   },
+   "number": 0,
+   "remainingDistance": 451.53,
+   "shotFrom": "tee",
+   "shotTo": "rough",
+   "shotType": "teeShot"
+  },
+  {
+   "_id": "d661ab211317739dcd226185",
+   "calculatedDistance": 81.29,
+   "club": {
+    "__v": 0,
+    "_id": "205f48e33876f2285f5ae64a",
+    "clubName": "G Le4",
+    "clubShortcut": "D1",
+    "clubType": "driver",
+    "createdAt": "2024-06-11T06:14:01.239Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "Ping",
+    "updatedAt": "2024-06-11T06:14:01.239Z"
+   },
+   "courseHole": "32df977c9ed365c18eb59646",
+   "destination": {
+    "coordinates": [
+     34.3839653,
+     49.30058223024835
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3828965,
+     49.30080288317777
+    ],
+    "type": "Point"
+   },
+   "number": 0,
+   "remainingDistance": 307.61,
+   "shotFrom": "tee",
+   "shotTo": "roughout",
+   "shotType": "teeShot"
+  },
+  {
+   "_id": "a1026c0a15097da0c82885f7",
+   "calculatedDistance": 188.01,
+   "club": {
+    "__v": 0,
+    "_id": "205f48e33876f2285f5ae64a",
+    "clubName": "G Le4",
+    "clubShortcut": "D1",
+    "clubType": "driver",
+    "createdAt": "2024-06-11T06:14:01.239Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "Ping",
+    "updatedAt": "2024-06-11T06:14:01.239Z"
+   },
+   "courseHole": "c0962bd3b1c67344dc5ceea0",
+   "destination": {
+    "coordinates": [
+     34.3881727,
+     49.29953644879669
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.385725,
+     49.29897874050383
+    ],
+    "type": "Point"
+   },
+   "number": 0,
+   "remainingDistance": 390.93,
+   "shotFrom": "tee",
+   "shotTo": "rough",
+   "shotType": "teeShot"
+  },
+  {
+   "_id": "077288badfd2a20896f42925",
+   "calculatedDistance": 149.7,
+   "club": {
+    "__v": 0,
+    "_id": "205f48e33876f2285f5ae64a",
+    "clubName": "G Le4",
+    "clubShortcut": "D1",
+    "clubType": "driver",
+    "createdAt": "2024-06-11T06:14:01.239Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "Ping",
+    "updatedAt": "2024-06-11T06:14:01.239Z"
+   },
+   "courseHole": "b3bc9cca98d63a68bad5dbe3",
+   "destination": {
+    "coordinates": [
+     34.3908607,
+     49.29879987119827
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3922424,
+     49.29980024182555
+    ],
+    "type": "Point"
+   },
+   "number": 0,
+   "remainingDistance": 318.86,
+   "shotFrom": "tee",
+   "shotTo": "fairway",
+   "shotType": "teeShot"
+  },
+  {
+   "_id": "f9e53582ac134f69280281e7",
+   "calculatedDistance": 127.43,
+   "club": {
+    "__v": 0,
+    "_id": "205f48e33876f2285f5ae64a",
+    "clubName": "G Le4",
+    "clubShortcut": "D1",
+    "clubType": "driver",
+    "createdAt": "2024-06-11T06:14:01.239Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "Ping",
+    "updatedAt": "2024-06-11T06:14:01.239Z"
+   },
+   "courseHole": "f4610add7ceebd4ebdd65e36",
+   "destination": {
+    "coordinates": [
+     34.3858873,
+     49.29830920635834
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3876403,
+     49.2982283530082
+    ],
+    "type": "Point"
+   },
+   "number": 0,
+   "remainingDistance": 168.73,
+   "shotFrom": "tee",
+   "shotTo": "bunker",
+   "shotType": "teeShot"
+  },
+  {
+   "_id": "6ef5a1e5b59e5d8771936ff1",
+   "calculatedDistance": 176.31,
+   "club": {
+    "__v": 0,
+    "_id": "205f48e33876f2285f5ae64a",
+    "clubName": "G Le4",
+    "clubShortcut": "D1",
+    "clubType": "driver",
+    "createdAt": "2024-06-11T06:14:01.239Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "Ping",
+    "updatedAt": "2024-06-11T06:14:01.239Z"
+   },
+   "courseHole": "9518853803d2decd3a9591fe",
+   "destination": {
+    "coordinates": [
+     34.3878077,
+     49.296585030069735
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3855071,
+     49.29709804900904
+    ],
+    "type": "Point"
+   },
+   "number": 0,
+   "remainingDistance": 428.12,
+   "shotFrom": "tee",
+   "shotTo": "water",
+   "shotType": "teeShot"
+  },
+  {
+   "_id": "e142c250d7b62c374183dd85",
+   "calculatedDistance": 162.26,
+   "club": {
+    "__v": 0,
+    "_id": "205f48e33876f2285f5ae64a",
+    "clubName": "G Le4",
+    "clubShortcut": "D1",
+    "clubType": "driver",
+    "createdAt": "2024-06-11T06:14:01.239Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "Ping",
+    "updatedAt": "2024-06-11T06:14:01.239Z"
+   },
+   "courseHole": "2cdfe28e47514b1483a351a5",
+   "destination": {
+    "coordinates": [
+     34.393855,
+     49.29880138920015
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3928862,
+     49.297485965542535
+    ],
+    "type": "Point"
+   },
+   "number": 0,
+   "remainingDistance": 225.05,
+   "shotFrom": "tee",
+   "shotTo": "fairway",
+   "shotType": "teeShot"
+  },
+  {
+   "_id": "0979df52b82769ebfe2645b2",
+   "calculatedDistance": 26.92,
+   "club": {
+    "__v": 0,
+    "_id": "7f2db31bd0ac6f403ae19499",
+    "clubName": "G Le3",
+    "clubShortcut": "I8",
+    "clubType": "iron",
+    "createdAt": "2023-12-24T10:29:15.019Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "Ping",
+    "updatedAt": "2023-12-24T10:29:15.019Z"
+   },
+   "courseHole": "7b02cdf50664acf2f5e9fc3d",
+   "destination": {
+    "coordinates": [
+     34.3905676,
+     49.300993724356886
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3907697,
+     49.300790606457554
+    ],
+    "type": "Point"
+   },
+   "number": 1,
+   "remainingDistance": 86.79,
+   "shotFrom": "bunker",
+   "shotTo": "rough",
+   "shotType": "bunker"
+  },
+  {
+   "_id": "f62ef5b33f7a67bd2df8a4b8",
+   "calculatedDistance": 25.86,
+   "club": {
+    "__v": 0,
+    "_id": "78cced0f636ab8629f44d086",
+    "clubName": "G Le3",
+    "clubShortcut": "UW",
+    "clubType": "wedge",
+    "createdAt": "2023-12-24T10:29:15.019Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "Ping",
+    "updatedAt": "2023-12-24T10:29:15.019Z"
+   },
+   "courseHole": "03990848c49bdffbd6d19b57",
+   "destination": {
+    "coordinates": [
+     34.389811,
+     49.30038678639113
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3896716,
+     49.30060084316551
+    ],
+    "type": "Point"
+   },
+   "number": 1,
+   "remainingDistance": 39.68,
+   "shotFrom": "fairway",
+   "shotTo": "rough",
+   "shotType": "pitch"
+  },
+  {
+   "_id": "d5213fb6cbb40fae4fa4fe21",
+   "calculatedDistance": 132.67,
+   "club": {
+    "__v": 0,
+    "_id": "d9c7c4d1e92b7942e012ccb6",
+    "clubName": "G Le",
+    "clubShortcut": "H6",
+    "clubType": "hybrid",
+    "createdAt": "2015-04-06T14:47:33.445Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "Ping",
+    "updatedAt": "2023-06-18T11:22:56.067Z"
+   },
+   "courseHole": "1a233969358043ccfcd8acef",
+   "destination": {
+    "coordinates": [
+     34.3851899,
+     49.30033967356806
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3870098,
+     49.30046235999791
+    ],
+    "type": "Point"
+   },
+   "number": 1,
+   "remainingDistance": 304.68,
+   "shotFrom": "rough",
+   "shotTo": "fairway",
+   "shotType": "transport"
+  },
+  {
+   "_id": "684ce3194bdea908373376cc",
+   "calculatedDistance": 84.44,
+   "club": {
+    "__v": 0,
+    "_id": "7f2db31bd0ac6f403ae19499",
+    "clubName": "G Le3",
+    "clubShortcut": "I8",
+    "clubType": "iron",
+    "createdAt": "2023-12-24T10:29:15.019Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "Ping",
+    "updatedAt": "2023-12-24T10:29:15.019Z"
+   },
+   "courseHole": "32df977c9ed365c18eb59646",
+   "destination": {
+    "coordinates": [
+     34.3845661,
+     49.299931688499015
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3839653,
+     49.30058223024835
+    ],
+    "type": "Point"
+   },
+   "number": 1,
+   "remainingDistance": 220.43,
+   "shotFrom": "roughout",
+   "shotTo": "fairway",
+   "shotType": "transport"
+  },
+  {
+   "_id": "078da08b7843493fc4fc00ea",
+   "calculatedDistance": 128.35,
+   "club": {
+    "__v": 0,
+    "_id": "d9c7c4d1e92b7942e012ccb6",
+    "clubName": "G Le",
+    "clubShortcut": "H6",
+    "clubType": "hybrid",
+    "createdAt": "2015-04-06T14:47:33.445Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "Ping",
+    "updatedAt": "2023-06-18T11:22:56.067Z"
+   },
+   "courseHole": "c0962bd3b1c67344dc5ceea0",
+   "destination": {
+    "coordinates": [
+     34.3898713,
+     49.29986096641153
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3881727,
+     49.29953644879669
+    ],
+    "type": "Point"
+   },
+   "number": 1,
+   "remainingDistance": 201.95,
+   "shotFrom": "rough",
+   "shotTo": "fairway",
+   "shotType": "transport"
+  },
+  {
+   "_id": "6342097d3828922ad1598e93",
+   "calculatedDistance": 87.82,
+   "club": {
+    "__v": 0,
+    "_id": "ea2c02818ece23ae5d5f122f",
+    "clubName": "G Le4",
+    "clubShortcut": "W5",
+    "clubType": "wood",
+    "createdAt": "2024-06-11T06:14:01.245Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "Ping",
+    "updatedAt": "2024-06-11T06:14:01.245Z"
+   },
+   "courseHole": "b3bc9cca98d63a68bad5dbe3",
+   "destination": {
+    "coordinates": [
+     34.3896716,
+     49.29864962415425
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3908607,
+     49.29879987119827
+    ],
+    "type": "Point"
+   },
+   "number": 1,
+   "remainingDistance": 194.5,
+   "shotFrom": "fairway",
+   "shotTo": "roughout",
+   "shotType": "shotToGreen"
+  },
+  {
+   "_id": "b35587b494da359abfff8f31",
+   "calculatedDistance": 42.53,
+   "club": {
+    "__v": 0,
+    "_id": "da9cefa5782123f6a76e61d5",
+    "clubName": "G Le3",
+    "clubShortcut": "PW",
+    "clubType": "wedge",
+    "createdAt": "2023-12-24T10:29:15.019Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "Ping",
+    "updatedAt": "2023-12-24T10:29:15.019Z"
+   },
+   "courseHole": "f4610add7ceebd4ebdd65e36",
+   "destination": {
+    "coordinates": [
+     34.3853676,
+     49.29813196974612
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3858873,
+     49.29830920635834
+    ],
+    "type": "Point"
+   },
+   "number": 1,
+   "remainingDistance": 51.89,
+   "shotFrom": "bunker",
+   "shotTo": "rough",
+   "shotType": "bunker"
+  },
+  {
+   "_id": "f5d73308472c019f0e274032",
+   "calculatedDistance": 176.31,
+   "courseHole": "9518853803d2decd3a9591fe",
+   "destination": {
+    "coordinates": [
+     34.3855071,
+     49.29709804900904
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3878077,
+     49.296585030069735
+    ],
+    "type": "Point"
+   },
+   "number": 1,
+   "remainingDistance": 261.79,
+   "shotFrom": "water",
+   "shotTo": "rough",
+   "shotType": "penalty"
+  },
+  {
+   "_id": "0933fe918fe3b06bbb26f335",
+   "calculatedDistance": 39.92,
+   "club": {
+    "__v": 0,
+    "_id": "da9cefa5782123f6a76e61d5",
+    "clubName": "G Le3",
+    "clubShortcut": "PW",
+    "clubType": "wedge",
+    "createdAt": "2023-12-24T10:29:15.019Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "Ping",
+    "updatedAt": "2023-12-24T10:29:15.019Z"
+   },
+   "courseHole": "2cdfe28e47514b1483a351a5",
+   "destination": {
+    "coordinates": [
+     34.3941534,
+     49.299103120713795
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.393855,
+     49.29880138920015
+    ],
+    "type": "Point"
+   },
+   "number": 1,
+   "remainingDistance": 60.94,
+   "shotFrom": "fairway",
+   "shotTo": "rough",
+   "shotType": "pitch"
+  },
+  {
+   "_id": "4a009333a024c09f2948558e",
+   "calculatedDistance": 68.74,
+   "club": {
+    "__v": 0,
+    "_id": "da9cefa5782123f6a76e61d5",
+    "clubName": "G Le3",
+    "clubShortcut": "PW",
+    "clubType": "wedge",
+    "createdAt": "2023-12-24T10:29:15.019Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "Ping",
+    "updatedAt": "2023-12-24T10:29:15.019Z"
+   },
+   "courseHole": "7b02cdf50664acf2f5e9fc3d",
+   "destination": {
+    "coordinates": [
+     34.3897196,
+     49.30127016584703
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3905676,
+     49.300993724356886
+    ],
+    "type": "Point"
+   },
+   "number": 2,
+   "remainingDistance": 63.64,
+   "shotFrom": "rough",
+   "shotTo": "green",
+   "shotType": "pitch"
+  },
+  {
+   "_id": "efa267648d817cc37a6858d4",
+   "calculatedDistance": 16.86,
+   "club": {
+    "__v": 0,
+    "_id": "7db245dbf73e6ad8b9b21da8",
+    "clubName": "Spider ZT",
+    "clubShortcut": "Putter",
+    "clubType": "putter",
+    "createdAt": "2023-06-18T11:22:56.456Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "TaylorMade",
+    "updatedAt": "2023-06-18T11:22:56.456Z"
+   },
+   "courseHole": "03990848c49bdffbd6d19b57",
+   "destination": {
+    "coordinates": [
+     34.3900124,
+     49.30031093844056
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.389811,
+     49.30038678639113
+    ],
+    "type": "Point"
+   },
+   "number": 2,
+   "remainingDistance": 17.6,
+   "shotFrom": "rough",
+   "shotTo": "green",
+   "shotType": "chip"
+  },
+  {
+   "_id": "e6d01cb3623875046a25e58a",
+   "calculatedDistance": 147.38,
+   "club": {
+    "__v": 0,
+    "_id": "ea2c02818ece23ae5d5f122f",
+    "clubName": "G Le4",
+    "clubShortcut": "W5",
+    "clubType": "wood",
+    "createdAt": "2024-06-11T06:14:01.245Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "Ping",
+    "updatedAt": "2024-06-11T06:14:01.245Z"
+   },
+   "courseHole": "1a233969358043ccfcd8acef",
+   "destination": {
+    "coordinates": [
+     34.3834069,
+     49.300976009687304
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3851899,
+     49.30033967356806
+    ],
+    "type": "Point"
+   },
+   "number": 2,
+   "remainingDistance": 186.79,
+   "shotFrom": "fairway",
+   "shotTo": "fairway",
+   "shotType": "shotToGreen"
+  },
+  {
+   "_id": "31e45da32be93ab365a6ca7e",
+   "calculatedDistance": 120.29,
+   "club": {
+    "__v": 0,
+    "_id": "ea2c02818ece23ae5d5f122f",
+    "clubName": "G Le4",
+    "clubShortcut": "W5",
+    "clubType": "wood",
+    "createdAt": "2024-06-11T06:14:01.245Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "Ping",
+    "updatedAt": "2024-06-11T06:14:01.245Z"
+   },
+   "courseHole": "32df977c9ed365c18eb59646",
+   "destination": {
+    "coordinates": [
+     34.3860962,
+     49.29951361443577
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3845661,
+     49.299931688499015
+    ],
+    "type": "Point"
+   },
+   "number": 2,
+   "remainingDistance": 152.48,
+   "shotFrom": "fairway",
+   "shotTo": "fairway",
+   "shotType": "shotToGreen"
+  },
+  {
+   "_id": "14fadc24ab582574cae139d3",
+   "calculatedDistance": 50.15,
+   "club": {
+    "__v": 0,
+    "_id": "da9cefa5782123f6a76e61d5",
+    "clubName": "G Le3",
+    "clubShortcut": "PW",
+    "clubType": "wedge",
+    "createdAt": "2023-12-24T10:29:15.019Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "Ping",
+    "updatedAt": "2023-12-24T10:29:15.019Z"
+   },
+   "courseHole": "c0962bd3b1c67344dc5ceea0",
+   "destination": {
+    "coordinates": [
+     34.3905581,
+     49.299914326732676
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3898713,
+     49.29986096641153
+    ],
+    "type": "Point"
+   },
+   "number": 2,
+   "remainingDistance": 73.67,
+   "shotFrom": "fairway",
+   "shotTo": "rough",
+   "shotType": "shotToGreen"
+  },
+  {
+   "_id": "30d685fcf4bac7a8129bd077",
+   "calculatedDistance": 66.33,
+   "club": {
+    "__v": 0,
+    "_id": "7f2db31bd0ac6f403ae19499",
+    "clubName": "G Le3",
+    "clubShortcut": "I8",
+    "clubType": "iron",
+    "createdAt": "2023-12-24T10:29:15.019Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "Ping",
+    "updatedAt": "2023-12-24T10:29:15.019Z"
+   },
+   "courseHole": "b3bc9cca98d63a68bad5dbe3",
+   "destination": {
+    "coordinates": [
+     34.3887575,
+     49.29862926422501
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3896716,
+     49.29864962415425
+    ],
+    "type": "Point"
+   },
+   "number": 2,
+   "remainingDistance": 110.89,
+   "shotFrom": "roughout",
+   "shotTo": "roughout",
+   "shotType": "shotToGreen"
+  },
+  {
+   "_id": "49ed14059ad3f3ae1ed87aad",
+   "calculatedDistance": 14.79,
+   "club": {
+    "__v": 0,
+    "_id": "78cced0f636ab8629f44d086",
+    "clubName": "G Le3",
+    "clubShortcut": "UW",
+    "clubType": "wedge",
+    "createdAt": "2023-12-24T10:29:15.019Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "Ping",
+    "updatedAt": "2023-12-24T10:29:15.019Z"
+   },
+   "courseHole": "f4610add7ceebd4ebdd65e36",
+   "destination": {
+    "coordinates": [
+     34.3853339,
+     49.29800080555029
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3853676,
+     49.29813196974612
+    ],
+    "type": "Point"
+   },
+   "number": 2,
+   "remainingDistance": 13.68,
+   "shotFrom": "rough",
+   "shotTo": "green",
+   "shotType": "chip"
+  },
+  {
+   "_id": "61d625a4fb7443b11ad7219d",
+   "calculatedDistance": 128.59,
+   "club": {
+    "__v": 0,
+    "_id": "205f48e33876f2285f5ae64a",
+    "clubName": "G Le4",
+    "clubShortcut": "D1",
+    "clubType": "driver",
+    "createdAt": "2024-06-11T06:14:01.239Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "Ping",
+    "updatedAt": "2024-06-11T06:14:01.239Z"
+   },
+   "courseHole": "9518853803d2decd3a9591fe",
+   "destination": {
+    "coordinates": [
+     34.3872059,
+     49.29676641620841
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3855071,
+     49.29709804900904
+    ],
+    "type": "Point"
+   },
+   "number": 2,
+   "remainingDistance": 420.88,
+   "shotFrom": "rough",
+   "shotTo": "fairway",
+   "shotType": "transport"
+  },
+  {
+   "_id": "6fcf2703b9f7a54de8d536c8",
+   "calculatedDistance": 26.1,
+   "club": {
+    "__v": 0,
+    "_id": "282a1a2002a88e6a2aee1907",
+    "clubName": "Hi-Toe",
+    "clubShortcut": "LW",
+    "clubType": "wedge",
+    "createdAt": "2018-02-20T09:02:52.908Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "TaylorMade",
+    "updatedAt": "2023-06-18T11:22:56.519Z"
+   },
+   "courseHole": "2cdfe28e47514b1483a351a5",
+   "destination": {
+    "coordinates": [
+     34.3942287,
+     49.2993326647352
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3941534,
+     49.299103120713795
+    ],
+    "type": "Point"
+   },
+   "number": 2,
+   "remainingDistance": 21.78,
+   "shotFrom": "rough",
+   "shotTo": "green",
+   "shotType": "chip"
+  },
+  {
+   "_id": "fb5605002a5a2c369f61c784",
+   "calculatedDistance": 19.21,
+   "club": {
+    "__v": 0,
+    "_id": "7db245dbf73e6ad8b9b21da8",
+    "clubName": "Spider ZT",
+    "clubShortcut": "Putter",
+    "clubType": "putter",
+    "createdAt": "2023-06-18T11:22:56.456Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "TaylorMade",
+    "updatedAt": "2023-06-18T11:22:56.456Z"
+   },
+   "courseHole": "7b02cdf50664acf2f5e9fc3d",
+   "destination": {
+    "coordinates": [
+     34.3897858,
+     49.301102927728664
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3897196,
+     49.30127016584703
+    ],
+    "type": "Point"
+   },
+   "number": 3,
+   "remainingDistance": 8.59,
+   "shotFrom": "green",
+   "shotTo": "rough",
+   "shotType": "putt"
+  },
+  {
+   "_id": "cee253addb20845fd9a05aad",
+   "calculatedDistance": 3.71,
+   "club": {
+    "__v": 0,
+    "_id": "7db245dbf73e6ad8b9b21da8",
+    "clubName": "Spider ZT",
+    "clubShortcut": "Putter",
+    "clubType": "putter",
+    "createdAt": "2023-06-18T11:22:56.456Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "TaylorMade",
+    "updatedAt": "2023-06-18T11:22:56.456Z"
+   },
+   "courseHole": "03990848c49bdffbd6d19b57",
+   "destination": {
+    "coordinates": [
+     34.390042,
+     49.300338118917836
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3900124,
+     49.30031093844056
+    ],
+    "type": "Point"
+   },
+   "number": 3,
+   "remainingDistance": 3.71,
+   "shotFrom": "green",
+   "shotTo": "hole",
+   "shotType": "putt"
+  },
+  {
+   "_id": "b700151ec224ec29940b1baf",
+   "calculatedDistance": 57.22,
+   "club": {
+    "__v": 0,
+    "_id": "78cced0f636ab8629f44d086",
+    "clubName": "G Le3",
+    "clubShortcut": "UW",
+    "clubType": "wedge",
+    "createdAt": "2023-12-24T10:29:15.019Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "Ping",
+    "updatedAt": "2023-12-24T10:29:15.019Z"
+   },
+   "courseHole": "1a233969358043ccfcd8acef",
+   "destination": {
+    "coordinates": [
+     34.3827998,
+     49.30130481437283
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3834069,
+     49.300976009687304
+    ],
+    "type": "Point"
+   },
+   "number": 3,
+   "remainingDistance": 39.5,
+   "shotFrom": "fairway",
+   "shotTo": "rough",
+   "shotType": "pitch"
+  },
+  {
+   "_id": "046f2b311d379fd03de92929",
+   "calculatedDistance": 33.61,
+   "club": {
+    "__v": 0,
+    "_id": "af094c92a3a2c4ce41d0e176",
+    "clubName": "RTX Zipcore Tour",
+    "clubShortcut": "56°",
+    "clubType": "wedge",
+    "createdAt": "2020-01-28T09:57:34.576Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "Cleveland",
+    "updatedAt": "2023-06-18T11:22:54.320Z"
+   },
+   "courseHole": "32df977c9ed365c18eb59646",
+   "destination": {
+    "coordinates": [
+     34.3865491,
+     49.29957791444559
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3860962,
+     49.29951361443577
+    ],
+    "type": "Point"
+   },
+   "number": 3,
+   "remainingDistance": 38.29,
+   "shotFrom": "fairway",
+   "shotTo": "green",
+   "shotType": "pitch"
+  },
+  {
+   "_id": "087eefc72464edd1fd87b222",
+   "calculatedDistance": 15.17,
+   "club": {
+    "__v": 0,
+    "_id": "78cced0f636ab8629f44d086",
+    "clubName": "G Le3",
+    "clubShortcut": "UW",
+    "clubType": "wedge",
+    "createdAt": "2023-12-24T10:29:15.019Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "Ping",
+    "updatedAt": "2023-12-24T10:29:15.019Z"
+   },
+   "courseHole": "c0962bd3b1c67344dc5ceea0",
+   "destination": {
+    "coordinates": [
+     34.3907655,
+     49.299896332227036
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3905581,
+     49.299914326732676
+    ],
+    "type": "Point"
+   },
+   "number": 3,
+   "remainingDistance": 24.5,
+   "shotFrom": "rough",
+   "shotTo": "bunker",
+   "shotType": "chip"
+  },
+  {
+   "_id": "e308d33e7b45db09fe035ca3",
+   "calculatedDistance": 55.88,
+   "club": {
+    "__v": 0,
+    "_id": "78cced0f636ab8629f44d086",
+    "clubName": "G Le3",
+    "clubShortcut": "UW",
+    "clubType": "wedge",
+    "createdAt": "2023-12-24T10:29:15.019Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "Ping",
+    "updatedAt": "2023-12-24T10:29:15.019Z"
+   },
+   "courseHole": "b3bc9cca98d63a68bad5dbe3",
+   "destination": {
+    "coordinates": [
+     34.3881595,
+     49.29894628320082
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3887575,
+     49.29862926422501
+    ],
+    "type": "Point"
+   },
+   "number": 3,
+   "remainingDistance": 49.72,
+   "shotFrom": "roughout",
+   "shotTo": "rough",
+   "shotType": "pitch"
+  },
+  {
+   "_id": "38e876327bceb0eb5edf66b7",
+   "calculatedDistance": 2.13,
+   "club": {
+    "__v": 0,
+    "_id": "7db245dbf73e6ad8b9b21da8",
+    "clubName": "Spider ZT",
+    "clubShortcut": "Putter",
+    "clubType": "putter",
+    "createdAt": "2023-06-18T11:22:56.456Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "TaylorMade",
+    "updatedAt": "2023-06-18T11:22:56.456Z"
+   },
+   "courseHole": "f4610add7ceebd4ebdd65e36",
+   "destination": {
+    "coordinates": [
+     34.3853353,
+     49.298019904624056
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3853339,
+     49.29800080555029
+    ],
+    "type": "Point"
+   },
+   "number": 3,
+   "remainingDistance": 1.12,
+   "shotFrom": "green",
+   "shotTo": "green",
+   "shotType": "putt"
+  },
+  {
+   "_id": "cde891ecd76416ed2a916f56",
+   "calculatedDistance": 100.46,
+   "club": {
+    "__v": 0,
+    "_id": "d9c7c4d1e92b7942e012ccb6",
+    "clubName": "G Le",
+    "clubShortcut": "H6",
+    "clubType": "hybrid",
+    "createdAt": "2015-04-06T14:47:33.445Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "Ping",
+    "updatedAt": "2023-06-18T11:22:56.067Z"
+   },
+   "courseHole": "9518853803d2decd3a9591fe",
+   "destination": {
+    "coordinates": [
+     34.3885525,
+     49.29655400479504
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3872059,
+     49.29676641620841
+    ],
+    "type": "Point"
+   },
+   "number": 3,
+   "remainingDistance": 300.76,
+   "shotFrom": "fairway",
+   "shotTo": "fairway",
+   "shotType": "transport"
+  },
+  {
+   "_id": "cf0181f8d2628fb9624715db",
+   "calculatedDistance": 5.94,
+   "club": {
+    "__v": 0,
+    "_id": "7db245dbf73e6ad8b9b21da8",
+    "clubName": "Spider ZT",
+    "clubShortcut": "Putter",
+    "clubType": "putter",
+    "createdAt": "2023-06-18T11:22:56.456Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "TaylorMade",
+    "updatedAt": "2023-06-18T11:22:56.456Z"
+   },
+   "courseHole": "2cdfe28e47514b1483a351a5",
+   "destination": {
+    "coordinates": [
+     34.3942159,
+     49.299279880371955
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3942287,
+     49.2993326647352
+    ],
+    "type": "Point"
+   },
+   "number": 3,
+   "remainingDistance": 4.39,
+   "shotFrom": "green",
+   "shotTo": "green",
+   "shotType": "putt"
+  },
+  {
+   "_id": "16cded413a8f2a432f170d10",
+   "calculatedDistance": 7.04,
+   "club": {
+    "__v": 0,
+    "_id": "7db245dbf73e6ad8b9b21da8",
+    "clubName": "Spider ZT",
+    "clubShortcut": "Putter",
+    "clubType": "putter",
+    "createdAt": "2023-06-18T11:22:56.456Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "TaylorMade",
+    "updatedAt": "2023-06-18T11:22:56.456Z"
+   },
+   "courseHole": "7b02cdf50664acf2f5e9fc3d",
+   "destination": {
+    "coordinates": [
+     34.3897758,
+     49.301165950960865
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3897858,
+     49.301102927728664
+    ],
+    "type": "Point"
+   },
+   "number": 4,
+   "remainingDistance": 10.63,
+   "shotFrom": "rough",
+   "shotTo": "green",
+   "shotType": "chip"
+  },
+  {
+   "_id": "2adb9ad724280948e43dd648",
+   "calculatedDistance": 31.62,
+   "club": {
+    "__v": 0,
+    "_id": "78cced0f636ab8629f44d086",
+    "clubName": "G Le3",
+    "clubShortcut": "UW",
+    "clubType": "wedge",
+    "createdAt": "2023-12-24T10:29:15.019Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "Ping",
+    "updatedAt": "2023-12-24T10:29:15.019Z"
+   },
+   "courseHole": "1a233969358043ccfcd8acef",
+   "destination": {
+    "coordinates": [
+     34.383143,
+     49.301129338528085
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3827998,
+     49.30130481437283
+    ],
+    "type": "Point"
+   },
+   "number": 4,
+   "remainingDistance": 18.56,
+   "shotFrom": "rough",
+   "shotTo": "fairway",
+   "shotType": "chip"
+  },
+  {
+   "_id": "50ba60a8b87777a58a09e637",
+   "calculatedDistance": 9.57,
+   "club": {
+    "__v": 0,
+    "_id": "7db245dbf73e6ad8b9b21da8",
+    "clubName": "Spider ZT",
+    "clubShortcut": "Putter",
+    "clubType": "putter",
+    "createdAt": "2023-06-18T11:22:56.456Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "TaylorMade",
+    "updatedAt": "2023-06-18T11:22:56.456Z"
+   },
+   "courseHole": "32df977c9ed365c18eb59646",
+   "destination": {
+    "coordinates": [
+     34.3866768,
+     49.29959956913058
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3865491,
+     49.29957791444559
+    ],
+    "type": "Point"
+   },
+   "number": 4,
+   "remainingDistance": 4.93,
+   "shotFrom": "green",
+   "shotTo": "green",
+   "shotType": "putt"
+  },
+  {
+   "_id": "0be5ca9db1a86a73bb5571e6",
+   "calculatedDistance": 28.23,
+   "club": {
+    "__v": 0,
+    "_id": "78cced0f636ab8629f44d086",
+    "clubName": "G Le3",
+    "clubShortcut": "UW",
+    "clubType": "wedge",
+    "createdAt": "2023-12-24T10:29:15.019Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "Ping",
+    "updatedAt": "2023-12-24T10:29:15.019Z"
+   },
+   "courseHole": "c0962bd3b1c67344dc5ceea0",
+   "destination": {
+    "coordinates": [
+     34.3909063,
+     49.30013305100124
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3907655,
+     49.299896332227036
+    ],
+    "type": "Point"
+   },
+   "number": 4,
+   "remainingDistance": 14.67,
+   "shotFrom": "bunker",
+   "shotTo": "rough",
+   "shotType": "bunker"
+  },
+  {
+   "_id": "8cb44aeff62772d0bb7a3e05",
+   "calculatedDistance": 9.24,
+   "club": {
+    "__v": 0,
+    "_id": "7db245dbf73e6ad8b9b21da8",
+    "clubName": "Spider ZT",
+    "clubShortcut": "Putter",
+    "clubType": "putter",
+    "createdAt": "2023-06-18T11:22:56.456Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "TaylorMade",
+    "updatedAt": "2023-06-18T11:22:56.456Z"
+   },
+   "courseHole": "b3bc9cca98d63a68bad5dbe3",
+   "destination": {
+    "coordinates": [
+     34.3881733,
+     49.29886366831465
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3881595,
+     49.29894628320082
+    ],
+    "type": "Point"
+   },
+   "number": 4,
+   "remainingDistance": 8.51,
+   "shotFrom": "rough",
+   "shotTo": "green",
+   "shotType": "chip"
+  },
+  {
+   "_id": "e1f9e7295cabac0c22f01825",
+   "calculatedDistance": 1.05,
+   "club": {
+    "__v": 0,
+    "_id": "7db245dbf73e6ad8b9b21da8",
+    "clubName": "Spider ZT",
+    "clubShortcut": "Putter",
+    "clubType": "putter",
+    "createdAt": "2023-06-18T11:22:56.456Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "TaylorMade",
+    "updatedAt": "2023-06-18T11:22:56.456Z"
+   },
+   "courseHole": "f4610add7ceebd4ebdd65e36",
+   "destination": {
+    "coordinates": [
+     34.3853375,
+     49.29801054553539
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3853353,
+     49.298019904624056
+    ],
+    "type": "Point"
+   },
+   "number": 4,
+   "remainingDistance": 1.05,
+   "shotFrom": "green",
+   "shotTo": "hole",
+   "shotType": "putt"
+  },
+  {
+   "_id": "7499f58348a4d7d87cc4dabb",
+   "calculatedDistance": 139.98,
+   "club": {
+    "__v": 0,
+    "_id": "ea2c02818ece23ae5d5f122f",
+    "clubName": "G Le4",
+    "clubShortcut": "W5",
+    "clubType": "wood",
+    "createdAt": "2024-06-11T06:14:01.245Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "Ping",
+    "updatedAt": "2024-06-11T06:14:01.245Z"
+   },
+   "courseHole": "9518853803d2decd3a9591fe",
+   "destination": {
+    "coordinates": [
+     34.3904807,
+     49.296613743557174
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3885525,
+     49.29655400479504
+    ],
+    "type": "Point"
+   },
+   "number": 4,
+   "remainingDistance": 210.87,
+   "shotFrom": "fairway",
+   "shotTo": "fairway",
+   "shotType": "transport"
+  },
+  {
+   "_id": "64717a99b7e00c1ace165829",
+   "calculatedDistance": 1.65,
+   "club": {
+    "__v": 0,
+    "_id": "7db245dbf73e6ad8b9b21da8",
+    "clubName": "Spider ZT",
+    "clubShortcut": "Putter",
+    "clubType": "putter",
+    "createdAt": "2023-06-18T11:22:56.456Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "TaylorMade",
+    "updatedAt": "2023-06-18T11:22:56.456Z"
+   },
+   "courseHole": "2cdfe28e47514b1483a351a5",
+   "destination": {
+    "coordinates": [
+     34.3942258,
+     49.299293207650464
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3942159,
+     49.299279880371955
+    ],
+    "type": "Point"
+   },
+   "number": 4,
+   "remainingDistance": 1.65,
+   "shotFrom": "green",
+   "shotTo": "hole",
+   "shotType": "putt"
+  },
+  {
+   "_id": "41bf4488382eb437a12f5036",
+   "calculatedDistance": 2.82,
+   "club": {
+    "__v": 0,
+    "_id": "7db245dbf73e6ad8b9b21da8",
+    "clubName": "Spider ZT",
+    "clubShortcut": "Putter",
+    "clubType": "putter",
+    "createdAt": "2023-06-18T11:22:56.456Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "TaylorMade",
+    "updatedAt": "2023-06-18T11:22:56.456Z"
+   },
+   "courseHole": "7b02cdf50664acf2f5e9fc3d",
+   "destination": {
+    "coordinates": [
+     34.389754,
+     49.30118695586188
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3897758,
+     49.301165950960865
+    ],
+    "type": "Point"
+   },
+   "number": 5,
+   "remainingDistance": 3.88,
+   "shotFrom": "green",
+   "shotTo": "green",
+   "shotType": "putt"
+  },
+  {
+   "_id": "03f8e0780f788d397b18b113",
+   "calculatedDistance": 14.31,
+   "club": {
+    "__v": 0,
+    "_id": "78cced0f636ab8629f44d086",
+    "clubName": "G Le3",
+    "clubShortcut": "UW",
+    "clubType": "wedge",
+    "createdAt": "2023-12-24T10:29:15.019Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "Ping",
+    "updatedAt": "2023-12-24T10:29:15.019Z"
+   },
+   "courseHole": "1a233969358043ccfcd8acef",
+   "destination": {
+    "coordinates": [
+     34.3829598,
+     49.301177226718636
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.383143,
+     49.301129338528085
+    ],
+    "type": "Point"
+   },
+   "number": 5,
+   "remainingDistance": 14.67,
+   "shotFrom": "fairway",
+   "shotTo": "green",
+   "shotType": "chip"
+  },
+  {
+   "_id": "dae660f134739559ec85f4f5",
+   "calculatedDistance": 5.07,
+   "club": {
+    "__v": 0,
+    "_id": "7db245dbf73e6ad8b9b21da8",
+    "clubName": "Spider ZT",
+    "clubShortcut": "Putter",
+    "clubType": "putter",
+    "createdAt": "2023-06-18T11:22:56.456Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "TaylorMade",
+    "updatedAt": "2023-06-18T11:22:56.456Z"
+   },
+   "courseHole": "32df977c9ed365c18eb59646",
+   "destination": {
+    "coordinates": [
+     34.386607,
+     49.29960120192521
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3866768,
+     49.29959956913058
+    ],
+    "type": "Point"
+   },
+   "number": 5,
+   "remainingDistance": 5.07,
+   "shotFrom": "green",
+   "shotTo": "hole",
+   "shotType": "putt"
+  },
+  {
+   "_id": "69259a040a0f287d7481dd26",
+   "calculatedDistance": 12.76,
+   "club": {
+    "__v": 0,
+    "_id": "78cced0f636ab8629f44d086",
+    "clubName": "G Le3",
+    "clubShortcut": "UW",
+    "clubType": "wedge",
+    "createdAt": "2023-12-24T10:29:15.019Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "Ping",
+    "updatedAt": "2023-12-24T10:29:15.019Z"
+   },
+   "courseHole": "c0962bd3b1c67344dc5ceea0",
+   "destination": {
+    "coordinates": [
+     34.3908599,
+     49.30002232931528
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3909063,
+     49.30013305100124
+    ],
+    "type": "Point"
+   },
+   "number": 5,
+   "remainingDistance": 13.77,
+   "shotFrom": "rough",
+   "shotTo": "green",
+   "shotType": "chip"
+  },
+  {
+   "_id": "236006703022803d3418b14a",
+   "calculatedDistance": 0.97,
+   "club": {
+    "__v": 0,
+    "_id": "7db245dbf73e6ad8b9b21da8",
+    "clubName": "Spider ZT",
+    "clubShortcut": "Putter",
+    "clubType": "putter",
+    "createdAt": "2023-06-18T11:22:56.456Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "TaylorMade",
+    "updatedAt": "2023-06-18T11:22:56.456Z"
+   },
+   "courseHole": "b3bc9cca98d63a68bad5dbe3",
+   "destination": {
+    "coordinates": [
+     34.3881805,
+     49.29887095588194
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3881733,
+     49.29886366831465
+    ],
+    "type": "Point"
+   },
+   "number": 5,
+   "remainingDistance": 0.97,
+   "shotFrom": "green",
+   "shotTo": "hole",
+   "shotType": "putt"
+  },
+  {
+   "_id": "c02162c37daed8dd3f81d85b",
+   "calculatedDistance": 73.57,
+   "club": {
+    "__v": 0,
+    "_id": "da9cefa5782123f6a76e61d5",
+    "clubName": "G Le3",
+    "clubShortcut": "PW",
+    "clubType": "wedge",
+    "createdAt": "2023-12-24T10:29:15.019Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "Ping",
+    "updatedAt": "2023-12-24T10:29:15.019Z"
+   },
+   "courseHole": "9518853803d2decd3a9591fe",
+   "destination": {
+    "coordinates": [
+     34.3913882,
+     49.29690952539585
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3904807,
+     49.296613743557174
+    ],
+    "type": "Point"
+   },
+   "number": 5,
+   "remainingDistance": 85.11,
+   "shotFrom": "fairway",
+   "shotTo": "rough",
+   "shotType": "shotToGreen"
+  },
+  {
+   "_id": "8ee9505b4d93ec5d92694064",
+   "calculatedDistance": 1.05,
+   "club": {
+    "__v": 0,
+    "_id": "7db245dbf73e6ad8b9b21da8",
+    "clubName": "Spider ZT",
+    "clubShortcut": "Putter",
+    "clubType": "putter",
+    "createdAt": "2023-06-18T11:22:56.456Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "TaylorMade",
+    "updatedAt": "2023-06-18T11:22:56.456Z"
+   },
+   "courseHole": "c0962bd3b1c67344dc5ceea0",
+   "destination": {
+    "coordinates": [
+     34.3908602,
+     49.30001292809848
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3908599,
+     49.30002232931528
+    ],
+    "type": "Point"
+   },
+   "number": 6,
+   "remainingDistance": 1.05,
+   "shotFrom": "green",
+   "shotTo": "hole",
+   "shotType": "putt"
+  },
+  {
+   "_id": "76a5e1dad1d2d026b817c7b7",
+   "calculatedDistance": 1.06,
+   "club": {
+    "__v": 0,
+    "_id": "7db245dbf73e6ad8b9b21da8",
+    "clubName": "Spider ZT",
+    "clubShortcut": "Putter",
+    "clubType": "putter",
+    "createdAt": "2023-06-18T11:22:56.456Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "TaylorMade",
+    "updatedAt": "2023-06-18T11:22:56.456Z"
+   },
+   "courseHole": "7b02cdf50664acf2f5e9fc3d",
+   "destination": {
+    "coordinates": [
+     34.3897458,
+     49.30119486667701
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.389754,
+     49.30118695586188
+    ],
+    "type": "Point"
+   },
+   "number": 6,
+   "remainingDistance": 1.06,
+   "shotFrom": "green",
+   "shotTo": "hole",
+   "shotType": "putt"
+  },
+  {
+   "_id": "47dd955c34b491b971500501",
+   "calculatedDistance": 1.07,
+   "club": {
+    "__v": 0,
+    "_id": "7db245dbf73e6ad8b9b21da8",
+    "clubName": "Spider ZT",
+    "clubShortcut": "Putter",
+    "clubType": "putter",
+    "createdAt": "2023-06-18T11:22:56.456Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "TaylorMade",
+    "updatedAt": "2023-06-18T11:22:56.456Z"
+   },
+   "courseHole": "1a233969358043ccfcd8acef",
+   "destination": {
+    "coordinates": [
+     34.3829503,
+     49.30116977984744
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3829598,
+     49.301177226718636
+    ],
+    "type": "Point"
+   },
+   "number": 6,
+   "remainingDistance": 1.07,
+   "shotFrom": "green",
+   "shotTo": "hole",
+   "shotType": "putt"
+  },
+  {
+   "_id": "1740f0b25008f12910d07342",
+   "calculatedDistance": 14.52,
+   "club": {
+    "__v": 0,
+    "_id": "78cced0f636ab8629f44d086",
+    "clubName": "G Le3",
+    "clubShortcut": "UW",
+    "clubType": "wedge",
+    "createdAt": "2023-12-24T10:29:15.019Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "Ping",
+    "updatedAt": "2023-12-24T10:29:15.019Z"
+   },
+   "courseHole": "9518853803d2decd3a9591fe",
+   "destination": {
+    "coordinates": [
+     34.3914345,
+     49.29703661295508
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3913882,
+     49.29690952539585
+    ],
+    "type": "Point"
+   },
+   "number": 6,
+   "remainingDistance": 27.88,
+   "shotFrom": "rough",
+   "shotTo": "rough",
+   "shotType": "chip"
+  },
+  {
+   "_id": "f2b63f26d0a13d03c39e4feb",
+   "calculatedDistance": 8.39,
+   "club": {
+    "__v": 0,
+    "_id": "78cced0f636ab8629f44d086",
+    "clubName": "G Le3",
+    "clubShortcut": "UW",
+    "clubType": "wedge",
+    "createdAt": "2023-12-24T10:29:15.019Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "Ping",
+    "updatedAt": "2023-12-24T10:29:15.019Z"
+   },
+   "courseHole": "9518853803d2decd3a9591fe",
+   "destination": {
+    "coordinates": [
+     34.3914145,
+     49.2971109004053
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3914345,
+     49.29703661295508
+    ],
+    "type": "Point"
+   },
+   "number": 7,
+   "remainingDistance": 15.95,
+   "shotFrom": "rough",
+   "shotTo": "green",
+   "shotType": "chip"
+  },
+  {
+   "_id": "282cb23761da9b807f06b988",
+   "calculatedDistance": 7.26,
+   "club": {
+    "__v": 0,
+    "_id": "7db245dbf73e6ad8b9b21da8",
+    "clubName": "Spider ZT",
+    "clubShortcut": "Putter",
+    "clubType": "putter",
+    "createdAt": "2023-06-18T11:22:56.456Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "TaylorMade",
+    "updatedAt": "2023-06-18T11:22:56.456Z"
+   },
+   "courseHole": "9518853803d2decd3a9591fe",
+   "destination": {
+    "coordinates": [
+     34.3913309,
+     49.29714674879179
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3914145,
+     49.2971109004053
+    ],
+    "type": "Point"
+   },
+   "number": 8,
+   "remainingDistance": 9.01,
+   "shotFrom": "green",
+   "shotTo": "green",
+   "shotType": "putt"
+  },
+  {
+   "_id": "b0a12f49b0edafe59654dac9",
+   "calculatedDistance": 1.75,
+   "club": {
+    "__v": 0,
+    "_id": "7db245dbf73e6ad8b9b21da8",
+    "clubName": "Spider ZT",
+    "clubShortcut": "Putter",
+    "clubType": "putter",
+    "createdAt": "2023-06-18T11:22:56.456Z",
+    "inDefaultUserBag": false,
+    "isDefault": false,
+    "manufacturerName": "TaylorMade",
+    "updatedAt": "2023-06-18T11:22:56.456Z"
+   },
+   "courseHole": "9518853803d2decd3a9591fe",
+   "destination": {
+    "coordinates": [
+     34.3913104,
+     49.29715510082224
+    ],
+    "type": "Point"
+   },
+   "location": {
+    "coordinates": [
+     34.3913309,
+     49.29714674879179
+    ],
+    "type": "Point"
+   },
+   "number": 9,
+   "remainingDistance": 1.75,
+   "shotFrom": "green",
+   "shotTo": "hole",
+   "shotType": "putt"
+  }
+ ],
+ "signedRound": true,
+ "signedRoundOnce": true,
+ "startHole": "7b02cdf50664acf2f5e9fc3d",
+ "startedAt": "2024-09-27T11:40:26.000Z",
+ "strokesGained": {
+  "WOMEN18": -9.6677548
+ },
+ "totalHoles": 9,
+ "totalHolesType": "front",
+ "totalShots": 57,
+ "totalToPar": 20,
+ "updatedAt": "2024-10-03T14:57:44.738Z",
+ "useForHci": false,
+ "usedDevice": "android",
+ "walkedDistance": 4736,
+ "walkedSteps": 0,
+ "waterConsumption": 2510,
+ "weather": {
+  "humidity": 31,
+  "openweatherDescription": "few clouds",
+  "openweatherIcon": "02d",
+  "openweatherId": 801,
+  "openweatherText": "Clouds",
+  "pressure": 1021.7,
+  "temperature": 22.2,
+  "weatherCode": 1,
+  "windDeg": 124,
+  "windSpeed": 3.38
+ },
+ "weatherFinish": {
+  "humidity": 26,
+  "openweatherDescription": "scattered clouds",
+  "openweatherIcon": "03d",
+  "openweatherId": 802,
+  "openweatherText": "Clouds",
+  "pressure": 1020.3,
+  "temperature": 22.9,
+  "weatherCode": 2,
+  "windDeg": 119,
+  "windSpeed": 3.76
+ },
+ "wttAvg10": 1.9166666666666667
+}

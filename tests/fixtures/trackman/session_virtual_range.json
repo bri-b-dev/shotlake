@@ -1,0 +1,62 @@
+{
+ "_kind": "session",
+ "id": "VmlydHVhbFJhbmdlU2Vzc2lvbkFjdGl2aXR5CmUyN2MyYWYxLWYxZWMtMDMwZi03ZjA3LWU4MDdhMjJhN2M2ZA==",
+ "kind": "VIRTUAL_RANGE",
+ "strokes": [
+  {
+   "club": "Driver",
+   "measurement": {
+    "attackAngle": 5.023,
+    "ballSpeed": 47.073,
+    "carry": 134.93217018108095,
+    "carrySide": -10.540682251081916,
+    "clubPath": 4.244,
+    "clubSpeed": 31.83,
+    "curve": -8.616811271276978,
+    "dynamicLoft": 17.259,
+    "faceAngle": -1.948,
+    "faceToPath": -6.192,
+    "hangTime": 4.275520324706985,
+    "landingAngle": 27.26062088865797,
+    "launchAngle": 15.124000000000002,
+    "launchDirection": -0.8190000000000014,
+    "maxHeight": 13.375916694422573,
+    "smashFactor": 1.4788878416588125,
+    "spinAxis": -13.698000000000006,
+    "spinLoft": 13.655,
+    "spinRate": 2502.869999999999,
+    "total": 164.78042258510192,
+    "totalSide": -15.136080229385804
+   },
+   "strokeTime": "2024-06-26T15:56:48.107666Z"
+  },
+  {
+   "club": "Driver",
+   "measurement": {
+    "attackAngle": 4.888,
+    "ballSpeed": 45.238,
+    "carry": 137.02426949039193,
+    "carrySide": 10.160790048048703,
+    "clubPath": 3.745,
+    "clubSpeed": 32.406,
+    "curve": 2.780123050303879,
+    "dynamicLoft": 25.507,
+    "faceAngle": 2.95,
+    "faceToPath": -0.794,
+    "hangTime": 5.320836486816337,
+    "landingAngle": 41.43133134403568,
+    "launchAngle": 22.205000000000002,
+    "launchDirection": 3.0900000000000007,
+    "maxHeight": 23.20541819233754,
+    "smashFactor": 1.3959760538171944,
+    "spinAxis": 3.255,
+    "spinLoft": 20.634,
+    "spinRate": 3315.8800000000006,
+    "total": 149.5917001367078,
+    "totalSide": 11.422911707271844
+   },
+   "strokeTime": "2024-06-26T15:55:43.162171Z"
+  }
+ ],
+ "time": "2024-06-26T15:55:09.3344113Z"
+}

@@ -1,0 +1,2013 @@
+{
+ "_kind": "round",
+ "bayKind": "SIMULATOR_BAY",
+ "course": {
+  "displayName": "Bandon Trails",
+  "numbersOfHoles": 18,
+  "worldLocation": {
+   "latitude": 43.1700664,
+   "longitude": -101.4000343
+  }
+ },
+ "courseHcp": 50,
+ "createdAt": "2023-12-24T13:36:04.3013281Z",
+ "finishedAt": "2023-12-24T14:35:41.8661088Z",
+ "grossScore": 81,
+ "holes": [
+  {
+   "distance": 194,
+   "greenInRegulation": true,
+   "grossScore": 4,
+   "holeNumber": 1,
+   "isPlayed": true,
+   "par": 4,
+   "pinPosition": {
+    "worldLocation": {
+     "latitude": 43.1820229,
+     "longitude": -101.3931551
+    },
+    "x": 581.2694091796875,
+    "y": 30.81011962890625,
+    "z": 1318.48828125
+   },
+   "putts": 2,
+   "shots": [
+    {
+     "club": "Driver",
+     "dropPosition": null,
+     "finalLie": "Rough",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1823188,
+       "longitude": -101.3932028
+      },
+      "x": 577.9398193359375,
+      "y": 29.31576156616211,
+      "z": 1351.41748046875
+     },
+     "launchLie": "Tee",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1837012,
+       "longitude": -101.3931133
+      },
+      "x": 587.763916015625,
+      "y": 28.124540328979492,
+      "z": 1504.8099365234375
+     },
+     "launchTime": "2023-12-24T13:37:15.508993Z",
+     "shotNumber": 1,
+     "shotResult": "NormalShot",
+     "total": 153.70672870782556
+    },
+    {
+     "club": "60Wedge",
+     "dropPosition": null,
+     "finalLie": "Green",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1820218,
+       "longitude": -101.3931755
+      },
+      "x": 579.6071166992188,
+      "y": 30.8160343170166,
+      "z": 1318.3966064453125
+     },
+     "launchLie": "Rough",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1823188,
+       "longitude": -101.3932028
+      },
+      "x": 577.9398193359375,
+      "y": 29.31576156616211,
+      "z": 1351.41748046875
+     },
+     "launchTime": "2023-12-24T13:38:04.2296903Z",
+     "shotNumber": 2,
+     "shotResult": "AutoPutt",
+     "total": 33.06294000492597
+    }
+   ],
+   "strokeIndex": 13
+  },
+  {
+   "distance": 77,
+   "greenInRegulation": true,
+   "grossScore": 4,
+   "holeNumber": 2,
+   "isPlayed": true,
+   "par": 3,
+   "pinPosition": {
+    "worldLocation": {
+     "latitude": 43.1799499,
+     "longitude": -101.3919396
+    },
+    "x": 676.2190551757812,
+    "y": 22.840776443481445,
+    "z": 1086.6280517578125
+   },
+   "putts": 3,
+   "shots": [
+    {
+     "club": "PitchingWedge",
+     "dropPosition": null,
+     "finalLie": "Green",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1798997,
+       "longitude": -101.3919117
+      },
+      "x": 678.3947143554688,
+      "y": 22.97377586364746,
+      "z": 1081.019775390625
+     },
+     "launchLie": "Tee",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1805597,
+       "longitude": -101.392057
+      },
+      "x": 667.8058471679688,
+      "y": 26.400827407836914,
+      "z": 1154.506103515625
+     },
+     "launchTime": "2023-12-24T13:39:09.0922815Z",
+     "shotNumber": 1,
+     "shotResult": "AutoPutt",
+     "total": 74.24529971391912
+    }
+   ],
+   "strokeIndex": 17
+  },
+  {
+   "distance": 416,
+   "greenInRegulation": false,
+   "grossScore": 7,
+   "holeNumber": 3,
+   "isPlayed": true,
+   "par": 5,
+   "pinPosition": {
+    "worldLocation": {
+     "latitude": 43.1753006,
+     "longitude": -101.3900562
+    },
+    "x": 820.71484375,
+    "y": 19.30437469482422,
+    "z": 567.7661743164062
+   },
+   "putts": 3,
+   "shots": [
+    {
+     "club": "Driver",
+     "dropPosition": null,
+     "finalLie": "Deeprough",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1780442,
+       "longitude": -101.3916441
+      },
+      "x": 696.7214965820312,
+      "y": 17.521587371826172,
+      "z": 874.591796875
+     },
+     "launchLie": "Tee",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1788187,
+       "longitude": -101.3913742
+      },
+      "x": 720.0838623046875,
+      "y": 20.095823287963867,
+      "z": 960.246826171875
+     },
+     "launchTime": "2023-12-24T13:40:22.5659155Z",
+     "shotNumber": 1,
+     "shotResult": "Mulligan",
+     "total": 88.78391845378114
+    },
+    {
+     "club": "Driver",
+     "dropPosition": null,
+     "finalLie": "Fairway",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.177461,
+       "longitude": -101.3911064
+      },
+      "x": 739.3472290039062,
+      "y": 18.04680824279785,
+      "z": 809.1026611328125
+     },
+     "launchLie": "Tee",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1788187,
+       "longitude": -101.3913742
+      },
+      "x": 720.0838623046875,
+      "y": 20.095823287963867,
+      "z": 960.246826171875
+     },
+     "launchTime": "2023-12-24T13:41:03.139264Z",
+     "shotNumber": 2,
+     "shotResult": "NormalShot",
+     "total": 152.36678090037844
+    },
+    {
+     "club": "7Wood",
+     "dropPosition": null,
+     "finalLie": "Fairway",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1768277,
+       "longitude": -101.3908929
+      },
+      "x": 755.5325317382812,
+      "y": 17.96051025390625,
+      "z": 738.4894409179688
+     },
+     "launchLie": "Fairway",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.177461,
+       "longitude": -101.3911064
+      },
+      "x": 739.3472290039062,
+      "y": 18.04680824279785,
+      "z": 809.1026611328125
+     },
+     "launchTime": "2023-12-24T13:41:58.5287055Z",
+     "shotNumber": 3,
+     "shotResult": "Mulligan",
+     "total": 72.44439863587374
+    },
+    {
+     "club": "7Wood",
+     "dropPosition": null,
+     "finalLie": "Fairway",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1763627,
+       "longitude": -101.3909266
+      },
+      "x": 751.92822265625,
+      "y": 17.67255210876465,
+      "z": 686.8922119140625
+     },
+     "launchLie": "Fairway",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.177461,
+       "longitude": -101.3911064
+      },
+      "x": 739.3472290039062,
+      "y": 18.04680824279785,
+      "z": 809.1026611328125
+     },
+     "launchTime": "2023-12-24T13:44:34.5886534Z",
+     "shotNumber": 4,
+     "shotResult": "NormalShot",
+     "total": 122.85631973785063
+    },
+    {
+     "club": "7Wood",
+     "dropPosition": null,
+     "finalLie": "Fairway",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1753965,
+       "longitude": -101.3904932
+      },
+      "x": 785.3768920898438,
+      "y": 18.98168182373047,
+      "z": 579.001953125
+     },
+     "launchLie": "Fairway",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1763627,
+       "longitude": -101.3909266
+      },
+      "x": 751.92822265625,
+      "y": 17.67255210876465,
+      "z": 686.8922119140625
+     },
+     "launchTime": "2023-12-24T13:45:27.7259199Z",
+     "shotNumber": 5,
+     "shotResult": "NormalShot",
+     "total": 112.95628104912407
+    },
+    {
+     "club": "SandWedge",
+     "dropPosition": null,
+     "finalLie": "Green",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1752935,
+       "longitude": -101.3901398
+      },
+      "x": 813.9086303710938,
+      "y": 19.294052124023438,
+      "z": 567.0933837890625
+     },
+     "launchLie": "Fairway",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1753965,
+       "longitude": -101.3904932
+      },
+      "x": 785.3768920898438,
+      "y": 18.98168182373047,
+      "z": 579.001953125
+     },
+     "launchTime": "2023-12-24T13:46:33.5380515Z",
+     "shotNumber": 6,
+     "shotResult": "AutoPutt",
+     "total": 30.91721386183719
+    }
+   ],
+   "strokeIndex": 5
+  },
+  {
+   "distance": 288,
+   "greenInRegulation": true,
+   "grossScore": 3,
+   "holeNumber": 4,
+   "isPlayed": true,
+   "par": 4,
+   "pinPosition": {
+    "worldLocation": {
+     "latitude": 43.1792143,
+     "longitude": -101.3901721
+    },
+    "x": 818.5095825195312,
+    "y": 20.689321517944336,
+    "z": 1002.5523681640625
+   },
+   "putts": 1,
+   "shots": [
+    {
+     "club": "Driver",
+     "dropPosition": null,
+     "finalLie": "Fairway",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1774609,
+       "longitude": -101.3903232
+      },
+      "x": 802.9976806640625,
+      "y": 17.997697830200195,
+      "z": 808.0325317382812
+     },
+     "launchLie": "Tee",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1766255,
+       "longitude": -101.3898687
+      },
+      "x": 838.40087890625,
+      "y": 18.806751251220703,
+      "z": 714.6431884765625
+     },
+     "launchTime": "2023-12-24T13:47:34.5350155Z",
+     "shotNumber": 1,
+     "shotResult": "Mulligan",
+     "total": 99.87470090383631
+    },
+    {
+     "club": "Driver",
+     "dropPosition": null,
+     "finalLie": "Fairway",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1779991,
+       "longitude": -101.3901285
+      },
+      "x": 819.8123779296875,
+      "y": 20.538192749023438,
+      "z": 867.5454711914062
+     },
+     "launchLie": "Tee",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1766255,
+       "longitude": -101.3898687
+      },
+      "x": 838.40087890625,
+      "y": 18.806751251220703,
+      "z": 714.6431884765625
+     },
+     "launchTime": "2023-12-24T13:48:16.3617448Z",
+     "shotNumber": 2,
+     "shotResult": "NormalShot",
+     "total": 154.0280507828547
+    },
+    {
+     "club": "7Wood",
+     "dropPosition": null,
+     "finalLie": "Sand",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1784264,
+       "longitude": -101.3901449
+      },
+      "x": 819.2674560546875,
+      "y": 21.369491577148438,
+      "z": 915.0211181640625
+     },
+     "launchLie": "Fairway",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1779991,
+       "longitude": -101.3901285
+      },
+      "x": 819.8123779296875,
+      "y": 20.538192749023438,
+      "z": 867.5454711914062
+     },
+     "launchTime": "2023-12-24T13:48:59.7892106Z",
+     "shotNumber": 3,
+     "shotResult": "Mulligan",
+     "total": 47.478774155638625
+    },
+    {
+     "club": "7Wood",
+     "dropPosition": null,
+     "finalLie": "Green",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1792143,
+       "longitude": -101.3901685
+      },
+      "x": 818.808837890625,
+      "y": 20.71262550354004,
+      "z": 1002.5499267578125
+     },
+     "launchLie": "Fairway",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1779991,
+       "longitude": -101.3901285
+      },
+      "x": 819.8123779296875,
+      "y": 20.538192749023438,
+      "z": 867.5454711914062
+     },
+     "launchTime": "2023-12-24T13:49:31.564949Z",
+     "shotNumber": 4,
+     "shotResult": "AutoPutt",
+     "total": 135.00818536441324
+    }
+   ],
+   "strokeIndex": 7
+  },
+  {
+   "distance": 95,
+   "greenInRegulation": true,
+   "grossScore": 3,
+   "holeNumber": 5,
+   "isPlayed": true,
+   "par": 3,
+   "pinPosition": {
+    "worldLocation": {
+     "latitude": 43.180151,
+     "longitude": -101.3893067
+    },
+    "x": 890.5733032226562,
+    "y": 24.901254653930664,
+    "z": 1105.412841796875
+   },
+   "putts": 2,
+   "shots": [
+    {
+     "club": "9Iron",
+     "dropPosition": null,
+     "finalLie": "Green",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.180165,
+       "longitude": -101.3892603
+      },
+      "x": 894.3718872070312,
+      "y": 24.816556930541992,
+      "z": 1106.8958740234375
+     },
+     "launchLie": "Tee",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1798412,
+       "longitude": -101.3902951
+      },
+      "x": 809.6748657226562,
+      "y": 23.077503204345703,
+      "z": 1072.3338623046875
+     },
+     "launchTime": "2023-12-24T13:51:34.2513799Z",
+     "shotNumber": 1,
+     "shotResult": "AutoPutt",
+     "total": 91.47741853797413
+    }
+   ],
+   "strokeIndex": 15
+  },
+  {
+   "distance": 268,
+   "greenInRegulation": true,
+   "grossScore": 5,
+   "holeNumber": 6,
+   "isPlayed": true,
+   "par": 4,
+   "pinPosition": {
+    "worldLocation": {
+     "latitude": 43.1839957,
+     "longitude": -101.3882082
+    },
+    "x": 986.930908203125,
+    "y": 24.66291618347168,
+    "z": 1530.9005126953125
+   },
+   "putts": 3,
+   "shots": [
+    {
+     "club": "Driver",
+     "dropPosition": null,
+     "finalLie": "Fairway",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1830846,
+       "longitude": -101.3885101
+      },
+      "x": 960.7216796875,
+      "y": 23.231210708618164,
+      "z": 1430.125244140625
+     },
+     "launchLie": "Tee",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.181681,
+       "longitude": -101.3886401
+      },
+      "x": 947.5685424804688,
+      "y": 28.39373016357422,
+      "z": 1274.424072265625
+     },
+     "launchTime": "2023-12-24T13:52:53.2167255Z",
+     "shotNumber": 1,
+     "shotResult": "NormalShot",
+     "total": 156.25575170737005
+    },
+    {
+     "club": "8Iron",
+     "dropPosition": null,
+     "finalLie": "Green",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1840296,
+       "longitude": -101.3881964
+      },
+      "x": 987.9498291015625,
+      "y": 24.6846866607666,
+      "z": 1534.648193359375
+     },
+     "launchLie": "Fairway",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1830846,
+       "longitude": -101.3885101
+      },
+      "x": 960.7216796875,
+      "y": 23.231210708618164,
+      "z": 1430.125244140625
+     },
+     "launchTime": "2023-12-24T13:53:59.8280812Z",
+     "shotNumber": 2,
+     "shotResult": "AutoPutt",
+     "total": 108.01119865041728
+    }
+   ],
+   "strokeIndex": 9
+  },
+  {
+   "distance": 321,
+   "greenInRegulation": false,
+   "grossScore": 5,
+   "holeNumber": 7,
+   "isPlayed": true,
+   "par": 4,
+   "pinPosition": {
+    "worldLocation": {
+     "latitude": 43.1815722,
+     "longitude": -101.3839754
+    },
+    "x": 1326.461669921875,
+    "y": 32.81749725341797,
+    "z": 1256.0634765625
+   },
+   "putts": 1,
+   "shots": [
+    {
+     "club": "Driver",
+     "dropPosition": null,
+     "finalLie": "Fairway",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1831535,
+       "longitude": -101.3855597
+      },
+      "x": 1200.6168212890625,
+      "y": 23.112302780151367,
+      "z": 1433.8060302734375
+     },
+     "launchLie": "Tee",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1837297,
+       "longitude": -101.3867106
+      },
+      "x": 1108.1484375,
+      "y": 23.385601043701172,
+      "z": 1499.3392333984375
+     },
+     "launchTime": "2023-12-24T13:55:21.6508991Z",
+     "shotNumber": 1,
+     "shotResult": "NormalShot",
+     "total": 113.33579625336324
+    },
+    {
+     "club": "7Wood",
+     "dropPosition": null,
+     "finalLie": "Fairway",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1820809,
+       "longitude": -101.384952
+      },
+      "x": 1248.033447265625,
+      "y": 25.609786987304688,
+      "z": 1313.863037109375
+     },
+     "launchLie": "Fairway",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1831535,
+       "longitude": -101.3855597
+      },
+      "x": 1200.6168212890625,
+      "y": 23.112302780151367,
+      "z": 1433.8060302734375
+     },
+     "launchTime": "2023-12-24T13:56:17.3779405Z",
+     "shotNumber": 2,
+     "shotResult": "NormalShot",
+     "total": 128.9754163713208
+    },
+    {
+     "club": "8Iron",
+     "dropPosition": null,
+     "finalLie": "Fairway",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1816004,
+       "longitude": -101.3843098
+      },
+      "x": 1299.3388671875,
+      "y": 29.460336685180664,
+      "z": 1259.6407470703125
+     },
+     "launchLie": "Fairway",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1820809,
+       "longitude": -101.384952
+      },
+      "x": 1248.033447265625,
+      "y": 25.609786987304688,
+      "z": 1313.863037109375
+     },
+     "launchTime": "2023-12-24T13:57:28.8197446Z",
+     "shotNumber": 3,
+     "shotResult": "Mulligan",
+     "total": 74.64785898095232
+    },
+    {
+     "club": "8Iron",
+     "dropPosition": null,
+     "finalLie": "Fairway",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1817088,
+       "longitude": -101.3842081
+      },
+      "x": 1307.805908203125,
+      "y": 30.246498107910156,
+      "z": 1271.5426025390625
+     },
+     "launchLie": "Fairway",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1820809,
+       "longitude": -101.384952
+      },
+      "x": 1248.033447265625,
+      "y": 25.609786987304688,
+      "z": 1313.863037109375
+     },
+     "launchTime": "2023-12-24T13:58:08.2893899Z",
+     "shotNumber": 4,
+     "shotResult": "Mulligan",
+     "total": 73.23773800947886
+    },
+    {
+     "club": "8Iron",
+     "dropPosition": null,
+     "finalLie": "Sand",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1815787,
+       "longitude": -101.3842043
+      },
+      "x": 1307.87646484375,
+      "y": 29.66624641418457,
+      "z": 1257.09130859375
+     },
+     "launchLie": "Fairway",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1820809,
+       "longitude": -101.384952
+      },
+      "x": 1248.033447265625,
+      "y": 25.609786987304688,
+      "z": 1313.863037109375
+     },
+     "launchTime": "2023-12-24T13:58:46.0012264Z",
+     "shotNumber": 5,
+     "shotResult": "Mulligan",
+     "total": 82.48767126975768
+    },
+    {
+     "club": "8Iron",
+     "dropPosition": null,
+     "finalLie": "Fairway",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.181726,
+       "longitude": -101.3838889
+      },
+      "x": 1333.7735595703125,
+      "y": 32.37247085571289,
+      "z": 1273.02978515625
+     },
+     "launchLie": "Fairway",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1820809,
+       "longitude": -101.384952
+      },
+      "x": 1248.033447265625,
+      "y": 25.609786987304688,
+      "z": 1313.863037109375
+     },
+     "launchTime": "2023-12-24T13:59:22.5695367Z",
+     "shotNumber": 6,
+     "shotResult": "NormalShot",
+     "total": 94.96694858258746
+    },
+    {
+     "club": "60Wedge",
+     "dropPosition": null,
+     "finalLie": "Fairway",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1814594,
+       "longitude": -101.3840971
+      },
+      "x": 1316.3634033203125,
+      "y": 32.67024612426758,
+      "z": 1243.6939697265625
+     },
+     "launchLie": "Fairway",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.181726,
+       "longitude": -101.3838889
+      },
+      "x": 1333.7735595703125,
+      "y": 32.37247085571289,
+      "z": 1273.02978515625
+     },
+     "launchTime": "2023-12-24T14:00:07.9865747Z",
+     "shotNumber": 7,
+     "shotResult": "Mulligan",
+     "total": 34.1131002339879
+    },
+    {
+     "club": "60Wedge",
+     "dropPosition": null,
+     "finalLie": "Green",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1815874,
+       "longitude": -101.3839783
+      },
+      "x": 1326.25341796875,
+      "y": 32.82500457763672,
+      "z": 1257.7490234375
+     },
+     "launchLie": "Fairway",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.181726,
+       "longitude": -101.3838889
+      },
+      "x": 1333.7735595703125,
+      "y": 32.37247085571289,
+      "z": 1273.02978515625
+     },
+     "launchTime": "2023-12-24T14:00:49.1428233Z",
+     "shotNumber": 8,
+     "shotResult": "AutoPutt",
+     "total": 17.03097790535724
+    }
+   ],
+   "strokeIndex": 1
+  },
+  {
+   "distance": 222,
+   "greenInRegulation": true,
+   "grossScore": 4,
+   "holeNumber": 8,
+   "isPlayed": true,
+   "par": 4,
+   "pinPosition": {
+    "worldLocation": {
+     "latitude": 43.1839763,
+     "longitude": -101.3835214
+    },
+    "x": 1367.7763671875,
+    "y": 30.283119201660156,
+    "z": 1522.4324951171875
+   },
+   "putts": 2,
+   "shots": [
+    {
+     "club": "Driver",
+     "dropPosition": null,
+     "finalLie": "Fairway",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1832475,
+       "longitude": -101.3835158
+      },
+      "x": 1366.890625,
+      "y": 29.23479652404785,
+      "z": 1441.488037109375
+     },
+     "launchLie": "Tee",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1819454,
+       "longitude": -101.3835873
+      },
+      "x": 1358.690673828125,
+      "y": 33.58251190185547,
+      "z": 1296.99072265625
+     },
+     "launchTime": "2023-12-24T14:01:50.7886113Z",
+     "shotNumber": 1,
+     "shotResult": "NormalShot",
+     "total": 144.72979335087305
+    },
+    {
+     "club": "PitchingWedge",
+     "dropPosition": null,
+     "finalLie": "Green",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1839008,
+       "longitude": -101.3835188
+      },
+      "x": 1367.8460693359375,
+      "y": 30.184059143066406,
+      "z": 1514.0543212890625
+     },
+     "launchLie": "Fairway",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1832475,
+       "longitude": -101.3835158
+      },
+      "x": 1366.890625,
+      "y": 29.23479652404785,
+      "z": 1441.488037109375
+     },
+     "launchTime": "2023-12-24T14:03:05.0212485Z",
+     "shotNumber": 2,
+     "shotResult": "AutoPutt",
+     "total": 72.57257383837396
+    }
+   ],
+   "strokeIndex": 11
+  },
+  {
+   "distance": 417,
+   "greenInRegulation": true,
+   "grossScore": 5,
+   "holeNumber": 9,
+   "isPlayed": true,
+   "par": 5,
+   "pinPosition": {
+    "worldLocation": {
+     "latitude": 43.1811709,
+     "longitude": -101.378055
+    },
+    "x": 1806.8814697265625,
+    "y": 36.5653190612793,
+    "z": 1203.555908203125
+   },
+   "putts": 2,
+   "shots": [
+    {
+     "club": "Driver",
+     "dropPosition": null,
+     "finalLie": "Fairway",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.182636,
+       "longitude": -101.3806109
+      },
+      "x": 1601.8468017578125,
+      "y": 32.20065689086914,
+      "z": 1369.6846923828125
+     },
+     "launchLie": "Tee",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1831409,
+       "longitude": -101.3823192
+      },
+      "x": 1463.937255859375,
+      "y": 31.464275360107422,
+      "z": 1428.0438232421875
+     },
+     "launchTime": "2023-12-24T14:04:32.7912267Z",
+     "shotNumber": 1,
+     "shotResult": "NormalShot",
+     "total": 149.74922705835544
+    },
+    {
+     "club": "7Wood",
+     "dropPosition": null,
+     "finalLie": "Fairway",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1817866,
+       "longitude": -101.3795316
+      },
+      "x": 1687.9989013671875,
+      "y": 33.28297805786133,
+      "z": 1273.905517578125
+     },
+     "launchLie": "Fairway",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.182636,
+       "longitude": -101.3806109
+      },
+      "x": 1601.8468017578125,
+      "y": 32.20065689086914,
+      "z": 1369.6846923828125
+     },
+     "launchTime": "2023-12-24T14:05:28.8384343Z",
+     "shotNumber": 2,
+     "shotResult": "NormalShot",
+     "total": 128.82482134034015
+    },
+    {
+     "club": "7Wood",
+     "dropPosition": null,
+     "finalLie": "Green",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1811227,
+       "longitude": -101.3780866
+      },
+      "x": 1804.2236328125,
+      "y": 36.57936096191406,
+      "z": 1198.2530517578125
+     },
+     "launchLie": "Fairway",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1817866,
+       "longitude": -101.3795316
+      },
+      "x": 1687.9989013671875,
+      "y": 33.28297805786133,
+      "z": 1273.905517578125
+     },
+     "launchTime": "2023-12-24T14:06:21.0515112Z",
+     "shotNumber": 3,
+     "shotResult": "AutoPutt",
+     "total": 138.6776253915121
+    }
+   ],
+   "strokeIndex": 3
+  },
+  {
+   "distance": 298,
+   "greenInRegulation": false,
+   "grossScore": 6,
+   "holeNumber": 10,
+   "isPlayed": true,
+   "par": 4,
+   "pinPosition": {
+    "worldLocation": {
+     "latitude": 43.1810571,
+     "longitude": -101.3829607
+    },
+    "x": 1407.9857177734375,
+    "y": 34.25243377685547,
+    "z": 1197.4913330078125
+   },
+   "putts": 3,
+   "shots": [
+    {
+     "club": "Driver",
+     "dropPosition": null,
+     "finalLie": "Fairway",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1809354,
+       "longitude": -101.3809459
+      },
+      "x": 1571.50634765625,
+      "y": 32.495426177978516,
+      "z": 1181.2801513671875
+     },
+     "launchLie": "Tee",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1808019,
+       "longitude": -101.3793265
+      },
+      "x": 1702.8671875,
+      "y": 35.474483489990234,
+      "z": 1164.2850341796875
+     },
+     "launchTime": "2023-12-24T14:07:34.7940174Z",
+     "shotNumber": 1,
+     "shotResult": "NormalShot",
+     "total": 132.4556690091904
+    },
+    {
+     "club": "7Wood",
+     "dropPosition": null,
+     "finalLie": "Fairway",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1809992,
+       "longitude": -101.3827076
+      },
+      "x": 1428.44482421875,
+      "y": 33.55672073364258,
+      "z": 1190.7205810546875
+     },
+     "launchLie": "Fairway",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1809354,
+       "longitude": -101.3809459
+      },
+      "x": 1571.50634765625,
+      "y": 32.495426177978516,
+      "z": 1181.2801513671875
+     },
+     "launchTime": "2023-12-24T14:08:30.2995393Z",
+     "shotNumber": 2,
+     "shotResult": "NormalShot",
+     "total": 143.37266545943476
+    },
+    {
+     "club": "60Wedge",
+     "dropPosition": null,
+     "finalLie": "Green",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1810552,
+       "longitude": -101.3828821
+      },
+      "x": 1414.371826171875,
+      "y": 34.19560241699219,
+      "z": 1197.182861328125
+     },
+     "launchLie": "Fairway",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1809992,
+       "longitude": -101.3827076
+      },
+      "x": 1428.44482421875,
+      "y": 33.55672073364258,
+      "z": 1190.7205810546875
+     },
+     "launchTime": "2023-12-24T14:09:13.0242873Z",
+     "shotNumber": 3,
+     "shotResult": "AutoPutt",
+     "total": 15.485810936460739
+    }
+   ],
+   "strokeIndex": 10
+  },
+  {
+   "distance": 349,
+   "greenInRegulation": false,
+   "grossScore": 6,
+   "holeNumber": 11,
+   "isPlayed": true,
+   "par": 4,
+   "pinPosition": {
+    "worldLocation": {
+     "latitude": 43.1779496,
+     "longitude": -101.3865899
+    },
+    "x": 1107.3248291015625,
+    "y": 24.952638626098633,
+    "z": 857.2695922851562
+   },
+   "putts": 3,
+   "shots": [
+    {
+     "club": "Driver",
+     "dropPosition": null,
+     "finalLie": "Fairway",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1789613,
+       "longitude": -101.3846
+      },
+      "x": 1270.9110107421875,
+      "y": 32.002750396728516,
+      "z": 966.952392578125
+     },
+     "launchLie": "Tee",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1803123,
+       "longitude": -101.3841175
+      },
+      "x": 1312.6011962890625,
+      "y": 33.82685089111328,
+      "z": 1116.3355712890625
+     },
+     "launchTime": "2023-12-24T14:10:14.4825476Z",
+     "shotNumber": 1,
+     "shotResult": "NormalShot",
+     "total": 155.09160406906867
+    },
+    {
+     "club": "7Wood",
+     "dropPosition": null,
+     "finalLie": "Fairway",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1784849,
+       "longitude": -101.3860045
+      },
+      "x": 1155.8822021484375,
+      "y": 25.410846710205078,
+      "z": 915.9346923828125
+     },
+     "launchLie": "Fairway",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1789613,
+       "longitude": -101.3846
+      },
+      "x": 1270.9110107421875,
+      "y": 32.002750396728516,
+      "z": 966.952392578125
+     },
+     "launchTime": "2023-12-24T14:11:36.1673989Z",
+     "shotNumber": 2,
+     "shotResult": "NormalShot",
+     "total": 125.83494164863892
+    },
+    {
+     "club": "PitchingWedge",
+     "dropPosition": null,
+     "finalLie": "Green",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1780071,
+       "longitude": -101.3866608
+      },
+      "x": 1101.6650390625,
+      "y": 24.926313400268555,
+      "z": 863.7520141601562
+     },
+     "launchLie": "Fairway",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1784849,
+       "longitude": -101.3860045
+      },
+      "x": 1155.8822021484375,
+      "y": 25.410846710205078,
+      "z": 915.9346923828125
+     },
+     "launchTime": "2023-12-24T14:12:14.8702042Z",
+     "shotNumber": 3,
+     "shotResult": "AutoPutt",
+     "total": 75.24980185738981
+    }
+   ],
+   "strokeIndex": 4
+  },
+  {
+   "distance": 176,
+   "greenInRegulation": false,
+   "grossScore": 4,
+   "holeNumber": 12,
+   "isPlayed": true,
+   "par": 3,
+   "pinPosition": {
+    "worldLocation": {
+     "latitude": 43.1775773,
+     "longitude": -101.3832047
+    },
+    "x": 1381.7708740234375,
+    "y": 30.44529914855957,
+    "z": 811.3778686523438
+   },
+   "putts": 2,
+   "shots": [
+    {
+     "club": "7Wood",
+     "dropPosition": null,
+     "finalLie": "Fairway",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1774773,
+       "longitude": -101.3843501
+      },
+      "x": 1288.493896484375,
+      "y": 29.49483871459961,
+      "z": 801.8096923828125
+     },
+     "launchLie": "Tee",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1773828,
+       "longitude": -101.3854693
+      },
+      "x": 1197.3568115234375,
+      "y": 29.268051147460938,
+      "z": 792.8165283203125
+     },
+     "launchTime": "2023-12-24T14:13:33.1937363Z",
+     "shotNumber": 1,
+     "shotResult": "NormalShot",
+     "total": 91.57972076301708
+    },
+    {
+     "club": "9Iron",
+     "dropPosition": null,
+     "finalLie": "Green",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.177548,
+       "longitude": -101.3832732
+      },
+      "x": 1376.1514892578125,
+      "y": 30.412612915039062,
+      "z": 808.2192993164062
+     },
+     "launchLie": "Fairway",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1774773,
+       "longitude": -101.3843501
+      },
+      "x": 1288.493896484375,
+      "y": 29.49483871459961,
+      "z": 801.8096923828125
+     },
+     "launchTime": "2023-12-24T14:14:30.5462826Z",
+     "shotNumber": 2,
+     "shotResult": "AutoPutt",
+     "total": 87.89161866683862
+    }
+   ],
+   "strokeIndex": 18
+  },
+  {
+   "distance": 282,
+   "greenInRegulation": true,
+   "grossScore": 5,
+   "holeNumber": 13,
+   "isPlayed": true,
+   "par": 4,
+   "pinPosition": {
+    "worldLocation": {
+     "latitude": 43.1759076,
+     "longitude": -101.3863424
+    },
+    "x": 1123.682373046875,
+    "y": 26.6910457611084,
+    "z": 630.1719360351562
+   },
+   "putts": 3,
+   "shots": [
+    {
+     "club": "Driver",
+     "dropPosition": null,
+     "finalLie": "Fairway",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.176418,
+       "longitude": -101.3842624
+      },
+      "x": 1293.6754150390625,
+      "y": 27.68833351135254,
+      "z": 684.0519409179688
+     },
+     "launchLie": "Tee",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1768616,
+       "longitude": -101.3831437
+      },
+      "x": 1385.416015625,
+      "y": 32.21856689453125,
+      "z": 731.819091796875
+     },
+     "launchTime": "2023-12-24T14:15:37.5450566Z",
+     "shotNumber": 1,
+     "shotResult": "Mulligan",
+     "total": 103.43132262016526
+    },
+    {
+     "club": "Driver",
+     "dropPosition": null,
+     "finalLie": "Fairway",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1764222,
+       "longitude": -101.3849343
+      },
+      "x": 1239.070068359375,
+      "y": 27.382726669311523,
+      "z": 685.4264526367188
+     },
+     "launchLie": "Tee",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1768616,
+       "longitude": -101.3831437
+      },
+      "x": 1385.416015625,
+      "y": 32.21856689453125,
+      "z": 731.819091796875
+     },
+     "launchTime": "2023-12-24T14:16:23.4841544Z",
+     "shotNumber": 2,
+     "shotResult": "NormalShot",
+     "total": 153.52333128654274
+    },
+    {
+     "club": "7Wood",
+     "dropPosition": null,
+     "finalLie": "Sand",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1761113,
+       "longitude": -101.3863193
+      },
+      "x": 1125.9359130859375,
+      "y": 23.17746925354004,
+      "z": 652.7627563476562
+     },
+     "launchLie": "Fairway",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1764222,
+       "longitude": -101.3849343
+      },
+      "x": 1239.070068359375,
+      "y": 27.382726669311523,
+      "z": 685.4264526367188
+     },
+     "launchTime": "2023-12-24T14:17:15.0681347Z",
+     "shotNumber": 3,
+     "shotResult": "Mulligan",
+     "total": 117.75505995369532
+    },
+    {
+     "club": "7Wood",
+     "dropPosition": null,
+     "finalLie": "Green",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1759528,
+       "longitude": -101.3865623
+      },
+      "x": 1105.8958740234375,
+      "y": 27.010761260986328,
+      "z": 635.4888916015625
+     },
+     "launchLie": "Fairway",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1764222,
+       "longitude": -101.3849343
+      },
+      "x": 1239.070068359375,
+      "y": 27.382726669311523,
+      "z": 685.4264526367188
+     },
+     "launchTime": "2023-12-24T14:17:52.4633047Z",
+     "shotNumber": 4,
+     "shotResult": "AutoPutt",
+     "total": 142.22913217469198
+    }
+   ],
+   "strokeIndex": 6
+  },
+  {
+   "distance": 230,
+   "greenInRegulation": true,
+   "grossScore": 4,
+   "holeNumber": 14,
+   "isPlayed": true,
+   "par": 4,
+   "pinPosition": {
+    "worldLocation": {
+     "latitude": 43.1725632,
+     "longitude": -101.3882833
+    },
+    "x": 959.776611328125,
+    "y": 25.176063537597656,
+    "z": 261.3776550292969
+   },
+   "putts": 2,
+   "shots": [
+    {
+     "club": "Driver",
+     "dropPosition": null,
+     "finalLie": "Fairway",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1732632,
+       "longitude": -101.3884814
+      },
+      "x": 944.963134765625,
+      "y": 18.54033851623535,
+      "z": 339.3792419433594
+     },
+     "launchLie": "Tee",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.174551,
+       "longitude": -101.3881717
+      },
+      "x": 972.50244140625,
+      "y": 33.312984466552734,
+      "z": 481.9754333496094
+     },
+     "launchTime": "2023-12-24T14:19:09.8827862Z",
+     "shotNumber": 1,
+     "shotResult": "NormalShot",
+     "total": 145.2311509760019
+    },
+    {
+     "club": "9Iron",
+     "dropPosition": null,
+     "finalLie": "Sand",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1726083,
+       "longitude": -101.3884196
+      },
+      "x": 948.78125,
+      "y": 22.66240692138672,
+      "z": 266.5710754394531
+     },
+     "launchLie": "Fairway",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1732632,
+       "longitude": -101.3884814
+      },
+      "x": 944.963134765625,
+      "y": 18.54033851623535,
+      "z": 339.3792419433594
+     },
+     "launchTime": "2023-12-24T14:20:04.2686649Z",
+     "shotNumber": 2,
+     "shotResult": "Mulligan",
+     "total": 72.90821019338976
+    },
+    {
+     "club": "9Iron",
+     "dropPosition": null,
+     "finalLie": "Green",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1725134,
+       "longitude": -101.3882808
+      },
+      "x": 959.8875732421875,
+      "y": 25.306398391723633,
+      "z": 255.84043884277344
+     },
+     "launchLie": "Fairway",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1732632,
+       "longitude": -101.3884814
+      },
+      "x": 944.963134765625,
+      "y": 18.54033851623535,
+      "z": 339.3792419433594
+     },
+     "launchTime": "2023-12-24T14:20:44.5894864Z",
+     "shotNumber": 3,
+     "shotResult": "AutoPutt",
+     "total": 84.86147822963707
+    }
+   ],
+   "strokeIndex": 14
+  },
+  {
+   "distance": 271,
+   "greenInRegulation": true,
+   "grossScore": 3,
+   "holeNumber": 15,
+   "isPlayed": true,
+   "par": 4,
+   "pinPosition": {
+    "worldLocation": {
+     "latitude": 43.1750687,
+     "longitude": -101.3894098
+    },
+    "x": 872.8228759765625,
+    "y": 20.227256774902344,
+    "z": 541.1350708007812
+   },
+   "putts": 1,
+   "shots": [
+    {
+     "club": "Driver",
+     "dropPosition": null,
+     "finalLie": "Fairway",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1740467,
+       "longitude": -101.389641
+      },
+      "x": 852.1489868164062,
+      "y": 17.50502586364746,
+      "z": 427.9565124511719
+     },
+     "launchLie": "Tee",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1726745,
+       "longitude": -101.3891864
+      },
+      "x": 886.5692749023438,
+      "y": 19.297977447509766,
+      "z": 274.9508056640625
+     },
+     "launchTime": "2023-12-24T14:22:35.0820412Z",
+     "shotNumber": 1,
+     "shotResult": "NormalShot",
+     "total": 156.82953338367687
+    },
+    {
+     "club": "7Iron",
+     "dropPosition": null,
+     "finalLie": "Green",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1750315,
+       "longitude": -101.3894139
+      },
+      "x": 872.4264526367188,
+      "y": 20.143220901489258,
+      "z": 537.016845703125
+     },
+     "launchLie": "Fairway",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1740467,
+       "longitude": -101.389641
+      },
+      "x": 852.1489868164062,
+      "y": 17.50502586364746,
+      "z": 427.9565124511719
+     },
+     "launchTime": "2023-12-24T14:24:04.6811513Z",
+     "shotNumber": 2,
+     "shotResult": "AutoPutt",
+     "total": 110.92940056234421
+    }
+   ],
+   "strokeIndex": 8
+  },
+  {
+   "distance": 400,
+   "greenInRegulation": true,
+   "grossScore": 5,
+   "holeNumber": 16,
+   "isPlayed": true,
+   "par": 5,
+   "pinPosition": {
+    "worldLocation": {
+     "latitude": 43.1799173,
+     "longitude": -101.3883702
+    },
+    "x": 966.2499389648438,
+    "y": 34.34904098510742,
+    "z": 1078.1912841796875
+   },
+   "putts": 2,
+   "shots": [
+    {
+     "club": "Driver",
+     "dropPosition": null,
+     "finalLie": "Fairway",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1777401,
+       "longitude": -101.3891735
+      },
+      "x": 896.9561157226562,
+      "y": 21.097501754760742,
+      "z": 837.4945068359375
+     },
+     "launchLie": "Tee",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.176462,
+       "longitude": -101.3892457
+      },
+      "x": 888.7312622070312,
+      "y": 21.648807525634766,
+      "z": 695.6482543945312
+     },
+     "launchTime": "2023-12-24T14:25:34.0680737Z",
+     "shotNumber": 1,
+     "shotResult": "NormalShot",
+     "total": 142.08450846951837
+    },
+    {
+     "club": "7Wood",
+     "dropPosition": null,
+     "finalLie": "Fairway",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.178198,
+       "longitude": -101.3890364
+      },
+      "x": 908.94482421875,
+      "y": 22.54357147216797,
+      "z": 888.1567993164062
+     },
+     "launchLie": "Fairway",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1777401,
+       "longitude": -101.3891735
+      },
+      "x": 896.9561157226562,
+      "y": 21.097501754760742,
+      "z": 837.4945068359375
+     },
+     "launchTime": "2023-12-24T14:26:29.1273977Z",
+     "shotNumber": 2,
+     "shotResult": "Mulligan",
+     "total": 52.0614733827316
+    },
+    {
+     "club": "7Wood",
+     "dropPosition": null,
+     "finalLie": "Fairway",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1788322,
+       "longitude": -101.3884804
+      },
+      "x": 955.2982788085938,
+      "y": 26.05200958251953,
+      "z": 957.84033203125
+     },
+     "launchLie": "Fairway",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1777401,
+       "longitude": -101.3891735
+      },
+      "x": 896.9561157226562,
+      "y": 21.097501754760742,
+      "z": 837.4945068359375
+     },
+     "launchTime": "2023-12-24T14:27:05.4637783Z",
+     "shotNumber": 3,
+     "shotResult": "NormalShot",
+     "total": 133.74201148288014
+    },
+    {
+     "club": "7Wood",
+     "dropPosition": null,
+     "finalLie": "Green",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1799474,
+       "longitude": -101.3882144
+      },
+      "x": 978.9672241210938,
+      "y": 34.991172790527344,
+      "z": 1081.32958984375
+     },
+     "launchLie": "Fairway",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1788322,
+       "longitude": -101.3884804
+      },
+      "x": 955.2982788085938,
+      "y": 26.05200958251953,
+      "z": 957.84033203125
+     },
+     "launchTime": "2023-12-24T14:27:58.4973396Z",
+     "shotNumber": 4,
+     "shotResult": "AutoPutt",
+     "total": 125.7370898632866
+    }
+   ],
+   "strokeIndex": 2
+  },
+  {
+   "distance": 117,
+   "greenInRegulation": false,
+   "grossScore": 4,
+   "holeNumber": 17,
+   "isPlayed": true,
+   "par": 3,
+   "pinPosition": {
+    "worldLocation": {
+     "latitude": 43.181159,
+     "longitude": -101.389949
+    },
+    "x": 840.23388671875,
+    "y": 24.60556411743164,
+    "z": 1218.219970703125
+   },
+   "putts": 2,
+   "shots": [
+    {
+     "club": "8Iron",
+     "dropPosition": null,
+     "finalLie": "Deeprough",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1808092,
+       "longitude": -101.38944
+      },
+      "x": 880.9503784179688,
+      "y": 23.603900909423828,
+      "z": 1178.68896484375
+     },
+     "launchLie": "Tee",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1804448,
+       "longitude": -101.3887828
+      },
+      "x": 933.691650390625,
+      "y": 27.646862030029297,
+      "z": 1137.3336181640625
+     },
+     "launchTime": "2023-12-24T14:29:27.4843335Z",
+     "shotNumber": 1,
+     "shotResult": "Mulligan",
+     "total": 67.0216865521216
+    },
+    {
+     "club": "6Hybrid",
+     "dropPosition": null,
+     "finalLie": "Sand",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1809794,
+       "longitude": -101.3898416
+      },
+      "x": 848.6294555664062,
+      "y": 23.444053649902344,
+      "z": 1198.1302490234375
+     },
+     "launchLie": "Tee",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1804448,
+       "longitude": -101.3887828
+      },
+      "x": 933.691650390625,
+      "y": 27.6518611907959,
+      "z": 1137.3336181640625
+     },
+     "launchTime": "2023-12-24T14:29:55.5395632Z",
+     "shotNumber": 2,
+     "shotResult": "NormalShot",
+     "total": 104.55528352103711
+    },
+    {
+     "club": "60Wedge",
+     "dropPosition": null,
+     "finalLie": "Green",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1811675,
+       "longitude": -101.3899008
+      },
+      "x": 844.1607055664062,
+      "y": 24.677820205688477,
+      "z": 1219.0994873046875
+     },
+     "launchLie": "Sand",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1809794,
+       "longitude": -101.3898416
+      },
+      "x": 848.6294555664062,
+      "y": 23.444053649902344,
+      "z": 1198.1302490234375
+     },
+     "launchTime": "2023-12-24T14:30:34.9237195Z",
+     "shotNumber": 3,
+     "shotResult": "AutoPutt",
+     "total": 21.440118485174946
+    }
+   ],
+   "strokeIndex": 16
+  },
+  {
+   "distance": 241,
+   "greenInRegulation": true,
+   "grossScore": 4,
+   "holeNumber": 18,
+   "isPlayed": true,
+   "par": 4,
+   "pinPosition": {
+    "worldLocation": {
+     "latitude": 43.1843084,
+     "longitude": -101.3916304
+    },
+    "x": 709.396240234375,
+    "y": 29.280738830566406,
+    "z": 1570.24365234375
+   },
+   "putts": 2,
+   "shots": [
+    {
+     "club": "Driver",
+     "dropPosition": null,
+     "finalLie": "Rough",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1836223,
+       "longitude": -101.3918118
+      },
+      "x": 693.386962890625,
+      "y": 25.10991859436035,
+      "z": 1494.2916259765625
+     },
+     "launchLie": "Tee",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1823072,
+       "longitude": -101.3910524
+      },
+      "x": 752.677734375,
+      "y": 26.95196533203125,
+      "z": 1347.224365234375
+     },
+     "launchTime": "2023-12-24T14:31:40.3721984Z",
+     "shotNumber": 1,
+     "shotResult": "Mulligan",
+     "total": 158.5691482143451
+    },
+    {
+     "club": "Driver",
+     "dropPosition": null,
+     "finalLie": "Fairway",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1833397,
+       "longitude": -101.3912965
+      },
+      "x": 734.7431030273438,
+      "y": 28.149015426635742,
+      "z": 1462.212890625
+     },
+     "launchLie": "Tee",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1823072,
+       "longitude": -101.3910524
+      },
+      "x": 752.677734375,
+      "y": 26.95196533203125,
+      "z": 1347.224365234375
+     },
+     "launchTime": "2023-12-24T14:32:54.4530702Z",
+     "shotNumber": 2,
+     "shotResult": "NormalShot",
+     "total": 116.37874364799933
+    },
+    {
+     "club": "7Iron",
+     "dropPosition": null,
+     "finalLie": "Fairway",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1840287,
+       "longitude": -101.3914543
+      },
+      "x": 723.194091796875,
+      "y": 28.2302188873291,
+      "z": 1538.936767578125
+     },
+     "launchLie": "Fairway",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1833397,
+       "longitude": -101.3912965
+      },
+      "x": 734.7431030273438,
+      "y": 28.149015426635742,
+      "z": 1462.212890625
+     },
+     "launchTime": "2023-12-24T14:34:28.3763085Z",
+     "shotNumber": 3,
+     "shotResult": "Mulligan",
+     "total": 77.58822691052914
+    },
+    {
+     "club": "7Iron",
+     "dropPosition": null,
+     "finalLie": "Green",
+     "finalPosition": {
+      "worldLocation": {
+       "latitude": 43.1843331,
+       "longitude": -101.3916388
+      },
+      "x": 708.763671875,
+      "y": 29.325401306152344,
+      "z": 1572.99072265625
+     },
+     "launchLie": "Fairway",
+     "launchPosition": {
+      "worldLocation": {
+       "latitude": 43.1833397,
+       "longitude": -101.3912965
+      },
+      "x": 734.7431030273438,
+      "y": 28.149015426635742,
+      "z": 1462.212890625
+     },
+     "launchTime": "2023-12-24T14:35:16.2944997Z",
+     "shotNumber": 4,
+     "shotResult": "AutoPutt",
+     "total": 113.78338592493725
+    }
+   ],
+   "strokeIndex": 12
+  }
+ ],
+ "id": "U2NvcmVjYXJkCmU3NWQ1YzJhLTMxMGEtZTA2ZC1iMjA3LWM5NzMxMGJhZWZlYzo0M2JmNDJjOS0xMzBjLTMzZTAtMTNhNy04M2NlYzk3NjM4OGM",
+ "isCompleted": true,
+ "isInHcp": false,
+ "kind": "CoursePlay",
+ "lastUpdatedAt": "2023-12-24T14:35:44.2721799Z",
+ "numberOfHolesPlayed": 18,
+ "numberOfHolesToPlay": 18,
+ "par": 71,
+ "startedAt": "2023-12-24T13:36:05.3344841Z",
+ "teeName": "Orange",
+ "tees": [
+  {
+   "distance": 4660.696800000001,
+   "gender": "Female",
+   "name": "Orange",
+   "par": 71,
+   "rating": 71.2,
+   "slope": 128
+  }
+ ],
+ "toPar": 10
+}

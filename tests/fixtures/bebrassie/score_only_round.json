@@ -1,0 +1,155 @@
+{
+ "__v": 0,
+ "_id": "b6d5bc8b59629d62a676565d",
+ "ball": "5ffebc149ec1667b5effd681",
+ "clubs": [
+  "205f48e33876f2285f5ae64a",
+  "ea2c02818ece23ae5d5f122f",
+  "d9c7c4d1e92b7942e012ccb6",
+  "8a7e4b8ced7af4c3a548db38",
+  "7f2db31bd0ac6f403ae19499",
+  "556af95fc3f30450280876f5",
+  "da9cefa5782123f6a76e61d5",
+  "78cced0f636ab8629f44d086",
+  "af094c92a3a2c4ce41d0e176",
+  "282a1a2002a88e6a2aee1907",
+  "7db245dbf73e6ad8b9b21da8"
+ ],
+ "clubsDistances": {
+  "205f48e33876f2285f5ae64a": 150,
+  "282a1a2002a88e6a2aee1907": 50,
+  "556af95fc3f30450280876f5": 90,
+  "78cced0f636ab8629f44d086": 70,
+  "7f2db31bd0ac6f403ae19499": 98,
+  "8a7e4b8ced7af4c3a548db38": 105,
+  "9f39de6ad152e6bd47f7e919": 150,
+  "af094c92a3a2c4ce41d0e176": 60,
+  "d9c7c4d1e92b7942e012ccb6": 110,
+  "da9cefa5782123f6a76e61d5": 75,
+  "ea2c02818ece23ae5d5f122f": 135
+ },
+ "course": {
+  "__v": 0,
+  "_id": "8027a280d86f49cfc954afe7",
+  "checkedAt": "2024-10-27T01:00:19.633Z",
+  "createdAt": "2022-12-24T03:00:54.887Z",
+  "deprecated": false,
+  "golfClub": "1cfc509cd1b2a3050f5b8523",
+  "name": "Golfclub Musterstadt",
+  "updatedAt": "2024-10-27T01:00:19.634Z"
+ },
+ "courseRating": 37.7,
+ "courseSlope": 135,
+ "courseTee": "3cf940475afb1d915343f599",
+ "createdAt": "2024-10-09T11:00:06.206Z",
+ "finishedAt": "2024-06-24T18:45:00.000Z",
+ "hci": 33.7,
+ "parCounts": [
+  {
+   "_id": "bcb70d62b284344fbdc43429",
+   "count": 5,
+   "par": 3
+  },
+  {
+   "_id": "a70de253e0c7c4af36fb3ad0",
+   "count": 8,
+   "par": 4
+  },
+  {
+   "_id": "60439837096ce557df9384c9",
+   "count": 5,
+   "par": 5
+  }
+ ],
+ "percentCompleted": 20,
+ "pinPositions": {
+  "0": {
+   "coordinates": [],
+   "type": "Point"
+  },
+  "1": {
+   "coordinates": [],
+   "type": "Point"
+  },
+  "10": {
+   "coordinates": [],
+   "type": "Point"
+  },
+  "11": {
+   "coordinates": [],
+   "type": "Point"
+  },
+  "12": {
+   "coordinates": [],
+   "type": "Point"
+  },
+  "13": {
+   "coordinates": [],
+   "type": "Point"
+  },
+  "14": {
+   "coordinates": [],
+   "type": "Point"
+  },
+  "15": {
+   "coordinates": [],
+   "type": "Point"
+  },
+  "16": {
+   "coordinates": [],
+   "type": "Point"
+  },
+  "17": {
+   "coordinates": [],
+   "type": "Point"
+  },
+  "2": {
+   "coordinates": [],
+   "type": "Point"
+  },
+  "3": {
+   "coordinates": [],
+   "type": "Point"
+  },
+  "4": {
+   "coordinates": [],
+   "type": "Point"
+  },
+  "5": {
+   "coordinates": [],
+   "type": "Point"
+  },
+  "6": {
+   "coordinates": [],
+   "type": "Point"
+  },
+  "7": {
+   "coordinates": [],
+   "type": "Point"
+  },
+  "8": {
+   "coordinates": [],
+   "type": "Point"
+  },
+  "9": {
+   "coordinates": [],
+   "type": "Point"
+  }
+ },
+ "roundRating": 1,
+ "roundType": "tournament",
+ "scoreOnly": true,
+ "scorecard": "420a8ebe5622eb2380cf55dd",
+ "sd": 35.7,
+ "sharedHoles": [],
+ "signedRound": false,
+ "signedRoundOnce": false,
+ "startHole": "7b02cdf50664acf2f5e9fc3d",
+ "startedAt": "2024-06-24T16:00:00.000Z",
+ "totalHoles": 9,
+ "totalHolesType": "front",
+ "totalShots": 56,
+ "totalToPar": 19,
+ "updatedAt": "2024-10-09T11:00:06.247Z",
+ "useForHci": true
+}

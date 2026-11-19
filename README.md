@@ -80,11 +80,14 @@ Open `http://<host>:8000` and set the interface password on first start. Everyth
 lives in one volume (`/data`: database, raw data, uploads, credentials, configuration, backups). The
 image runs as user 10001 without root, with a read-only root filesystem; with a bind mount instead of
 a volume run `chown 10001:10001 data` first. On first start the default configuration is copied to
-`/data/config` and kept there (edit it, or use *Settings*). The compose file publishes the port on
-`127.0.0.1` only: for access from the network put a reverse proxy with TLS in front (the password and
-session cookie must not travel unencrypted) and publish `8000:8000`. Set `SHOTLAKE_SECRET_KEY` to keep
-the key of the stored credentials outside the volume. Update with `docker compose pull && docker
-compose up -d`.
+`/data/config` and kept there (edit it, or use *Settings*).
+
+Port: by default the compose file publishes `127.0.0.1:8000`, reachable only on the host itself. On a
+NAS set `SHOTLAKE_BIND=0.0.0.0` (all interfaces) and, if 8000 is taken, `SHOTLAKE_PORT=8001`; then open
+`http://<nas-ip>:8001`. A binding with `127.0.0.1` is never reachable from other devices. Over the
+network the password and session cookie travel unencrypted: use a trusted LAN or put a reverse proxy
+with TLS in front. Set `SHOTLAKE_SECRET_KEY` to keep the key of the stored credentials outside the
+volume. Update with `docker compose pull && docker compose up -d`.
 
 Health checks (no login): `/healthz` (process alive) and `/readyz` (data directory writable,
 database readable; `busy` while a backup runs). The image's `HEALTHCHECK` uses `/healthz`.

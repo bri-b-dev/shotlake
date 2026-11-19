@@ -2,16 +2,22 @@
 #   docker compose up -d        starten
 #   docker compose logs -f      Protokoll ansehen
 #   docker compose pull && docker compose up -d     auf die neueste Version aktualisieren
-# Beim ersten Aufruf von http://<Adresse>:8000 legst du das Passwort der Oberfläche fest.
+# Beim ersten Aufruf der Adresse legst du das Passwort der Oberfläche fest.
+# Einstellungen als Umgebungsvariablen (.env neben dieser Datei oder im Stack-Editor):
+#   SHOTLAKE_BIND=0.0.0.0  SHOTLAKE_PORT=8001  SHOTLAKE_SECRET_KEY=...
 services:
   shotlake:
     image: ghcr.io/bri-b-dev/shotlake:latest
     container_name: shotlake
     restart: unless-stopped
-    # Nur lokal erreichbar. Für den Zugriff im Netz einen Reverse-Proxy mit TLS davorsetzen
-    # (Passwort und Sitzungs-Cookie laufen sonst unverschlüsselt) und hier "8000:8000" eintragen.
+    # Veröffentlichter Port: ${SHOTLAKE_BIND}:${SHOTLAKE_PORT} -> 8000 im Container.
+    #   Standard 127.0.0.1:8000 = nur auf diesem Rechner erreichbar (sicher, aber nicht vom Netz aus).
+    #   Im Heimnetz (NAS): SHOTLAKE_BIND=0.0.0.0 setzen, dann http://<nas-ip>:<SHOTLAKE_PORT>.
+    #   Ist 8000 belegt ("address already in use"), einen freien Port wählen, z. B. SHOTLAKE_PORT=8001.
+    # Über das Netz laufen Passwort und Sitzungs-Cookie unverschlüsselt: nur im vertrauten LAN oder
+    # hinter einem Reverse-Proxy mit TLS betreiben.
     ports:
-      - "127.0.0.1:8000:8000"
+      - "${SHOTLAKE_BIND:-127.0.0.1}:${SHOTLAKE_PORT:-8000}:8000"
     volumes:
       # Alles, was bleibt: Datenbank, Rohdaten, Uploads, Zugangsdaten, Konfiguration, Sicherungen.
       # Mit einem Ordner statt eines Volumes (./data:/data) muss er dem Benutzer 10001 gehören:

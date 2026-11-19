@@ -80,7 +80,9 @@ def test_entrypoint_seeds_config_without_overwriting() -> None:
 
 def test_compose_is_local_only_by_default_and_hardened() -> None:
     compose = text("docker-compose.yml")
-    assert '"127.0.0.1:8000:8000"' in compose
+    assert (
+        '"${SHOTLAKE_BIND:-127.0.0.1}:${SHOTLAKE_PORT:-8000}:8000"' in compose
+    )  # Standard: nur lokal
     assert "read_only: true" in compose and "cap_drop" in compose and "no-new-privileges" in compose
     assert "shotlake-data:/data" in compose
     assert "ghcr.io/bri-b-dev/shotlake" in compose

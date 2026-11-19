@@ -44,6 +44,19 @@ Die Zeitfelder heißen je Schlagart unterschiedlich nullable (`RangeStroke.time`
 `Stroke.time` ist `DateTime!`). Deshalb tragen sie die Alias `rangeTime` und `strokeTime`; sonst
 lehnt der Server die Abfrage wegen widersprüchlicher Typen ab.
 
+## Fehler und Wiederholungen
+
+- **Serverfehler** („Unexpected Execution Error", `INTERNAL_SERVER_ERROR`, HTTP 5xx) sind keine
+  Schemaänderung. Der Client wiederholt die Abfrage bis zu dreimal mit Wartezeit; bleibt es dabei,
+  scheitert nur dieser Teil, nicht der ganze Sync.
+- Eine **Aktivität**, deren Details nicht kommen, wird übersprungen und gemeldet; der Cursor für
+  Sessions bleibt vor ihr stehen, sie kommt beim nächsten Lauf nach.
+- Scheitert eine **Seite Scorecards**, wird sie in Einzelabfragen zerlegt. Eine fehlerhafte Scorecard
+  wird übersprungen (Meldung mit Position), die übrigen kommen an. Der Runden-Cursor rückt dann nicht
+  vor, damit nichts verloren geht.
+- Meldungen nennen Abfrage, Pfad und Code des GraphQL-Fehlers (nie das Token). Nur echte
+  Abfragefehler (zum Beispiel unbekanntes Feld) gelten als Schemaänderung (`drift_detected`).
+
 ## Rohdokumente
 
 Zwei Arten, je eines pro Aktivität bzw. Scorecard:

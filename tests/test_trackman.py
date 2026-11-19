@@ -278,3 +278,121 @@ def test_mapped_clubs_no_longer_warn(tmp_path: Any) -> None:
         "Schläger ohne Zuordnung: ['99Wedge']",
         "Anderes",
     ]
+
+
+# --- Serverfehler: Wiederholung, Diagnose, Isolierung --------------------------------------------
+
+
+def gql_error(message: str, path: list[Any] | None = None, code: str | None = None) -> Response:
+    error: dict[str, Any] = {"message": message}
+    if path:
+        error["path"] = path
+    if code:
+        error["extensions"] = {"code": code}
+    return Response(200, json.dumps({"errors": [error], "data": None}))
+
+
+UNEXPECTED = "Unexpected Execution Error"
+
+
+def client_with(responses: list[Response]) -> TrackmanClient:
+    return TrackmanClient(token="T", transport=FakeTransport(responses), sleep=lambda _s: None)
+
+
+def test_server_error_is_retried_and_then_succeeds() -> None:
+    client = client_with(
+        [gql_error(UNEXPECTED), gql_error(UNEXPECTED), ok({"me": {"profile": {"id": "1"}}})]
+    )
+    client.check()  # kein Fehler: der dritte Versuch gelingt
+
+
+def test_persistent_server_error_names_operation_path_and_code() -> None:
+    from shotlake.connectors.api import TransientError
+
+    errors = [gql_error(UNEXPECTED, ["me", "scorecards", 3, "holes"], "INTERNAL_SERVER_ERROR")] * 3
+    client = client_with(list(errors))
+    with pytest.raises(TransientError) as err:  # nicht als Schemaänderung gemeldet
+        client.session_detail("abc")
+    text = str(err.value)
+    assert "Session" in text and "Serverfehler" in text
+    assert "me.scorecards.3.holes" in text and "INTERNAL_SERVER_ERROR" in text
+    assert not isinstance(err.value, SchemaDriftError) and "Bearer" not in text
+
+
+def test_validation_error_stays_a_schema_drift_with_details() -> None:
+    client = client_with(
+        [gql_error('Cannot query field "foo" on type "X"', ["me"], "GRAPHQL_VALIDATION_FAILED")]
+    )
+    with pytest.raises(SchemaDriftError) as err:
+        client.list_activities(None)
+    assert "Activities" in str(err.value) and "GRAPHQL_VALIDATION_FAILED" in str(err.value)
+
+
+def card_page(*ids: str) -> Response:
+    return ok({"me": {"scorecards": [{"id": i, "startedAt": "2026-11-01T10:00:00Z"} for i in ids]}})
+
+
+def test_bad_scorecard_is_skipped_and_the_others_survive() -> None:
+    responses = [
+        *[gql_error(UNEXPECTED)] * 3,  # Seite mit 10 scheitert (3 Versuche) -> Einzelabfragen
+        card_page("A"),  # Position 0
+        *[gql_error(UNEXPECTED, ["me", "scorecards", 0])] * 3,  # Position 1: kaputt
+        card_page("C"),  # Position 2
+        card_page(),  # Position 3: Ende
+    ]
+    client = client_with(responses)
+    cards = client.scorecards()
+    assert [c["id"] for c in cards] == ["A", "C"]
+    assert client.skipped_scorecards == 1
+    assert any("Position 1" in n and "Serverfehler" in n for n in client.notes)
+
+
+class FlakyClient(FakeClient):
+    """Wie `FakeClient`, aber eine Aktivität und ein Scorecard-Abruf schlagen fehl."""
+
+    def __init__(
+        self, acts: list[dict[str, Any]], cards: list[dict[str, Any]], skipped: int
+    ) -> None:
+        super().__init__(acts, cards)
+        self.notes: list[str] = [
+            "Scorecard an Position 4 übersprungen, Trackman meldet einen Serverfehler"
+        ]
+        self.skipped_scorecards = skipped
+
+    def session_detail(self, activity_id: str) -> dict[str, Any] | None:
+        from shotlake.connectors.trackman_live import ServerError
+
+        if activity_id == "bad":
+            raise ServerError("Trackman Session: Serverfehler Unexpected Execution Error")
+        return super().session_detail(activity_id)
+
+
+def test_connector_keeps_good_data_and_holds_the_cursors_back() -> None:
+    acts = [
+        {"id": "S1", "time": "2026-11-01T10:00:00Z", "kind": "RANGE_PRACTICE"},
+        {"id": "bad", "time": "2026-11-05T10:00:00Z", "kind": "VIRTUAL_RANGE"},
+        {"id": "S1b", "time": "2026-11-09T10:00:00Z", "kind": "RANGE_PRACTICE"},
+    ]
+    card_doc = {k: v for k, v in card().items() if k != "_kind"}
+    client = FlakyClient(acts, [card_doc], skipped=1)
+    conn = TrackmanConnector(client=client)
+    (page,) = list(conn.fetch(None))
+    assert sorted(r.external_id for r in page.records) == ["C1", "S1", "S1b"]  # Gutes bleibt
+    cursor = json.loads(page.next_cursor or "")
+    assert cursor["range"].startswith("2026-11-05T09:59:59")  # vor der fehlgeschlagenen Aktivität
+    assert cursor["round"] is None  # übersprungene Scorecard: Cursor nicht vorgerückt
+    assert any("vorübergehend nicht abrufbar" in n for n in conn.notes)
+    assert any("Position 4" in n for n in conn.notes)
+    list(conn.fetch(page.next_cursor))
+    assert len([n for n in conn.notes if "Position 4" in n]) == 1  # Neustart meldet nichts doppelt
+
+
+def test_sync_reports_ok_with_warnings_instead_of_drift(tmp_path: Any) -> None:
+    from shotlake.db import open_db
+    from shotlake.ingest_api import sync_api
+
+    acts = [{"id": "bad", "time": "2026-11-05T10:00:00Z", "kind": "VIRTUAL_RANGE"}]
+    con = open_db(tmp_path / "t.duckdb")
+    rep = sync_api(con, TrackmanConnector(client=FlakyClient(acts, [], skipped=0)), None)
+    assert rep.status == "ok" and not rep.errors
+    assert any("vorübergehend nicht abrufbar" in w for w in rep.warnings)

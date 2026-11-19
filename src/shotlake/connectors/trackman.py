@@ -30,7 +30,7 @@ from ..model import (
     ShotRecord,
     TeeRecord,
 )
-from .api import ApiConnector, AuthError, FetchPage, RawRecord
+from .api import ApiConnector, AuthError, FetchPage, RawRecord, TransientError
 from .errors import SchemaDriftError
 
 SOURCE = "trackman"
@@ -307,9 +307,19 @@ class TrackmanConnector(ApiConnector):
         # Aktivitäten ab Cursor minus 1 Tag (Sessions können nachträglich Schläge bekommen)
         since = _utc(state.get("range"))
         newest_range, records = since, []
+        failed: list[datetime] = []
         for item in self.client.list_activities(since - timedelta(days=1) if since else None):
             when = _utc(item.get("time"))
-            detail = self.client.session_detail(str(item["id"]))
+            try:
+                detail = self.client.session_detail(str(item["id"]))
+            except TransientError as exc:  # nach den Wiederholungen des Clients
+                self._note(
+                    f"Aktivität {item.get('kind')} vom {str(item.get('time'))[:10]} vorübergehend "
+                    f"nicht abrufbar, wird beim nächsten Lauf erneut versucht ({str(exc)[:200]})"
+                )
+                if when:
+                    failed.append(when)
+                continue
             if detail is None:
                 self.notes.append(f"Aktivität {item.get('kind')} ohne Schlagdaten übersprungen")
                 continue
@@ -322,6 +332,11 @@ class TrackmanConnector(ApiConnector):
             )
             if when and (newest_range is None or when > newest_range):
                 newest_range = when
+        if failed:  # den Cursor vor die erste fehlgeschlagene Aktivität stellen
+            held_range = min(failed) - timedelta(seconds=1)
+            newest_range = held_range if newest_range is None else min(newest_range, held_range)
+            if since is not None:
+                newest_range = max(newest_range, since)
         round_since = _utc(state.get("round"))
         oldest_open: datetime | None = None
         newest_done = round_since
@@ -334,13 +349,21 @@ class TrackmanConnector(ApiConnector):
                 oldest_open = when if oldest_open is None or when < oldest_open else oldest_open
             elif newest_done is None or when > newest_done:
                 newest_done = when
+        for note in getattr(self.client, "notes", []):  # vom Client übersprungene Scorecards
+            self._note(note)
         next_round = newest_done
-        if oldest_open is not None:  # laufende Runde beim nächsten Mal erneut holen
+        if getattr(self.client, "skipped_scorecards", 0):
+            next_round = round_since  # unbekanntes Datum: Cursor nicht vorrücken, nichts verlieren
+        elif oldest_open is not None:  # laufende Runde beim nächsten Mal erneut holen
             held = oldest_open - timedelta(seconds=1)
             next_round = held if next_round is None else min(next_round, held)
             if round_since is not None:
                 next_round = max(next_round, round_since)
         yield FetchPage(records, next_cursor=_encode_cursor(newest_range, next_round))
+
+    def _note(self, text: str) -> None:
+        if text not in self.notes:  # ein Neustart des Abrufs soll nichts doppelt melden
+            self.notes.append(text)
 
     def parse_record(self, record: RawRecord) -> ParsedSession | ParsedRound:
         if record.payload.get("_kind") == "round":

@@ -16,7 +16,7 @@ Vorab ausgewertet: `phase0-findings.md` (aus `../analytics-platform`, `../arccos
 - [ ] 0.5 Mevo+: myflightscope-CSV-Export mit Beispielen
 - [~] 0.6 Anonymisierte Beispielexporte als Fixtures unter `tests/fixtures/<source>/`: Mevo, Garmin Range, BeBrassie und Trackman vorhanden; Werkzeug `scripts/anonymize_fixture.py` (2026-11-19). **Offen:** Arccos und Garmin (Platz)
 - [x] 0.7 Bestehende „handycap"-App gesichtet (`phase0-findings.md` §4e): Abweichungen PCC-Skalierung, 26,5-Bremse, Mindestanzahl; Entscheidungen offen (Open Question 12a)
-- [ ] 0.8 Offene Fragen (`open-questions.md`) mit dem Nutzer klären
+- [x] 0.8 Offene Fragen (`open-questions.md`) mit der Nutzerin geklärt (2026-11-19): SG-Niveau beides umschaltbar, Betrieb NAS/Heimserver mit Docker Compose, Equipment bei Notizen, keine Auto-Sicherung; überholte Punkte nachgeführt
 
 ## Phase 1 – Canonical-Modell + Range-Quellen
 - [x] 1.1 Repo-Setup (git, uv, pytest, ruff), DuckDB-Schema (raw_object, import_run, session, shot). **Offen:** eigene staging-Schicht (Parser schreiben aktuell direkt nach canonical), Rebuild aus raw
@@ -34,9 +34,10 @@ Vorab ausgewertet: `phase0-findings.md` (aus `../analytics-platform`, `../arccos
 ## Phase 3 – Strokes Gained
 - [x] 3.1 Baseline-Tabellen + Config (`baselines/hcp18w-approx-v1.toml`, eigene Näherung für Handicap 18 Damen, als `approximation` gekennzeichnet)
 - [x] 3.2 SG-Berechnung nur über vollständig erfasste Löcher mit Grund, Kategorien tee/approach/short/green_play/putting/penalty, Tests in `tests/test_sg.py`. Sim-Runden nur gezielt (`--source trackman`). **Offen:** Lagen `Fringe`/`Rock`/`Mulch`/`Pinestraw` ohne Baseline-Wert, Garmin ohne echte Putt-Startdistanz
+- [ ] 3.3 SG-Niveau umschaltbar: zweite gekennzeichnete Näherungstabelle für das eigene Niveau (Handicap-Band etwa 40, Damen), Standard darauf, Umschalter auf Ziel 18 in Oberfläche, CLI und MCP; Hinweise und Vergleiche nennen die verwendete Baseline
 
 ## Phase 4 – Frontend, MCP, Insights
 - [~] 4.1 Frontend-Seiten, Dark/Light, mobil: Übersicht, Runden, Rundendetail mit Eingaben, Schläger (inkl. Streuungs-Scatter mit Ellipse), Quellen, Periodenvergleich, Notizen, Dubletten-Review vorhanden. Sync-Knopf, Prüfen, Datei-Upload, Einstellungen mit verschlüsselten Zugangsdaten und Passwortschutz (2026-11-15). Garmin-Erstanmeldung mit Zwei-Faktor-Code in den Einstellungen (2026-11-17, live mit Token-Speicherung bestätigt); Schläger-Übersicht der Platzschläge führt Typ am Schlag und `club_map` zusammen. Neues Design (2026-11-19): Markenfarben, Logo und Favicon aus dem Design-Canvas, Space Grotesk, gruppierte Navigation, Kernzahl und Intervallstriche, Scorekarte, Distanzbereich je Schläger, kurze Hinweis-Sätze, Handyansicht (im Rahmen mit 390 px geprüft, nicht auf einem Gerät). Sicherung, Schlüssel und Export in den Einstellungen. **Offen:** Konfidenzintervalle in allen Ansichten; Insights-Seite ca. 1,4 s (Ziel 1 s)
 - [x] 4.2 MCP-Server (8 Tools, stdio + HTTP mit Token, `--read-only`; 2026-11-14)
 - [x] 4.3 Trends, Periodenvergleich, Insights (Bootstrap-CI, Kennzahlenkatalog, regelbasierte Insights über MCP, CLI und Weboberfläche, Notizen als Marker mit Vorher/Nachher-Vergleich, A/B-Vergleich)
-- [~] 4.4 Backup/Restore (2026-11-19: Archiv mit Manifest und Prüfsummen, optionale Passwort-Verschlüsselung, Schlüssel getrennt, sichere Wiederherstellung mit Rückrollen, Befehle und Oberfläche). Gesamt-Export als Parquet und CSV mit `schema.json` (2026-11-19, Befehl und Oberfläche). **Offen:** Observability, K8s-Manifeste, automatische Sicherung nach dem Sync
+- [~] 4.4 Backup/Restore (2026-11-19: Archiv mit Manifest und Prüfsummen, optionale Passwort-Verschlüsselung, Schlüssel getrennt, sichere Wiederherstellung mit Rückrollen, Befehle und Oberfläche). Gesamt-Export als Parquet und CSV mit `schema.json` (2026-11-19, Befehl und Oberfläche). Betrieb entschieden: NAS/Heimserver mit Docker Compose, keine Auto-Sicherung. **Offen:** Docker-Image (ohne root, ein Datenvolumen) mit Compose-Beispiel, Observability (Health-Endpunkt, strukturierte Logs mit Run-ID); K8s-Manifeste optional und nachrangig

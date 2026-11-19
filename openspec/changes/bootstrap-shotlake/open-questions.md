@@ -1,4 +1,38 @@
-# Offene Fragen & Annahmen (bitte bestätigen)
+# Offene Fragen & Annahmen
+
+## Stand 2026-11-19 (maßgeblich)
+
+### Entscheidungen dieser Runde
+| Thema | Entscheidung | Folge |
+|---|---|---|
+| SG-Niveau (Frage 1) | **Beides, umschaltbar**: Standard das eigene Niveau (Handicap-Band etwa 40), umschaltbar auf das Ziel Handicap 18. Beide Tabellen sind gekennzeichnete Näherungen. | neue Aufgabe 3.3 |
+| Betrieb (Frage 6) | **NAS oder Heimserver mit Docker Compose.** Kubernetes ist optional und nachrangig. | Docker-Image, Compose-Beispiel, Health-Endpunkt unter 4.4 |
+| Equipment (Frage 16) | **Bei Notizen bleiben** (Datum, Gültigkeitszeitraum, Typ, Vorher/Nachher-Vergleich). Keine Stammdaten für Schläger und Bälle. | keine |
+| Auto-Sicherung (Frage 18) | **Nein, nur manuell** (Download, `backup`). | keine |
+
+### Durch den Verlauf überholt oder entschieden
+| Frage | Stand |
+|---|---|
+| 7 Zugriff | Passwort in der Oberfläche (2026-11-15), nicht mehr „kein Login im LAN". MCP über HTTP weiter nur mit Token. |
+| 8 / 0d Secrets | Zugangsdaten verschlüsselt (Fernet) im Datenverzeichnis, gepflegt in der Oberfläche; sops bleibt als Quelle unterstützt. Den Schlüssel sichert `backup-key` getrennt. |
+| 18 Backup | Archiv mit Prüfsummen, optional per Passwort verschlüsselt, ohne Schlüssel; Oberfläche und Befehle (2026-11-19). Gesamt-Export als Parquet und CSV. |
+| 17 Historie | Alles importieren (BeBrassie, Arccos, Garmin, Trackman, Dateien). |
+| 0b Arccos-SG | Selbst gerechnet; die SG der Quelle liegt als `source_sg` zum Vergleich. |
+| 10 / 11 Screenshots | Nicht im Umfang. |
+| 9 ToS | Inoffizielle Wege mit Schutzmaßnahmen, je Connector dokumentiert (`docs/sources/`). |
+| 12 / 12a Handicap | Nur Score Differential; 9-Loch nach WHS mit Index vor der Runde (2026-11-17). |
+
+### Beobachtungen und zurückgestellte Punkte (keine Entscheidung nötig)
+- Arccos: Laufzeit von `accessKey/secret` und Einmaligkeit des Magic-Link-Tokens beobachten; Zugangsdaten rotieren und HAR-Dateien löschen (liegt bei der Nutzerin).
+- Trackman: Token läuft nach etwa 7 Tagen ab; Vorzeichen der Seitenabweichung an Messungen gegenprüfen.
+- Garmin Platz: Bedeutung von `UNKNOWN`/`LAYUP` bei der Schlagart; Abdeckung über mehr Runden prüfen.
+- Lagen `Fringe`/`Rock`/`Mulch`/`Pinestraw` haben keinen Baseline-Wert (Näherung `other`).
+- Kalibrierungsfaktor je Schläger und Quelle (Frage 14): bewusst zurückgestellt; Quellen werden getrennt ausgewiesen.
+- 0.3b: offizielle Arccos-API prüfen (Recherche); 0.5: Mevo+-Export mit Beispielen; BeBrassie: manueller Import als Fallback.
+
+---
+
+## Historie (Stand bis 2026-11-14, nur zur Nachvollziehbarkeit)
 
 ## Bestätigte Entscheidungen (2026-11-14)
 | Thema | Entscheidung | Frage |

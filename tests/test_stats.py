@@ -60,3 +60,19 @@ def test_delta_and_relative_change():
 def test_median_statistic():
     result = compare([1.0, 2.0, 100.0, 3.0, 2.0], [1.0, 2.0, 3.0, 2.0, 2.0], stat="median", min_n=5)
     assert result.delta == pytest.approx(0.0)
+
+
+def test_bootstrap_results_are_cached_and_identical():
+    from shotlake.analytics import stats
+
+    a, b = [1.0, 2.0, 4.0, 8.0, 9.0], [2.0, 3.0, 3.5, 5.0]
+    stats._ci.cache_clear()
+    stats._diff_ci.cache_clear()
+    first = stats.bootstrap_ci(a), stats.bootstrap_diff_ci(a, b)
+    again = (
+        stats.bootstrap_ci(list(a)),
+        stats.bootstrap_diff_ci(tuple(a), b),
+    )  # anderer Typ, gleiche Werte
+    assert first == again and first[0] is again[0] and first[1] is again[1]
+    assert stats._ci.cache_info().hits == 1 and stats._diff_ci.cache_info().hits == 1
+    assert stats.bootstrap_ci([1.0, 2.0]) is None  # zu wenige Werte: kein Eintrag

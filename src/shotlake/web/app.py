@@ -818,4 +818,13 @@ def create_app(
                 running=sync_manager.running(),
             )
 
+    def warm_up() -> None:
+        """Insights der Standardansicht vorab rechnen (füllt den Bootstrap-Zwischenspeicher)."""
+        try:
+            with session() as con:
+                generate_insights(con, baseline, scope=workspace.scope(con))
+        except Exception:  # Vorwärmen ist nur Beschleunigung, nie Voraussetzung
+            pass
+
+    app.state.warm_up = warm_up
     return app

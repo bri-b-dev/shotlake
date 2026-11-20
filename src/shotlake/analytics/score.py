@@ -7,6 +7,7 @@ Fehlende Eingaben ergeben NULL mit Grund, nie einen geschätzten Wert.
 from __future__ import annotations
 
 import math
+from collections import defaultdict
 from collections.abc import Collection
 from dataclasses import dataclass, replace
 from datetime import datetime
@@ -329,6 +330,30 @@ def round_scores(
             params,
         )
     )
+    # Löcher, Eingaben und Tee-Werte je einmal für alle Runden laden (statt je Runde einzeln)
+    holes_by: dict[object, list[HoleRecord]] = defaultdict(list)
+    for h in con.execute(
+        "select h.round_id, h.hole_number, h.par, h.stroke_index, h.strokes, h.putts, "
+        "h.penalties, h.fairway_outcome, h.pin_lat, h.pin_lon "
+        f"from hole h join round r on r.round_id = h.round_id {where} "
+        "order by h.round_id, h.hole_number",
+        params,
+    ).fetchall():
+        holes_by[h[0]].append(HoleRecord(*h[1:]))
+    inputs_by = {
+        row["round_id"]: row
+        for row in _dicts(
+            con.execute(
+                f"select i.* from round_input i join round r on r.round_id = i.round_id {where}",
+                params,
+            )
+        )
+    }
+    tee9_by: dict[tuple[str, str], dict[str, tuple[float, int]]] = defaultdict(dict)
+    for course_id, tee_name, part, rating, slope in con.execute(
+        "select course_id, tee_name, part, rating, slope from tee_rating"
+    ).fetchall():
+        tee9_by[(course_id, tee_name)][part] = (rating, slope)
     out: list[RoundScore] = []
     skip = set(exclude or ())
     for row in rounds:
@@ -342,25 +367,9 @@ def round_scores(
             and (row.get("tee_rating") is None or row.get("tee_slope") is None)
         ):
             row["tee_rating"], row["tee_slope"], rating_from = donors[str(rid)]
-        holes = [
-            HoleRecord(*h)
-            for h in con.execute(
-                "select hole_number, par, stroke_index, strokes, putts, penalties, "
-                "fairway_outcome, pin_lat, pin_lon from hole where round_id = ? "
-                "order by hole_number",
-                [rid],
-            ).fetchall()
-        ]
-        inputs = (
-            _dicts(con.execute("select * from round_input where round_id = ?", [rid])) or [{}]
-        )[0]
-        tee9 = {
-            r[0]: (r[1], r[2])
-            for r in con.execute(
-                "select part, rating, slope from tee_rating where course_id = ? and tee_name = ?",
-                [row["course_id"], row["tee_name"] or ""],
-            ).fetchall()
-        }
+        holes = holes_by.get(rid, [])
+        inputs = inputs_by.get(rid, {})
+        tee9 = tee9_by.get((str(row["course_id"]), str(row["tee_name"] or "")), {})
         score = compute_round(row, holes, inputs, tee9)
         if rating_from:
             score = replace(score, rating_source=rating_from)

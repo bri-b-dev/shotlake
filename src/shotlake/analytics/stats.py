@@ -11,6 +11,7 @@ import random
 import statistics
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
+from functools import lru_cache
 
 N_BOOT = 2000
 SEED = 20261114
@@ -27,12 +28,23 @@ class Interval:
     level: float = LEVEL
 
 
+# Der Bootstrap ist bei festem Seed eine reine Funktion seiner Eingaben und der teuerste Teil der
+# Insights. Gleiche Eingaben (z. B. beim erneuten Öffnen der Seite oder bei einem anderen
+# Vergleichsniveau, das diese Werte nicht berührt) liefern daher exakt dasselbe Intervall.
+_CACHE_SIZE = 1024
+
+
 def bootstrap_ci(
     values: Sequence[float], stat: str = "mean", level: float = LEVEL, n_boot: int = N_BOOT
 ) -> Interval | None:
     """Perzentil-Bootstrap; None bei weniger als 3 Werten (zu wenig für ein Intervall)."""
     if len(values) < 3:
         return None
+    return _ci(tuple(values), stat, level, n_boot)
+
+
+@lru_cache(maxsize=_CACHE_SIZE)
+def _ci(values: tuple[float, ...], stat: str, level: float, n_boot: int) -> Interval:
     fn = STATS[stat]
     rng = random.Random(SEED)
     n = len(values)
@@ -49,6 +61,13 @@ def bootstrap_diff_ci(
     """Intervall der Differenz stat(a) minus stat(b); None, wenn eine Gruppe < 3 Werte hat."""
     if len(a) < 3 or len(b) < 3:
         return None
+    return _diff_ci(tuple(a), tuple(b), stat, level, n_boot)
+
+
+@lru_cache(maxsize=_CACHE_SIZE)
+def _diff_ci(
+    a: tuple[float, ...], b: tuple[float, ...], stat: str, level: float, n_boot: int
+) -> Interval:
     fn = STATS[stat]
     rng = random.Random(SEED)
     na, nb = len(a), len(b)

@@ -6,6 +6,7 @@ import argparse
 import getpass
 import os
 import sys
+import threading
 from datetime import date, datetime
 from pathlib import Path
 
@@ -683,6 +684,7 @@ def main(argv: list[str] | None = None) -> int:
             print("Datenbank geöffnet, baue die Oberfläche auf", flush=True)
             app = create_app(data, args.club_map, resolve_baseline_path(args.baseline_path))
             print(f"Oberfläche bereit, lausche auf {args.host}:{args.port}", flush=True)
+            threading.Thread(target=app.state.warm_up, daemon=True, name="warm-up").start()
             uvicorn.run(app, host=args.host, port=args.port, log_level="info")
             return 0
         if args.cmd == "arccos-check":

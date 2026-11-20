@@ -1,4 +1,4 @@
-"""Regelbasierte Hinweise, wo Schläge verloren gehen. Deterministisch, nichts erfunden.
+"""Regelbasierte Insights, wo Schläge verloren gehen. Deterministisch, nichts erfunden.
 
 Jeder Hinweis nennt Effektgröße, Unsicherheit (95-%-Bootstrap-Intervall, n) und einen Verweis auf
 die zugrunde liegenden Daten. Schließt das Intervall die Null ein, gilt der Hinweis als
@@ -115,12 +115,12 @@ def sg_insights(
                 f"data_quality:sg:{source or 'alle'}", "data_quality", "hinweis", 30,
                 f"Strokes Gained für {_label(source)} ist nur eingeschränkt belastbar: Nur "
                 f"{coverage:.0%} der Löcher ({res.complete_holes} von {total}) sind vollständig "
-                "erfasst, deshalb gibt es dazu keine Hinweise.",
+                "erfasst, deshalb gibt es dazu keine Insights.",
                 coverage, "Anteil", None, total, source,
                 {"tool": "get_strokes_gained", "args": _args(source)},
                 f"Strokes Gained ist nur eingeschränkt belastbar: {coverage:.0%} der Löcher "
                 f"({res.complete_holes} von {total}) sind vollständig erfasst, deshalb gibt es "
-                "dazu keine Hinweise.",
+                "dazu keine Insights.",
             )
         ]  # fmt: skip
     out: list[Insight] = []
@@ -328,7 +328,7 @@ def generate(
     limit: int | None = None,
     scope: Scope | None = None,
 ) -> list[Insight]:
-    """Hinweise erzeugen. Mit `scope` (Dedup) und ohne Quelle: ein gemeinsamer Bereich über alle
+    """Insights erzeugen. Mit `scope` (Dedup) und ohne Quelle: ein gemeinsamer Bereich über alle
     Quellen mit führender Quelle je Runde; ohne `scope`: je Quelle getrennt (nie gemischt)."""
     sources: list[str | None] = (
         [source] if source else ([None] if scope is not None else list(_sources(con)))

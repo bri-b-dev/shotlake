@@ -276,15 +276,15 @@ def test_cli_insights(ws: Workspace, capsys: pytest.CaptureFixture[str]):
     )
     assert "Baseline hcp18w-approx-v1" in capsys.readouterr().out  # Kennung statt Pfad
     assert main(["--data-dir", str(ws.data_dir), "insights", "--source", "nix"]) == 0
-    assert "Keine belegten Hinweise" in capsys.readouterr().out
+    assert "Keine belegten Insights" in capsys.readouterr().out
 
 
 def test_web_insights_page(ws: Workspace):
     client = TestClient(create_app(ws.data_dir, ws.club_map, BASELINE_PATH))
     html = client.get("/insights").text
     assert "Putten kostet ca. 18,9 Schläge" in html and "belegt" in html
-    assert "Nachprüfen per MCP" in html and "Hinweise" in html
-    assert "Keine belegten Hinweise" in client.get("/insights?source=garmin_platform").text
+    assert "Nachprüfen per MCP" in html and "Insights" in html
+    assert "Keine belegten Insights" in client.get("/insights?source=garmin_platform").text
     assert client.get("/insights?uncertain=1").status_code == 200
 
 

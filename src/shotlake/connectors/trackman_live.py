@@ -118,7 +118,7 @@ class TrackmanClient:
     endpoint: str = ENDPOINT
     retry: RetryPolicy = field(default_factory=lambda: RetryPolicy(max_attempts=3))
     sleep: Callable[[float], None] = time.sleep
-    notes: list[str] = field(default_factory=list)  # Hinweise des Laufs (übersprungene Daten)
+    notes: list[str] = field(default_factory=list)  # Insights des Laufs (übersprungene Daten)
     skipped_scorecards: int = 0
 
     def __repr__(self) -> str:  # Token nie in Reprs

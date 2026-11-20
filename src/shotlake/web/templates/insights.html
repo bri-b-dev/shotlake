@@ -1,7 +1,7 @@
 {% extends "base.html" %}
-{% block title %}Hinweise · Shotlake{% endblock %}
+{% block title %}Insights · Shotlake{% endblock %}
 {% block content %}
-<h1>Hinweise: Wo gehen Schläge verloren?</h1>
+<h1>Insights: Wo gehen Schläge verloren?</h1>
 {% set path = '/insights' %}{% set allow_all = True %}
 {% include "_chips.html" %}
 <p class="chips"><a href="{{ link(request, '/insights', uncertain=None) }}" {% if not uncertain %}aria-current="true"{% endif %}>nur belegte</a>
@@ -34,6 +34,6 @@
     </div>
   </article>
 {% else %}
-  <p class="notice">Keine {{ '' if uncertain else 'belegten ' }}Hinweise: zu wenige Daten oder keine eindeutigen Effekte.</p>
+  <p class="notice">Keine {{ '' if uncertain else 'belegten ' }}Insights: zu wenige Daten oder keine eindeutigen Effekte.</p>
 {% endfor %}
 {% endblock %}

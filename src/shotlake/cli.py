@@ -166,7 +166,7 @@ def build_parser() -> argparse.ArgumentParser:
     ins.add_argument(
         "--include-duplicates", action="store_true", help="je Quelle statt dedupliziert"
     )
-    ins.add_argument("--all", action="store_true", help="auch unsichere Hinweise zeigen")
+    ins.add_argument("--all", action="store_true", help="auch unsichere Insights zeigen")
     ins.add_argument("--baseline-path", type=Path, default=default_baseline_path())
     dd = sub.add_parser("dedup", help="Runden aus mehreren Quellen abgleichen und verknüpfen")
     dds = dd.add_subparsers(dest="dedup_cmd")
@@ -669,7 +669,7 @@ def main(argv: list[str] | None = None) -> int:
                 con, base, source=args.source, include_uncertain=args.all, scope=_scope(con, args)
             )
             if not found:
-                print("Keine belegten Hinweise (zu wenige Daten oder keine eindeutigen Effekte).")
+                print("Keine belegten Insights (zu wenige Daten oder keine eindeutigen Effekte).")
             for i in found:
                 print(f"[{i.status}] {i.text}")
             print(f"Baseline {base.id} ({base.status}); regelbasiert, je Quelle getrennt.")

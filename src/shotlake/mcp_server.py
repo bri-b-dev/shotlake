@@ -245,11 +245,11 @@ def create_server(
         limit: int | None = None,
         baseline: str | None = None,
     ) -> dict[str, Any]:
-        """Regelbasierte Hinweise, wo Schläge verloren gehen: größte SG-Verluste, belegte
+        """Regelbasierte Insights, wo Schläge verloren gehen: größte SG-Verluste, belegte
         Veränderungen der letzten Runden, Seiten-Bias und Gapping-Lücken bei Range-Daten.
 
         Jeder Hinweis nennt Effekt, 95-%-Intervall, n und einen Verweis auf Werkzeug/Argumente,
-        mit denen sich die Zahlen nachprüfen lassen. Unsichere Hinweise sind ausgeblendet.
+        mit denen sich die Zahlen nachprüfen lassen. Unsichere Insights sind ausgeblendet.
         """
         with workspace.session() as con:
             return reports.insights_report(

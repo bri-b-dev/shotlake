@@ -347,7 +347,7 @@ def insights_report(
         "include_uncertain": include_uncertain,
         "note": "Regelbasiert und deterministisch aus den Daten abgeleitet; ohne Quellenfilter "
                 "über alle Quellen dedupliziert (führende Quelle je Runde), sonst je Quelle. "
-                "Unsichere Hinweise (Intervall schließt 0 ein) sind standardmäßig ausgeblendet. "
+                "Unsichere Insights (Intervall schließt 0 ein) sind standardmäßig ausgeblendet. "
                 "SG-Effekte beziehen sich auf eine Näherungs-Baseline.",
     }  # fmt: skip
 

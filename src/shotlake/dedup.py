@@ -277,13 +277,11 @@ def leader(members: list[RoundFacts], group: str, cfg: DedupConfig) -> RoundFact
     )[0]
 
 
-def excluded_rounds(con: duckdb.DuckDBPyConnection, cfg: DedupConfig, group: str) -> set[str]:
-    """Runden, die in ihrer Gruppe nicht führend sind (Auswertungen lassen sie aus)."""
-    if group not in GROUPS:
-        raise ValueError(f"unbekannte Feldgruppe {group!r}")
-    facts = load_facts(con)
+def _excluded(
+    facts: dict[str, RoundFacts], groups_of_rounds: list[list[str]], cfg: DedupConfig, group: str
+) -> set[str]:
     out: set[str] = set()
-    for members in clusters(con):
+    for members in groups_of_rounds:
         present = [facts[m] for m in members if m in facts]
         if len(present) < 2:
             continue
@@ -292,8 +290,17 @@ def excluded_rounds(con: duckdb.DuckDBPyConnection, cfg: DedupConfig, group: str
     return out
 
 
+def excluded_rounds(con: duckdb.DuckDBPyConnection, cfg: DedupConfig, group: str) -> set[str]:
+    """Runden, die in ihrer Gruppe nicht führend sind (Auswertungen lassen sie aus)."""
+    if group not in GROUPS:
+        raise ValueError(f"unbekannte Feldgruppe {group!r}")
+    return _excluded(load_facts(con), clusters(con), cfg, group)
+
+
 def rating_donor(
-    con: duckdb.DuckDBPyConnection, cfg: DedupConfig
+    con: duckdb.DuckDBPyConnection,
+    cfg: DedupConfig,
+    groups_of_rounds: list[list[str]] | None = None,
 ) -> dict[str, tuple[float, int, str]]:
     """Für Runden ohne Rating: Rating/Slope der verknüpften Runde mit der höchsten Priorität."""
     donors: dict[str, tuple[float, int, str]] = {}
@@ -305,7 +312,7 @@ def rating_donor(
         ).fetchall()
     }
     sources = {r[0]: r[1] for r in con.execute("select round_id, source from round").fetchall()}
-    for members in clusters(con):
+    for members in clusters(con) if groups_of_rounds is None else groups_of_rounds:
         candidates = sorted(
             (m for m in members if m in ratings), key=lambda m: cfg.rank("rating", sources[m])
         )
@@ -332,9 +339,11 @@ class Scope:
 
     @classmethod
     def build(cls, con: duckdb.DuckDBPyConnection, cfg: DedupConfig) -> Scope:
+        facts = load_facts(con)  # je einmal laden, nicht je Feldgruppe
+        linked = clusters(con)
         return cls(
-            {g: frozenset(excluded_rounds(con, cfg, g)) for g in GROUPS},
-            rating_donor(con, cfg),
+            {g: frozenset(_excluded(facts, linked, cfg, g)) for g in GROUPS},
+            rating_donor(con, cfg, linked),
         )
 
 

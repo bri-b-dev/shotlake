@@ -20,3 +20,13 @@ def assess(shot: ShotRecord) -> ShotRecord:
     if shot.carry_m is not None and shot.total_m is not None and shot.total_m < shot.carry_m - 0.5:
         flags.append("inconsistent")
     return replace(shot, flags=tuple(dict.fromkeys(flags)))
+
+
+# Median der Ballgeschwindigkeit je Schläger und Methode, einmal berechnet und per Join an jeden
+# Schlag gehängt (ein korrelierter Teilselect je Schlag wüchse quadratisch mit der Schlagzahl).
+SPEED_MEDIAN_JOIN = (
+    "left join (select club_type, measurement_method, median(ball_speed_ms) as med "
+    "from shot where ball_speed_ms is not null group by 1, 2) sm "
+    "on sm.club_type = sh.club_type and sm.measurement_method = sh.measurement_method"
+)
+SPEED_RATIO_CONDITION = "(sh.ball_speed_ms is null or sh.ball_speed_ms >= ? * sm.med)"

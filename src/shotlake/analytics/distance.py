@@ -9,7 +9,7 @@ from itertools import pairwise
 import duckdb
 
 from ..clubs import club_sort_key
-from ..quality import EXCLUDE_FLAGS
+from ..quality import EXCLUDE_FLAGS, SPEED_MEDIAN_JOIN, SPEED_RATIO_CONDITION
 
 
 @dataclass(frozen=True)
@@ -69,6 +69,7 @@ def club_stats(
 ) -> list[ClubStats]:
     where = ["sh.club_type is not null", "sh.carry_m is not null"]
     params: list[object] = []
+    speed_join = ""
     if club_type:
         where.append("sh.club_type = ?")
         params.append(club_type)
@@ -92,11 +93,8 @@ def club_stats(
         where.append(f"not list_has_any(sh.flags, [{flags}])")
 
     if min_speed_ratio is not None:
-        where.append(
-            "(sh.ball_speed_ms is null or sh.ball_speed_ms >= ? * (select median(b.ball_speed_ms) "
-            "from shot b where b.club_type = sh.club_type and "
-            "b.measurement_method = sh.measurement_method and b.ball_speed_ms is not null))"
-        )
+        where.append(SPEED_RATIO_CONDITION)
+        speed_join = SPEED_MEDIAN_JOIN
         params.append(min_speed_ratio)
 
     if combine:
@@ -117,7 +115,7 @@ def club_stats(
                count(sh.carry_side_m), avg(sh.carry_side_m), stddev_samp(sh.carry_side_m),
                count(*) filter (where sh.carry_side_m < ?),
                count(*) filter (where sh.carry_side_m > ?)
-        from shot sh join session se using (session_id)
+        from shot sh join session se using (session_id) {speed_join}
         where {" and ".join(where)}
         group by {group}
     """

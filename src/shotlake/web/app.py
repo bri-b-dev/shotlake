@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import time
 from collections.abc import Callable
 from datetime import date, timedelta
 from importlib import metadata
@@ -137,6 +138,14 @@ def create_app(
 
     templates.env.filters.update(dist=dist, num=num, pct=pct, urlq=lambda s: quote(s, safe=""))
     templates.env.globals.update(link=link, sg_names=SG_NAMES)
+
+    @app.middleware("http")
+    async def server_timing(request: Request, call_next: Callable[[Request], Any]) -> Response:
+        """Bearbeitungszeit im Header `Server-Timing` (Browser: Entwicklerwerkzeuge, Netzwerk)."""
+        start = time.perf_counter()
+        response: Response = await call_next(request)
+        response.headers["Server-Timing"] = f"app;dur={(time.perf_counter() - start) * 1000:.0f}"
+        return response
 
     def page(request: Request, name: str, **ctx: Any) -> HTMLResponse:
         unit = unit_of(request)

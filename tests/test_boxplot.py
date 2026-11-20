@@ -88,3 +88,9 @@ def test_clubs_page_date_filter(client: TestClient) -> None:
     assert 'value="2999-01-01"' in late and "Zurücksetzen" in late
     assert 'class="chart box"' not in client.get("/clubs?until=1999-01-01").text
     assert 'class="chart box"' in client.get("/clubs?since=kaputt").text  # ungültig: ignoriert
+
+
+def test_server_timing_header_and_schema_only_once(client: TestClient) -> None:
+    first = client.get("/clubs")
+    assert first.headers["Server-Timing"].startswith("app;dur=")
+    assert client.get("/clubs?source=t").status_code == 200  # zweiter Aufruf ohne Schema/Migration

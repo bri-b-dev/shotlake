@@ -52,16 +52,32 @@ class Workspace:
         self.baseline: Baseline = load_baseline(baseline_path)
         self._lock = threading.Lock()
         self._sync_lock = threading.Lock()
+        self._club_sync_key: tuple[int, ...] | None = None
+        self._schema_ready = False
 
     @contextmanager
     def session(self) -> Iterator[duckdb.DuckDBPyConnection]:
         with self._lock:
-            con = open_db(self.data_dir / "shotlake.duckdb")
+            con = open_db(self.data_dir / "shotlake.duckdb", ensure_schema=not self._schema_ready)
+            self._schema_ready = (
+                True  # Schema und Migration je Prozess einmal (spart Zeit je Seite)
+            )
             try:
-                sync_club_map(con, self.club_map)
+                self._sync_club_map(con)
                 yield con
             finally:
                 con.close()
+
+    def _sync_club_map(self, con: duckdb.DuckDBPyConnection) -> None:
+        """Zuordnung nur angleichen, wenn sich Dateien oder Schlagzahl geändert haben."""
+        files = (self.club_map, self.club_map.with_name("club_overrides.toml"))
+        stamps = tuple(p.stat().st_mtime_ns if p.exists() else 0 for p in files)
+        row = con.execute("select count(*) from shot").fetchone()
+        key = (*stamps, int(row[0]) if row else 0)
+        if key == self._club_sync_key:
+            return
+        sync_club_map(con, self.club_map)
+        self._club_sync_key = key
 
     def ping(self) -> str:
         """Health-Check: `ok` oder `busy` (Sicherung läuft, kein Fehler); sonst eine Ausnahme."""
@@ -107,6 +123,8 @@ class Workspace:
             raise BackupError("Es läuft gerade ein Sync: später erneut versuchen")
         try:
             with self._lock:
+                self._schema_ready = False  # die Datenbank wird ersetzt
+                self._club_sync_key = None
                 return restore_backup(self.data_dir, archive, password=password)
         finally:
             self._sync_lock.release()

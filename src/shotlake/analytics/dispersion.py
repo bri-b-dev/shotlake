@@ -13,7 +13,7 @@ from datetime import date, datetime, time, timedelta
 
 import duckdb
 
-from ..quality import EXCLUDE_FLAGS
+from ..quality import EXCLUDE_FLAGS, SPEED_MEDIAN_JOIN, SPEED_RATIO_CONDITION
 
 CHI2_95_2DOF = 5.991464547107979
 MIN_POINTS = 8
@@ -81,6 +81,7 @@ def scatter_groups(
         "sh.carry_side_m is not null",
     ]
     params: list[object] = [club_type]
+    speed_join = ""
     if source:
         where.append("sh.source = ?")
         params.append(source)
@@ -93,15 +94,12 @@ def scatter_groups(
     flags = ", ".join(f"'{f}'" for f in EXCLUDE_FLAGS)
     where.append(f"not list_has_any(sh.flags, [{flags}])")
     if min_speed_ratio is not None:
-        where.append(
-            "(sh.ball_speed_ms is null or sh.ball_speed_ms >= ? * (select median(b.ball_speed_ms) "
-            "from shot b where b.club_type = sh.club_type and "
-            "b.measurement_method = sh.measurement_method and b.ball_speed_ms is not null))"
-        )
+        where.append(SPEED_RATIO_CONDITION)
+        speed_join = SPEED_MEDIAN_JOIN
         params.append(min_speed_ratio)
     rows = con.execute(
         "select sh.source, sh.measurement_method, sh.carry_side_m, sh.carry_m "
-        "from shot sh join session se using (session_id) "
+        f"from shot sh join session se using (session_id) {speed_join} "
         f"where {' and '.join(where)} order by sh.source, sh.measurement_method, se.start_utc",
         params,
     ).fetchall()

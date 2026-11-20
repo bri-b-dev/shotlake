@@ -212,7 +212,8 @@ class DatabaseVersionError(RuntimeError):
     """Die Datenbankdatei stammt von einer neueren DuckDB-Version als der installierten."""
 
 
-def open_db(path: str | Path) -> duckdb.DuckDBPyConnection:
+def open_db(path: str | Path, *, ensure_schema: bool = True) -> duckdb.DuckDBPyConnection:
+    """Datenbank öffnen; Schema und Migration nur bei `ensure_schema` (einmal je Prozess genügt)."""
     if str(path) != ":memory:":
         Path(path).parent.mkdir(parents=True, exist_ok=True)
     try:
@@ -227,8 +228,9 @@ def open_db(path: str | Path) -> duckdb.DuckDBPyConnection:
                 f"scripts/migrate_duckdb.py {path} --replace"
             ) from None
         raise
-    con.execute(SCHEMA)
-    _migrate(con)
+    if ensure_schema:
+        con.execute(SCHEMA)
+        _migrate(con)
     return con
 
 

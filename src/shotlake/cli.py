@@ -161,7 +161,7 @@ def build_parser() -> argparse.ArgumentParser:
     mc.add_argument("--port", type=int, default=8765)
     mc.add_argument("--token", default=os.environ.get("SHOTLAKE_MCP_TOKEN", ""))
     mc.add_argument("--baseline-path", type=Path, default=default_baseline_path())
-    ins = sub.add_parser("insights", help="Regelbasierte Hinweise, wo Schläge verloren gehen")
+    ins = sub.add_parser("insights", help="Regelbasierte Insights, wo Schläge verloren gehen")
     ins.add_argument("--source")
     ins.add_argument(
         "--include-duplicates", action="store_true", help="je Quelle statt dedupliziert"

@@ -29,7 +29,20 @@ class Marker:
     href: str
 
 
-def trend_svg(points: list[TrendPoint], window: int, markers: list[Marker] | None = None) -> str:
+@dataclass(frozen=True)
+class PointInfo:
+    """Tooltip-Text und Ziel eines Punkts im Verlauf (Klick öffnet die Runde)."""
+
+    text: str
+    href: str
+
+
+def trend_svg(
+    points: list[TrendPoint],
+    window: int,
+    markers: list[Marker] | None = None,
+    info: dict[str, PointInfo] | None = None,
+) -> str:
     """Differentials als Punkte (relevant gefüllt), gleitender Durchschnitt als Linie."""
     if not points:
         return ""
@@ -82,9 +95,15 @@ def trend_svg(points: list[TrendPoint], window: int, markers: list[Marker] | Non
         parts.append(f'<polyline class="avg" points="{path}"/>')
     for p in points:
         cls = "dot rel" if p.relevant else "dot"
-        title = escape(f"{p.start_utc:%d.%m.%Y}: {p.differential:.1f}")
-        parts.append(f'<circle class="{cls}" cx="{x(p):.1f}" cy="{y(p.differential):.1f}" r="4">'
-                     f"<title>{title}</title></circle>")  # fmt: skip
+        detail = (info or {}).get(p.round_id)
+        title = escape(detail.text if detail else f"{p.start_utc:%d.%m.%Y}: {p.differential:.1f}")
+        cx, cy = f"{x(p):.1f}", f"{y(p.differential):.1f}"
+        dot = f'<circle class="{cls}" cx="{cx}" cy="{cy}" r="4"/>'
+        hit = f'<circle class="pt-hit" cx="{cx}" cy="{cy}" r="10"><title>{title}</title></circle>'
+        if detail:
+            parts.append(f'<a class="pt-link" href="{escape(detail.href)}">{dot}{hit}</a>')
+        else:
+            parts.append(f'<g class="pt-wrap">{dot}{hit}</g>')
     parts.append("</svg>")
     return "".join(parts)
 

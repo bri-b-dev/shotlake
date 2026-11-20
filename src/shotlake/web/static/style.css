@@ -90,6 +90,8 @@ rect.pos { fill: var(--pos); } rect.neg { fill: var(--neg); }
 .chart .axis, .chart .val { fill: var(--muted); font-size: 11px; }
 .chart .dot { fill: none; stroke: var(--dot); stroke-width: 2; }
 .chart .dot.rel { fill: var(--dot); }
+.chart a.pt-link { cursor: pointer; }
+.chart a.pt-link:hover .dot, .chart a.pt-link:focus .dot { stroke-width: 3; r: 6px; }
 .chart .avg { fill: none; stroke: var(--avg); stroke-width: 3; stroke-linejoin: round;
   stroke-linecap: round; }
 .chart .pt { fill: var(--dot); fill-opacity: .55; }
@@ -209,6 +211,7 @@ body.auth header { border-bottom: 0; }
   nav a { white-space: nowrap; }
   .chart.trend .axis { font-size: 18px; }
   .chart.trend circle { r: 7px; }
+  .chart.trend .pt-hit { r: 16px; }
   .chart.trend .dot { stroke-width: 3.5; }
   .chart.trend .avg { stroke-width: 5; }
   .chart.box text, .chart.bars text { font-size: 19px; }

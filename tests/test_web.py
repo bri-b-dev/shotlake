@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 from shotlake.analytics.trend import TrendPoint
 from shotlake.db import open_db
 from shotlake.web.app import create_app
-from shotlake.web.charts import bars_svg, trend_svg
+from shotlake.web.charts import PointInfo, bars_svg, trend_svg
 from tests.test_course_shots import SHOTS, seed
 from tests.test_score import seed_round
 
@@ -110,7 +110,7 @@ def test_charts_handle_edge_cases():
     assert trend_svg([], 5) == "" and bars_svg([]) == ""
     one = TrendPoint("r", datetime(2026, 7, 1), 20.0, None, 5, True)
     svg = trend_svg([one], 5)
-    assert svg.count("<circle") == 1 and "nan" not in svg.lower()
+    assert svg.count('class="dot') == 1 and "nan" not in svg.lower()
     svg = bars_svg([("Abschlag", -1.5), ("Putten", 0.0)], "/Loch")
     assert "-1.50/Loch" in svg and "rect" in svg
 
@@ -191,3 +191,17 @@ def test_tee_values_validation(client: TestClient, form, message):
     r = client.post("/rounds/t%7Cr2/tee", data=form)
     assert r.status_code == 400 and message in r.text
     assert 'value="120"' not in client.get("/rounds/t%7Cr2").text  # nichts gespeichert
+
+
+def test_trend_points_have_tooltip_and_link():
+    one = TrendPoint("t|r1", datetime(2026, 7, 1), 20.0, None, 5, True)
+    info = {"t|r1": PointInfo("01.07.2026, Platz\nBrutto 98", "/rounds/t|r1?u=yd")}
+    svg = trend_svg([one], 5, info=info)
+    assert '<a class="pt-link" href="/rounds/t|r1?u=yd">' in svg
+    assert "01.07.2026, Platz\nBrutto 98" in svg
+    assert "pt-link" not in trend_svg([one], 5)  # ohne Angaben: nur Tooltip, kein Link
+
+
+def test_dashboard_trend_links_to_round(client: TestClient):
+    html = client.get("/?source=t").text
+    assert 'class="pt-link" href="/rounds/t|r' in html and "Klick: Runde öffnen" in html

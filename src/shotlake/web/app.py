@@ -40,7 +40,16 @@ from ..service import (
 from ..workspace import Workspace
 from .auth import install_auth
 from .backup_ui import install_backup
-from .charts import Marker, bars_svg, box_row, boxplot_svg, ci_svg, scatter_svg, trend_svg
+from .charts import (
+    Marker,
+    PointInfo,
+    bars_svg,
+    box_row,
+    boxplot_svg,
+    ci_svg,
+    scatter_svg,
+    trend_svg,
+)
 from .sync import install_settings
 
 HERE = Path(__file__).parent
@@ -196,6 +205,25 @@ def create_app(
                 )
                 for n in notes
             ]
+            by_id = {r.round_id: r for r in scores}
+            info: dict[str, PointInfo] = {}
+            for tp in trend:
+                r = by_id.get(tp.round_id)
+                if r is None:
+                    continue
+                lines = [f"{r.start_utc:%d.%m.%Y}, {r.course_name}"]
+                if r.gross is not None:
+                    to_par = f" ({r.to_par:+d})" if r.to_par is not None else ""
+                    lines.append(f"Brutto {r.gross}{to_par}, {r.holes_played} Löcher")
+                diff = f"Differential {tp.differential:.1f}"
+                if tp.moving_avg is not None:
+                    diff += f", Ø {tp.window} Runden {tp.moving_avg:.1f}"
+                lines.append(diff + (", hochgerechnet" if r.extrapolated else ""))
+                lines.append("handicap-relevant" if tp.relevant else "nicht handicap-relevant")
+                lines.append("Klick: Runde öffnen")
+                info[tp.round_id] = PointInfo(
+                    "\n".join(lines), link(request, f"/rounds/{quote(r.round_id, safe='|')}")
+                )
             first = trend[0].start_utc.date() if trend else None
             last = trend[-1].start_utc.date() if trend else None
             outside = sum(
@@ -221,7 +249,7 @@ def create_app(
                 sources=sources,
                 window=window,
                 trend=trend,
-                trend_svg=trend_svg(trend, window, markers),
+                trend_svg=trend_svg(trend, window, markers, info),
                 n_markers=len(markers) - outside,
                 n_markers_outside=outside,
                 n_scores=len(scores),

@@ -108,10 +108,15 @@ def create_app(
     def pct(value: float | None) -> str:
         return NA if value is None else f"{value:.0%}"
 
+    def parse_day(text: str | None) -> date | None:
+        try:
+            return date.fromisoformat(text) if text else None
+        except ValueError:
+            return None
+
     def link(request: Request, path: str, **changes: str | None) -> str:
-        params = {
-            k: v for k, v in request.query_params.items() if k in ("u", "source", "w", "club")
-        }
+        keep = ("u", "source", "w", "club", "since", "until")
+        params = {k: v for k, v in request.query_params.items() if k in keep}
         if request.query_params.get("b") in choices:  # nur gültige Kennungen weitergeben
             params["b"] = request.query_params["b"]
         for k, v in changes.items():
@@ -397,12 +402,18 @@ def create_app(
         with session() as con:
             source = request.query_params.get("source") or None
             scope = workspace.scope(con)
+            since = parse_day(request.query_params.get("since"))
+            until = parse_day(request.query_params.get("until"))
             scatter_clubs = [
                 r[0]
                 for r in con.execute(
-                    "select club_type from shot where club_type is not null and "
-                    "carry_m is not null and carry_side_m is not null "
-                    "group by club_type order by count(*) desc"
+                    "select sh.club_type from shot sh join session se using (session_id) "
+                    "where sh.club_type is not null and sh.carry_m is not null "
+                    "and sh.carry_side_m is not null "
+                    "and (?::date is null or se.start_utc >= ?::date) "
+                    "and (?::date is null or se.start_utc < ?::date + 1) "
+                    "group by sh.club_type order by count(*) desc",
+                    [since, since, until, until],
                 ).fetchall()
             ]
             scatter_clubs.sort(key=club_sort_key)
@@ -414,12 +425,20 @@ def create_app(
                 con,
                 min_n=5,
                 source=source,
+                since=since,
+                until=until,
                 exclude_rounds=None if source else scope.exclude("shots"),
             )
             plots = [
                 (g, scatter_svg(g, factor, unit_of(request)))
                 for g in (
-                    scatter_groups(con, club, min_speed_ratio=DEFAULT_MIN_SPEED_RATIO)
+                    scatter_groups(
+                        con,
+                        club,
+                        since=since,
+                        until=until,
+                        min_speed_ratio=DEFAULT_MIN_SPEED_RATIO,
+                    )
                     if club
                     else []
                 )
@@ -443,7 +462,15 @@ def create_app(
                 sources=round_sources(con),
                 course=course,
                 boxplot=boxplot_svg(box_rows, factor, unit_of(request)),
-                range_stats=club_stats(con, min_n=10, min_speed_ratio=DEFAULT_MIN_SPEED_RATIO),
+                range_stats=club_stats(
+                    con,
+                    min_n=10,
+                    since=since,
+                    until=until,
+                    min_speed_ratio=DEFAULT_MIN_SPEED_RATIO,
+                ),
+                since=since.isoformat() if since else "",
+                until=until.isoformat() if until else "",
             )
 
     @app.get("/insights", response_class=HTMLResponse)

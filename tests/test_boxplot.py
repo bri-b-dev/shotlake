@@ -79,3 +79,12 @@ def test_clubs_page_shows_boxplot_and_quartile_columns(client: TestClient) -> No
     ]  # fmt: skip
     assert "reach-bar" not in html  # alte Darstellung ist ersetzt
     assert "Median (yd)" in client.get("/clubs?u=yd").text
+
+
+def test_clubs_page_date_filter(client: TestClient) -> None:
+    assert 'class="chart box"' in client.get("/clubs?since=2000-01-01").text
+    late = client.get("/clubs?since=2999-01-01").text
+    assert 'class="chart box"' not in late and "Keine Platzschläge" in late
+    assert 'value="2999-01-01"' in late and "Zurücksetzen" in late
+    assert 'class="chart box"' not in client.get("/clubs?until=1999-01-01").text
+    assert 'class="chart box"' in client.get("/clubs?since=kaputt").text  # ungültig: ignoriert

@@ -2,6 +2,14 @@
 {% block title %}Schläger · Shotlake{% endblock %}
 {% block content %}
 <h1>Schläger</h1>
+<form class="inputs" method="get" action="/clubs" aria-label="Zeitraum">
+  <label>Seit <input type="date" name="since" value="{{ since }}"></label>
+  <label>Bis <input type="date" name="until" value="{{ until }}"></label>
+  {% for k in ('u', 'source', 'club', 'b') %}{% if request.query_params.get(k) %}<input type="hidden" name="{{ k }}" value="{{ request.query_params.get(k) }}">{% endif %}{% endfor %}
+  <button type="submit">Zeitraum anwenden</button>
+  {% if since or until %}<a href="{{ link(request, '/clubs', since=None, until=None) }}">Zurücksetzen</a>{% endif %}
+</form>
+<p class="muted">Der Zeitraum gilt für Platz, Range und Streuung (nach Datum der Runde bzw. Session).{% if since or until %} Aktiv: {{ since or '…' }} bis {{ until or 'heute' }}.{% endif %}</p>
 <div>
   <section class="band" aria-labelledby="h-course">
     <h2 id="h-course">Auf dem Platz – Schlagdistanz</h2>

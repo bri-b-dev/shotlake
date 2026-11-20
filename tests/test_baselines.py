@@ -84,7 +84,7 @@ def test_listing_resolving_and_default() -> None:
     assert resolve_baseline_path(GOAL, DIRECTORY) == GOAL  # Pfad bleibt Pfad
     with pytest.raises(ValueError, match="Unbekannte Baseline"):
         resolve_baseline_path("gibt-es-nicht", DIRECTORY)
-    assert default_baseline_path().name == "hcp40w-approx-v1.toml"  # eigenes Niveau ist Standard
+    assert default_baseline_path().name == "hcp18w-approx-v1.toml"  # Zielniveau ist Standard
 
 
 @pytest.fixture
@@ -159,10 +159,10 @@ def test_cli_baselines_and_sg_by_id(data: Path, capsys: pytest.CaptureFixture[st
     assert main(["--data-dir", str(data), "baselines"]) == 0
     out = capsys.readouterr().out
     assert "hcp40w-approx-v1" in out and "Standard" in out and "hcp18w-approx-v1" in out
-    assert main(["--data-dir", str(data), "sg", "--baseline", "hcp18w-approx-v1"]) == 0
-    assert "Baseline hcp18w-approx-v1" in capsys.readouterr().out
-    assert main(["--data-dir", str(data), "sg"]) == 0
+    assert main(["--data-dir", str(data), "sg", "--baseline", "hcp40w-approx-v1"]) == 0
     assert "Baseline hcp40w-approx-v1" in capsys.readouterr().out
+    assert main(["--data-dir", str(data), "sg"]) == 0
+    assert "Baseline hcp18w-approx-v1" in capsys.readouterr().out
 
 
 def test_trend_insight_is_coloured_by_better_or_worse_not_by_sign(data: Path) -> None:

@@ -269,7 +269,7 @@ def test_mcp_get_insights(ws: Workspace):
 def test_cli_insights(ws: Workspace, capsys: pytest.CaptureFixture[str]):
     assert main(["--data-dir", str(ws.data_dir), "insights"]) == 0
     out = capsys.readouterr().out
-    assert "[belegt] Putten kostet" in out and "Baseline hcp40w-approx-v1" in out  # Standard
+    assert "[belegt] Putten kostet" in out and "Baseline hcp18w-approx-v1" in out  # Standard
     assert (
         main(["--data-dir", str(ws.data_dir), "insights", "--baseline-path", "hcp18w-approx-v1"])
         == 0

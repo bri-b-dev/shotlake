@@ -54,6 +54,7 @@ from .charts import (
     scatter_svg,
     trend_svg,
 )
+from .courses_ui import install_courses
 from .sync import install_settings
 
 HERE = Path(__file__).parent
@@ -199,6 +200,7 @@ def create_app(
         app, workspace, auth_store, page, connector_factory, garmin_factory
     )
     install_backup(app, workspace, auth_store)
+    install_courses(app, session, page, link, lambda con: workspace.scope(con).donors)
 
     @app.get("/", response_class=HTMLResponse)
     def dashboard(request: Request) -> HTMLResponse:

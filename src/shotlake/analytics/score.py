@@ -15,6 +15,7 @@ from decimal import ROUND_HALF_UP, Decimal
 
 import duckdb
 
+from ..courses import MasterIndex
 from ..model import HoleRecord
 
 PCC_MIN, PCC_MAX = -1.0, 3.0
@@ -294,6 +295,10 @@ def _num(v: object) -> float | None:
     return float(v) if isinstance(v, int | float) and not isinstance(v, bool) else None
 
 
+def _text(v: object) -> str | None:
+    return v if isinstance(v, str) else None
+
+
 def _int(v: object) -> int | None:
     return int(v) if isinstance(v, int | float) and not isinstance(v, bool) else None
 
@@ -354,6 +359,7 @@ def round_scores(
         "select course_id, tee_name, part, rating, slope from tee_rating"
     ).fetchall():
         tee9_by[(course_id, tee_name)][part] = (rating, slope)
+    masters = MasterIndex.load(con)
     out: list[RoundScore] = []
     skip = set(exclude or ())
     for row in rounds:
@@ -369,7 +375,16 @@ def round_scores(
             row["tee_rating"], row["tee_slope"], rating_from = donors[str(rid)]
         holes = holes_by.get(rid, [])
         inputs = inputs_by.get(rid, {})
-        tee9 = tee9_by.get((str(row["course_id"]), str(row["tee_name"] or "")), {})
+        tee9 = dict(tee9_by.get((str(row["course_id"]), str(row["tee_name"] or "")), {}))
+        if masters is not None and (row.get("tee_rating") is None or row.get("tee_slope") is None):
+            # letzter Rückfall: eigene Stammdaten des Platzes; Eingaben je Runde (tee-set) gehen vor
+            found = masters.rating_for(str(row["course_id"]), _text(row.get("tee_name")))
+            if found is not None:
+                added = [part for part in found.parts if part not in tee9]
+                for part in added:
+                    tee9[part] = found.parts[part]
+                if added:  # nur kennzeichnen, wenn Stammdaten tatsächlich Werte beigesteuert haben
+                    rating_from = rating_from or found.label
         score = compute_round(row, holes, inputs, tee9)
         if rating_from:
             score = replace(score, rating_source=rating_from)

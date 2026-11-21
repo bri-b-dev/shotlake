@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Plätze · Shotlake{% endblock %}
+{% block content %}
+<h1>Plätze</h1>
+{% if request.query_params.get('msg') %}<p class="notice" role="status">{{ request.query_params.get('msg') }}</p>{% endif %}
+<p class="muted lead">Hier pflegst du Plätze unabhängig von einzelnen Runden: Rating und Slope je Tee. Sie greifen nur, wenn eine Runde keine eigenen Werte hat (zum Beispiel Arccos) und weder du für die Runde noch eine verknüpfte Runde sie liefert. Das Tee kommt aus der Runde; ohne Angabe gilt das Standard-Tee des Platzes.</p>
+
+<section class="band" aria-labelledby="h-masters">
+  <h2 id="h-masters">Meine Stammplätze ({{ masters|length }})</h2>
+  {% if masters %}
+  <div class="scroll"><table>
+    <thead><tr><th class="left">Platz</th><th class="left">Tees (Rating/Slope)</th><th class="left">Standard-Tee</th><th>Plätze der Quellen</th></tr></thead>
+    <tbody>
+    {% for m in masters %}
+      <tr><td class="left"><a href="{{ link(request, '/courses/' ~ m.master_id) }}">{{ m.name }}</a>{% if m.city %} <span class="muted">{{ m.city }}</span>{% endif %}</td>
+          <td class="left">{% for t in m.tees %}{{ t.name }}{% if t.part != 'all' %} <span class="muted">({{ part_labels[t.part] }})</span>{% endif %} {{ t.rating }}/{{ t.slope }}{% if not loop.last %}, {% endif %}{% else %}<span class="muted">noch keine Tees</span>{% endfor %}</td>
+          <td class="left">{{ m.default_tee or '–' }}</td><td>{{ linked.get(m.master_id, 0) }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}
+    <p class="muted">Noch kein Stammplatz. Lege einen an oder übernimm unten einen Platz aus deinen Quellen: Name, Koordinaten und Tees mit Rating/Slope werden dann vorbelegt.</p>
+  {% endif %}
+  <form class="inputs band narrow" method="post" action="{{ link(request, '/courses') }}">
+    <label>Neuer Stammplatz <input name="name" required placeholder="z. B. Golfclub Herrnhof"></label>
+    <button type="submit">Anlegen</button>
+  </form>
+</section>
+
+<section class="band" aria-labelledby="h-src">
+  <h2 id="h-src">Plätze deiner Quellen</h2>
+  <div class="scroll"><table>
+    <thead><tr><th class="left">Platz</th><th>Runden</th><th title="Runden, die auch nach allen Rückfällen (Quelle, deine Werte, verknüpfte Runde, Stammdaten) kein Rating haben">Rating fehlt</th><th class="left">Stammplatz</th><th class="left">Zuordnung</th></tr></thead>
+    <tbody>
+    {% for c in sources %}
+      <tr><td class="left">{{ c.name }} <span class="muted">{{ c.source }}</span></td><td>{{ c.rounds }}</td><td>{{ c.rounds_no_rating or '' }}</td>
+          <td class="left">{% if c.master %}<a href="{{ link(request, '/courses/' ~ c.master.master_id) }}">{{ c.master.name }}</a> <span class="muted">({{ c.how }})</span>{% else %}<span class="muted">keiner</span>{% endif %}
+            {% set hint %}{% if c.unmatched_tees %}Tee unbekannt: {{ c.unmatched_tees|join(', ') }}{% elif c.rounds_no_rating and not c.master %}Stammplatz zuordnen oder anlegen{% elif c.rounds_no_rating and c.master and not c.master.tees %}Stammplatz hat noch keine Tees{% elif c.rounds_no_rating %}Tee der Runden fehlt im Stammplatz{% endif %}{% endset %}{% if hint|trim %}<br><span class="muted">{{ hint|trim }}</span>{% endif %}</td>
+          <td class="left">
+            <form method="post" action="{{ link(request, '/courses/link') }}" class="inline">
+              <input type="hidden" name="course_id" value="{{ c.course_id }}">
+              <select name="master" aria-label="Stammplatz für {{ c.name }}">
+                <option value="auto">automatisch</option>
+                <option value="none" {{ 'selected' if c.how == 'Zuordnung' and not c.master }}>keiner</option>
+                {% for m in masters %}<option value="{{ m.master_id }}" {{ 'selected' if c.how == 'Zuordnung' and c.master and c.master.master_id == m.master_id }}>{{ m.name }}</option>{% endfor %}
+              </select>
+              <button type="submit">Speichern</button>
+            </form>
+            {% if not c.master %}
+            <form method="post" action="{{ link(request, '/courses/import') }}" class="inline">
+              <input type="hidden" name="course_id" value="{{ c.course_id }}">
+              <button type="submit" title="Legt einen Stammplatz mit Name, Koordinaten und den Tees dieser Quelle an">Als Stammplatz übernehmen</button>
+            </form>
+            {% endif %}
+          </td></tr>
+    {% else %}<tr><td colspan="5" class="muted">Noch keine Runden importiert.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  <p class="muted">Die Zuordnung erfolgt automatisch über den Namen (auch Zweitnamen) oder Koordinaten im Umkreis von 1 km; „Zuordnung" heißt, du hast sie selbst gesetzt. „Rating fehlt" zählt Runden, für die weder Quelle noch deine Werte noch eine verknüpfte Runde noch ein Stammplatz Rating und Slope liefern.</p>
+</section>
+{% endblock %}

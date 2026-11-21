@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}{{ master.name }} · Plätze · Shotlake{% endblock %}
+{% block content %}
+<p class="muted"><a href="{{ link(request, '/courses') }}">← Alle Plätze</a></p>
+<h1>{{ master.name }}</h1>
+{% if request.query_params.get('msg') %}<p class="notice" role="status">{{ request.query_params.get('msg') }}</p>{% endif %}
+
+<section class="band" aria-labelledby="h-tees">
+  <h2 id="h-tees">Tees mit Rating und Slope</h2>
+  <div class="scroll"><table>
+    <thead><tr><th class="left">Tee</th><th class="left">Teil</th><th>Rating</th><th>Slope</th><th>Par</th><th></th></tr></thead>
+    <tbody>
+    {% for t in master.tees %}
+      <tr><td class="left">{{ t.name }}{% if t.name == master.default_tee %} <span class="tag">Standard</span>{% endif %}</td><td class="left">{{ part_labels[t.part] }}</td>
+          <td>{{ t.rating }}</td><td>{{ t.slope }}</td><td>{{ t.par or '' }}</td>
+          <td><form method="post" action="{{ link(request, '/courses/' ~ master.master_id ~ '/tee/delete') }}" class="inline">
+            <input type="hidden" name="tee_name" value="{{ t.name }}"><input type="hidden" name="part" value="{{ t.part }}">
+            <button type="submit" class="danger" aria-label="Tee {{ t.name }} ({{ part_labels[t.part] }}) entfernen">Entfernen</button></form></td></tr>
+    {% else %}<tr><td colspan="6" class="muted">Noch keine Tees. Ohne Tees liefert der Platz kein Rating.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  <form class="inputs band" method="post" action="{{ link(request, '/courses/' ~ master.master_id ~ '/tee') }}">
+    <label>Tee <input name="tee_name" required list="tee-names" placeholder="z. B. Orange"></label>
+    <datalist id="tee-names">{% for n in master.tee_names %}<option value="{{ n }}">{% endfor %}</datalist>
+    <label>Teil <select name="part">{% for k, label in part_labels.items() %}<option value="{{ k }}">{{ label }}</option>{% endfor %}</select></label>
+    <label>Course Rating <input name="rating" required inputmode="decimal" placeholder="72,1"></label>
+    <label>Slope <input name="slope" required inputmode="numeric" placeholder="124"></label>
+    <label>Par (optional) <input name="par" inputmode="numeric" placeholder="72"></label>
+    <button type="submit">Tee speichern</button>
+  </form>
+  <p class="muted">Ein vorhandener Tee mit gleichem Namen und Teil wird ersetzt; Farben gelten in Deutsch, Englisch und als Farbwert (Blau, Blue, #0000FF) als derselbe Tee. Werte für 9 Löcher (vordere/hintere 9) nur eintragen, wenn dein Platz sie angibt.</p>
+</section>
+
+<section class="band" aria-labelledby="h-data">
+  <h2 id="h-data">Stammdaten</h2>
+  <form class="inputs" method="post" action="{{ link(request, '/courses/' ~ master.master_id) }}">
+    <label>Name <input name="name" required value="{{ master.name }}"></label>
+    <label>Zweitnamen (kommagetrennt) <input name="aliases" value="{{ master.aliases|join(', ') }}" placeholder="GC Herrnhof, Herrnhof 9"></label>
+    <label>Ort <input name="city" value="{{ master.city or '' }}"></label>
+    <label>Land <input name="country" value="{{ master.country or '' }}"></label>
+    <label>Breitengrad <input name="lat" inputmode="decimal" value="{{ master.lat if master.lat is not none else '' }}"></label>
+    <label>Längengrad <input name="lon" inputmode="decimal" value="{{ master.lon if master.lon is not none else '' }}"></label>
+    <label>Par <input name="par_total" inputmode="numeric" value="{{ master.par_total or '' }}"></label>
+    <label>Standard-Tee (Runden ohne Tee-Angabe)
+      <select name="default_tee"><option value="">keins</option>{% for n in master.tee_names %}<option value="{{ n }}" {{ 'selected' if n == master.default_tee }}>{{ n }}</option>{% endfor %}</select></label>
+    <label class="full">Notiz <input name="note" value="{{ master.note or '' }}"></label>
+    <button type="submit">Speichern</button>
+  </form>
+  <p class="muted">Mit Koordinaten werden Plätze der Quellen im Umkreis von 1 km automatisch zugeordnet, sonst über Name und Zweitnamen.</p>
+</section>
+
+<section class="band" aria-labelledby="h-used">
+  <h2 id="h-used">Zugeordnete Plätze der Quellen</h2>
+  {% if matched %}
+  <ul>{% for c in matched %}<li>{{ c.name }} <span class="muted">({{ c.source }}, {{ c.how }}): {{ c.rounds }} Runden{% if c.rounds_no_rating %}, bei {{ c.rounds_no_rating }} fehlt das Rating{% endif %}{% if c.unmatched_tees %}; Tee unbekannt: {{ c.unmatched_tees|join(', ') }}{% endif %}</span></li>{% endfor %}</ul>
+  {% else %}<p class="muted">Noch keiner. Die Zuordnung geschieht über den Namen oder Koordinaten, oder manuell unter <a href="{{ link(request, '/courses') }}">Plätze</a>.</p>{% endif %}
+</section>
+
+<section class="band" aria-labelledby="h-del">
+  <h2 id="h-del">Stammplatz löschen</h2>
+  <form class="inputs stack" method="post" action="{{ link(request, '/courses/' ~ master.master_id ~ '/delete') }}">
+    <label><input type="checkbox" name="confirm" value="yes"> Ja, diesen Stammplatz mit allen Tees löschen</label>
+    <button type="submit" class="danger">Löschen</button>
+  </form>
+  <p class="muted">Runden und Quellen bleiben unberührt; Runden ohne eigene Werte haben danach wieder kein Rating.</p>
+</section>
+{% endblock %}

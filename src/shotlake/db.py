@@ -129,6 +129,34 @@ create table if not exists tee_rating (
     slope integer not null,
     primary key (course_id, tee_name, part)
 );
+-- Eigene Platz-Stammdaten (unabhängig von Runden): Rating/Slope je Tee als Rückfall für Runden,
+-- deren Quelle keine Werte liefert
+create table if not exists course_master (
+    master_id varchar primary key,
+    name varchar not null,
+    city varchar,
+    country varchar,
+    lat double,
+    lon double,
+    par_total integer,
+    default_tee varchar,  -- Tee für Runden ohne Tee-Angabe (z. B. Arccos)
+    aliases varchar[] not null default [],  -- weitere Schreibweisen des Platznamens
+    note varchar,
+    updated_at timestamp not null
+);
+create table if not exists course_master_tee (
+    master_id varchar not null,
+    tee_name varchar not null,
+    part varchar not null,  -- all (18 Löcher) | front9 | back9
+    rating double not null,
+    slope integer not null,
+    par integer,
+    primary key (master_id, tee_name, part)
+);
+create table if not exists course_master_link (
+    course_id varchar primary key,  -- Platz einer Quelle
+    master_id varchar  -- NULL: ausdrücklich keinem Stammplatz zuordnen
+);
 create table if not exists club_map (
     source varchar not null,
     club_ref varchar not null,

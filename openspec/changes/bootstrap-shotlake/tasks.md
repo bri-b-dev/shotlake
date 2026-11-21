@@ -27,7 +27,7 @@ Vorab ausgewertet: `phase0-findings.md` (aus `../analytics-platform`, `../arccos
 
 ## Phase 2 – Platzquellen, Dedup, Score/Handicap
 - [x] 2.1 Garmin (API), Arccos, BeBrassie und Trackman (Sim-Runden getrennt, nicht in gemeinsamen Auswertungen)
-- [~] 2.2 Course-Stammdaten: Rating/Slope/Tees je Quelle aus den Runden (BeBrassie Damen/Herren, Garmin, Trackman); Rating-Übernahme zwischen verknüpften Runden; `tee-set` für manuelle Werte. **Offen:** eigene Kurs-Stammdaten unabhängig von Runden
+- [x] 2.2 Course-Stammdaten: Rating/Slope/Tees je Quelle aus den Runden (BeBrassie Damen/Herren, Garmin, Trackman); Rating-Übernahme zwischen verknüpften Runden; `tee-set` für manuelle Werte. Eigene Stammplätze unabhängig von Runden (2026-11-21): Tabellen `course_master`, `course_master_tee`, `course_master_link`, Seite „Plätze" und Befehle `courses`, `course-add`, `course-tee`, `course-import`, `course-link`; Zuordnung über Name, Zweitnamen, Koordinaten (1 km) oder ausdrücklich; Tee über Name (Farben mehrsprachig) oder Standard-Tee; Stammdaten sind der letzte Rückfall nach Quelle, Eingabe je Runde und verknüpfter Runde
 - [x] 2.3 Dedup-Matching + manuelle Korrektur (2026-11-14: Garmin, Arccos, BeBrassie; Trackman folgt mit seinem Connector; Konfiguration `config/dedup.toml`)
 - [x] 2.4 Score, FIR/GIR/Scrambling/Putts, AGS und Score Differential (9-Loch nach WHS mit erwartetem Differential `0,52 × Index + 1,2`, ohne Index oder 9-Loch-Rating verdoppelt, 2026-11-17), Handicap-Relevanz nur per Nutzerentscheidung (Standard nein), kein Handicap-Index; Golden-Tests in `tests/test_score.py`
 

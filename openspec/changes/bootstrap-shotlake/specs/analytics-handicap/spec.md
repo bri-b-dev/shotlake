@@ -89,6 +89,21 @@ Der Nutzer SHALL Course Rating und Slope je Platz und Tee für 18 Löcher sowie 
 - WHEN eine Arccos-Runde kein Rating/Slope liefert und der Nutzer sie für den Platz hinterlegt
 - THEN erhält die Runde ein Score Differential
 
+### Requirement: Platz-Stammdaten (unabhängig von Runden)
+Der Nutzer SHALL eigene Stammplätze anlegen können, ohne dass dafür Runden existieren: Name, Zweitnamen, Ort, Koordinaten, Par, Standard-Tee und je Tee Course Rating und Slope für 18 Löcher sowie optional Vorder- und Hinterneun. Plätze der Quellen SHALL einem Stammplatz zugeordnet werden, ausdrücklich durch den Nutzer (auch „keinem"), sonst automatisch über den Namen (Zweitnamen eingeschlossen, ohne Groß-/Kleinschreibung, Umlaute und Satzzeichen) oder über Koordinaten im Umkreis von 1 km; die Art der Zuordnung SHALL sichtbar sein. Das Tee einer Runde SHALL über den Tee-Namen gefunden werden, wobei Farben in Deutsch, Englisch und als Farbwert (Blau, Blue, #0000FF) als gleich gelten; ohne Tee-Angabe gilt das Standard-Tee, bei genau einem Tee dieses; ein unbekanntes Tee SHALL kein Rating ergeben. Stammdaten SHALL nur dort Rating und Slope liefern, wo weder die Quelle noch eine Eingabe je Runde noch eine verknüpfte Runde Werte liefern (Reihenfolge: Quelle, Eingabe je Runde, verknüpfte Runde, Stammdaten) und SHALL dann als Herkunft des Ratings angezeigt werden. Ein Stammplatz SHALL sich aus einem Platz der Quellen übernehmen lassen (Name, Koordinaten, Par, Tees mit Rating/Slope). Eingaben SHALL auf plausible Bereiche geprüft werden (Rating 50 bis 90, je Neun 25 bis 45, Slope 55 bis 155).
+
+#### Scenario: Arccos-Runde über Stammdaten
+- WHEN für einen Platz ein Stammplatz mit Standard-Tee, Rating und Slope hinterlegt ist und eine Runde dieses Platzes ohne Tee-Angabe kein Rating liefert
+- THEN erhält sie ein Score Differential und zeigt „Rating von Stammdaten <Platz> / <Tee>"
+
+#### Scenario: Unbekanntes Tee
+- WHEN eine Runde ein Tee nennt, das der Stammplatz nicht kennt
+- THEN bleibt das Rating leer und die Plätze-Seite nennt das unbekannte Tee
+
+#### Scenario: Vorrang
+- WHEN die Quelle oder der Nutzer für die Runde Rating und Slope liefert
+- THEN gelten diese Werte und nicht die Stammdaten
+
 ### Requirement: Differential-Verlauf
 Das System SHALL Differentials als Zeitreihe bereitstellen (alle Runden, handicap-relevante hervorgehoben) und einen **gleitenden Durchschnitt** über die letzten N Runden mit Differential berechnen (Standard N = 5, konfigurierbar, optional nur handicap-relevante Runden). Vor Erreichen von N Werten SHALL der Durchschnitt NULL sein. Ein Handicap-Index wird daraus nicht abgeleitet. Die Zeitreihe SHALL für Auswertungen aus `analytics-trends` verfügbar sein.
 

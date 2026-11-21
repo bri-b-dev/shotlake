@@ -115,6 +115,17 @@ The GitHub workflow `.github/workflows/ci.yml` runs lint, types and tests, then 
 (tags `latest`, `main`, short commit) and on version tags `v*` (`1.2.3`, `1.2`). Pull requests only
 build. Build locally with `docker build -t shotlake .`.
 
+## Courses (own master data)
+
+The **Courses** page (`/courses`, CLI `courses`) keeps your own course data independent of rounds:
+name, aliases, location, default tee and course rating/slope per tee (18 holes, optionally per nine).
+Source courses are matched to a master course by name, alias or coordinates within 1 km (or set
+explicitly; `keiner` opts out). A round's tee is found by name (Blau, Blue and #0000FF are the same
+tee); without a tee the default tee applies. Master data is only the last fallback for rating/slope,
+after the source, your per-round `tee-set` values and a linked round, and is shown as "Rating von
+Stammdaten ...". `course-import <course-id>` creates a master course from a source course (name,
+coordinates, tees with rating/slope); `course-add`, `course-tee` and `course-link` manage the rest.
+
 ## MCP Server (for AI Assistants)
 
 uv run shotlake mcp --read-only              # stdio, read-only tools

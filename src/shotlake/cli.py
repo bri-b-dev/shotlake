@@ -148,6 +148,31 @@ def build_parser() -> argparse.ArgumentParser:
     ts.add_argument("--slope", type=int, required=True)
 
     sub.add_parser(
+        "courses", help="Stammplätze und die Plätze deiner Quellen mit Stand der Zuordnung"
+    )
+    ca = sub.add_parser("course-add", help="Stammplatz anlegen (unabhängig von Runden)")
+    ca.add_argument("name")
+    ca.add_argument("--city")
+    ca.add_argument("--country")
+    ca.add_argument("--lat", type=float)
+    ca.add_argument("--lon", type=float)
+    ca.add_argument("--par", type=int, help="Par des Platzes")
+    ca.add_argument("--default-tee", help="Tee für Runden ohne Tee-Angabe (z. B. Arccos)")
+    ca.add_argument("--alias", action="append", default=[], help="weiterer Platzname (mehrfach)")
+    ct = sub.add_parser("course-tee", help="Rating/Slope eines Tees am Stammplatz setzen")
+    ct.add_argument("master", help="Kennung des Stammplatzes (siehe `courses`)")
+    ct.add_argument("tee")
+    ct.add_argument("--rating", type=float, required=True)
+    ct.add_argument("--slope", type=int, required=True)
+    ct.add_argument("--part", choices=["all", "front9", "back9"], default="all")
+    ct.add_argument("--par", type=int)
+    ci = sub.add_parser("course-import", help="Stammplatz aus einem Platz deiner Quellen anlegen")
+    ci.add_argument("course", help="Platz-Kennung aus `courses` (z. B. garmin_platform|123)")
+    cl = sub.add_parser("course-link", help="Platz einer Quelle einem Stammplatz zuordnen")
+    cl.add_argument("course")
+    cl.add_argument("master", help="Kennung des Stammplatzes, `keiner` oder `auto`")
+
+    sub.add_parser(
         "arccos-check", help="Arccos-Live-Zugang prüfen (nur Zählwerte, nichts speichern)"
     )
     sv = sub.add_parser("serve", help="Weboberfläche starten (Passwort beim ersten Aufruf)")
@@ -237,6 +262,12 @@ def _pct(hits: int, recorded: int) -> str:
     return "-" if rate is None else f"{rate:.0%}"
 
 
+def _note(r: RoundScore) -> str:
+    """Hinweis zur Runde: Grund ohne Differential und Herkunft eines übernommenen Ratings."""
+    source = f"Rating von {r.rating_source}" if r.rating_source else ""
+    return " ".join(part for part in (r.reason, source) if part)
+
+
 def _print_rounds(rows: list[RoundScore]) -> None:
     print(
         f"{'Datum':<11}{'Platz':<22}{'L':>3} {'Brutto':>6} {'+/-Par':>6} {'Putts':>5} {'FIR':>4}"
@@ -251,7 +282,7 @@ def _print_rounds(rows: list[RoundScore]) -> None:
             f"{r.gross if r.gross is not None else '-':>6} {to_par:>6} "
             f"{r.putts if r.putts is not None else '-':>5} "
             f"{_pct(r.fir_hits, r.fir_recorded):>4} {_pct(r.gir_hits, r.gir_recorded):>4} "
-            f"{r.ags if r.ags is not None else '-':>4} {diff:>6} {_flag(r):<6} {r.reason or ''}"
+            f"{r.ags if r.ags is not None else '-':>4} {diff:>6} {_flag(r):<6} {_note(r)}"
         )
     print("Rel: ja nur, wenn du es gesetzt hast (Standard nein).")
     print("Diff x = 9 Löcher auf 18 hochgerechnet (WHS mit Index, sonst verdoppelt).")
@@ -302,6 +333,59 @@ def _tee_set(con: duckdb.DuckDBPyConnection, args: argparse.Namespace) -> int:
         [course_id, tee, args.part, args.rating, args.slope],
     )
     print(f"{course_id} / {tee} / {args.part}: Rating {args.rating}, Slope {args.slope}")
+    return 0
+
+
+def _courses_command(con: duckdb.DuckDBPyConnection, args: argparse.Namespace) -> int:
+    from . import courses as cs
+
+    try:
+        if args.cmd == "course-add":
+            mid = cs.save_master(
+                con, name=args.name, city=args.city, country=args.country, lat=args.lat,
+                lon=args.lon, par_total=args.par, default_tee=args.default_tee, aliases=args.alias,
+            )  # fmt: skip
+            print(f"Stammplatz {mid} angelegt. Tees: shotlake course-tee {mid} <Tee> --rating …")
+        elif args.cmd == "course-tee":
+            cs.set_tee(con, args.master, args.tee, rating=args.rating, slope=args.slope,
+                       part=args.part, par=args.par)  # fmt: skip
+            print(
+                f"{args.master} / {args.tee} / {args.part}: "
+                f"Rating {args.rating}, Slope {args.slope}"
+            )
+        elif args.cmd == "course-import":
+            mid = cs.import_from_course(con, args.course)
+            master = cs.get_master(con, mid)
+            names = ", ".join(master.tee_names) if master else ""
+            print(
+                f"Stammplatz {mid} aus {args.course} angelegt und zugeordnet. "
+                f"Tees: {names or 'keine'}"
+            )
+        elif args.cmd == "course-link":
+            if args.master == "auto":
+                cs.unlink_course(con, args.course)
+            else:
+                cs.link_course(con, args.course, None if args.master == "keiner" else args.master)
+            print(f"{args.course}: {args.master}")
+        else:
+            masters = cs.list_masters(con)
+            print(f"Stammplätze ({len(masters)}):")
+            for m in masters:
+                tees = ", ".join(
+                    f"{t.name}{'' if t.part == 'all' else ' ' + t.part} {t.rating}/{t.slope}"
+                    for t in m.tees
+                )
+                std = f", Standard-Tee {m.default_tee}" if m.default_tee else ""
+                print(f"  {m.master_id}: {m.name}{std}; {tees or 'keine Tees'}")
+            print("Plätze der Quellen:")
+            for c in cs.source_courses(con):
+                where = f"-> {c.master.master_id} ({c.how})" if c.master else "ohne Stammplatz"
+                miss = f", {c.rounds_no_rating} ohne Rating" if c.rounds_no_rating else ""
+                odd = f"; Tee unbekannt: {', '.join(c.unmatched_tees)}" if c.unmatched_tees else ""
+                print(f"  {c.course_id}: {c.name}, {c.rounds} Runden{miss} {where}{odd}")
+    except cs.CourseError as exc:
+        print(f"Fehler: {exc}", file=sys.stderr)
+        return 2
     return 0
 
 
@@ -646,6 +730,8 @@ def main(argv: list[str] | None = None) -> int:
             return _round_set(con, args)
         if args.cmd == "tee-set":
             return _tee_set(con, args)
+        if args.cmd in ("courses", "course-add", "course-tee", "course-import", "course-link"):
+            return _courses_command(con, args)
         if args.cmd == "mcp":
             con.close()
             from .mcp_server import create_server, http_app

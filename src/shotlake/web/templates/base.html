@@ -24,6 +24,7 @@
     </span>
     <span class="navgroup">
       <a href="{{ link(request, '/notes') }}" {% if here.startswith('/notes') %}aria-current="page"{% endif %}>Notizen</a>
+      <a href="{{ link(request, '/courses') }}" {% if here.startswith('/courses') %}aria-current="page"{% endif %}>Plätze</a>
       <a href="{{ link(request, '/dedup') }}" {% if here.startswith('/dedup') %}aria-current="page"{% endif %}>Dubletten</a>
     </span>
     <span class="navgroup">

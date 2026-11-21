@@ -77,6 +77,13 @@ Die Vergleichsansicht SHALL für ein Datum (z. B. aus einer Notiz) die Beobachtu
 - WHEN der Nutzer einen Marker im Verlauf anklickt
 - THEN sieht er für mehrere Kennzahlen Δ, 95-%-Intervall, n je Zeitraum und die Einschätzung
 
+### Requirement: Plätze
+Es SHALL eine Seite „Plätze" geben: eigene Stammplätze mit Tees, Rating und Slope anlegen, ändern und löschen (Löschen nur nach Bestätigung, Runden bleiben unberührt) und die Plätze der Quellen mit Runden, Runden ohne Rating, zugeordnetem Stammplatz (Art der Zuordnung) und Hinweis auf unbekannte Tees anzeigen. Die Zuordnung SHALL einstellbar sein (automatisch, keiner, bestimmter Stammplatz), ein Platz der Quellen SHALL sich als Stammplatz übernehmen lassen. Fehlerhafte Eingaben SHALL mit Klartext-Meldung abgelehnt werden, ohne etwas zu ändern.
+
+#### Scenario: Stammplatz aus der Quelle
+- WHEN der Nutzer bei einem Platz der Garmin-Quelle „Als Stammplatz übernehmen" wählt
+- THEN entsteht ein Stammplatz mit Name, Koordinaten und den Tees der Quelle, dem Platz zugeordnet und zur Prüfung geöffnet
+
 ### Requirement: Dedup-Review
 Vorgeschlagene Matches SHALL in einer Review-Ansicht bestätigt, getrennt oder zusammengeführt werden können.
 

@@ -88,10 +88,10 @@ rect.pos { fill: var(--pos); } rect.neg { fill: var(--neg); }
 .chart.bars text { font-size: 13px; }
 .chart .grid { stroke: var(--line); stroke-width: 1; }
 .chart .axis, .chart .val { fill: var(--muted); font-size: 11px; }
-.chart .dot { fill: none; stroke: var(--dot); stroke-width: 1.5; }
+.chart .dot { fill: none; stroke: var(--dot); stroke-width: 1; }
 .chart .dot.rel { fill: var(--dot); }
 .chart a.pt-link { cursor: pointer; }
-.chart a.pt-link:hover .dot, .chart a.pt-link:focus .dot { stroke-width: 2.2; r: 4.5px; }
+.chart a.pt-link:hover .dot, .chart a.pt-link:focus .dot { stroke-width: 1; r: 2px; }
 .chart .avg { fill: none; stroke: var(--avg); stroke-width: 3; stroke-linejoin: round;
   stroke-linecap: round; }
 .chart .pt { fill: var(--dot); fill-opacity: .55; }

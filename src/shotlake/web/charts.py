@@ -98,7 +98,7 @@ def trend_svg(
         detail = (info or {}).get(p.round_id)
         title = escape(detail.text if detail else f"{p.start_utc:%d.%m.%Y}: {p.differential:.1f}")
         cx, cy = f"{x(p):.1f}", f"{y(p.differential):.1f}"
-        dot = f'<circle class="{cls}" cx="{cx}" cy="{cy}" r="3"/>'
+        dot = f'<circle class="{cls}" cx="{cx}" cy="{cy}" r="2"/>'
         hit = f'<circle class="pt-hit" cx="{cx}" cy="{cy}" r="10"><title>{title}</title></circle>'
         if detail:
             parts.append(f'<a class="pt-link" href="{escape(detail.href)}">{dot}{hit}</a>')

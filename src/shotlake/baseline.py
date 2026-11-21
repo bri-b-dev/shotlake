@@ -13,7 +13,7 @@ LIES = ("tee", "fairway", "rough", "sand", "green")
 
 
 def default_baseline_path() -> Path:
-    """Standard: das eigene Niveau (Handicap 40); `SHOTLAKE_BASELINE` überschreibt es."""
+    """Standard: das Ziel (Handicap 18); `SHOTLAKE_BASELINE` überschreibt es."""
     return Path(os.environ.get("SHOTLAKE_BASELINE", "baselines/hcp18w-approx-v1.toml"))
 
 

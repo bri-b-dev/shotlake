@@ -139,7 +139,7 @@ def create_server(
         scramble_rate, sg_total_per_hole und sg_<kategorie>_per_hole (kategorie: tee, approach,
         short, green_play, putting, penalty), carry (braucht `club`, z. B. iron_7).
         `window` = letzte N Runden. `baseline` wählt das Vergleichsniveau der SG-Kennzahlen
-        (Standard: eigenes Niveau, z. B. `hcp18w-approx-v1` für das Ziel Handicap 18).
+        (Standard: `hcp18w-approx-v1`, Ziel Handicap 18; `hcp40w-approx-v1` = eigenes Niveau).
         """
         f = reports.make_filters(source, since, until, only_relevant, club, window)
         with workspace.session() as con:

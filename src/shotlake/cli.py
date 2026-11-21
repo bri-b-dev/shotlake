@@ -113,7 +113,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--baseline",
         type=Path,
         default=default_baseline_path(),
-        help="Baseline-Datei oder Kennung (siehe `baselines`); Standard: eigenes Niveau",
+        help="Baseline-Datei oder Kennung (siehe `baselines`); Standard: Ziel Handicap 18",
     )
     sg.add_argument("--reasons", action="store_true", help="Gründe unvollständiger Löcher zeigen")
 

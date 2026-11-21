@@ -3,18 +3,22 @@
 ## ADDED Requirements
 
 ### Requirement: Dashboard
-Das Dashboard SHALL zeigen: Score-Differential-Verlauf (handicap-relevante Runden hervorgehoben; kein berechneter Handicap-Index), letzter Score, SG-Kategorien (mit Abdeckung/Unsicherheit), Trend einer wählbaren Kennzahl, Status der Quellen.
+Das Dashboard SHALL zeigen: Score-Differential-Verlauf (handicap-relevante Runden hervorgehoben; je Punkt Tooltip mit Datum, Platz, Brutto, Differential, gleitendem Durchschnitt und Relevanz, Klick öffnet die Runde; kein berechneter Handicap-Index), letzter Score, SG-Kategorien (mit Abdeckung/Unsicherheit), Trend einer wählbaren Kennzahl, Status der Quellen.
 
 #### Scenario: Wenig Daten
 - WHEN SG nicht berechenbar ist
 - THEN zeigt die Kachel „nicht genug Daten" mit Grund statt 0
 
 ### Requirement: Schläger-Detail
-Es SHALL eine Schlägerseite geben mit Länge (Carry/Total), Streuung (Scatter + Ellipse), Gapping und Trend, filterbar nach Quelle/Messmethode/Zeitraum.
+Es SHALL eine Schlägerseite geben mit Länge (Carry/Total), Streuung (Scatter + Ellipse), Gapping und Trend, filterbar nach Quelle/Messmethode/Zeitraum. Die Schlagdistanz auf dem Platz SHALL als Boxplot je Schläger erscheinen (Kasten Q1 bis Q3, Antennen bis 1,5 × Kastenbreite, Ausreißer als Punkte; der Median steht nur im Tooltip). Die Streuung SHALL beide Achsen mit Zahlen und Einheit (m/yd) beschriften und je Punkt einen Tooltip mit Länge und seitlicher Abweichung zeigen.
 
 #### Scenario: Filter
 - WHEN der Nutzer Quelle „Mevo+" wählt
 - THEN beziehen sich alle Diagramme nur darauf
+
+#### Scenario: Zeitraum („seitdem ich x mache")
+- WHEN der Nutzer ein Datum bei „Seit" (und optional „Bis") setzt
+- THEN gelten Platzschläge, Range-Tabelle und Streuung nur für diesen Zeitraum, der Filter bleibt beim Wechsel von Quelle, Einheit und Schläger erhalten, ein ungültiges Datum wird ignoriert
 
 ### Requirement: Runde/Session-Detail
 Es SHALL eine Detailseite für Runde/Session geben mit Lochübersicht, Schlägen, SG-Aufschlüsselung (falls möglich), verknüpften Quellen, Provenienz und Dedup-Status.
@@ -77,7 +81,7 @@ Vorgeschlagene Matches SHALL in einer Review-Ansicht bestätigt, getrennt oder z
 - THEN wird der Match dauerhaft verworfen
 
 ### Requirement: Mobil, schnell, Themes
-Das Frontend SHALL ab 360 px Breite nutzbar sein, Dark/Light (System-Default, umschaltbar) unterstützen, Einheiten m/yd umschaltbar anbieten und Seiten in < 1 s (lokal, typische Datenmenge) rendern. Barrierefreiheit (Kontrast, Tastatur) SHALL beachtet werden.
+Das Frontend SHALL ab 360 px Breite nutzbar sein, Dark/Light (System-Default, umschaltbar) unterstützen, Einheiten m/yd umschaltbar anbieten und Seiten in < 1 s (lokal, typische Datenmenge) rendern. Jede Antwort SHALL die Bearbeitungszeit im Header `Server-Timing` ausweisen; rechenintensive Ergebnisse (Bootstrap-Intervalle) SHALL bei gleichen Eingaben nicht erneut berechnet werden. Barrierefreiheit (Kontrast, Tastatur) SHALL beachtet werden.
 
 #### Scenario: Smartphone
 - WHEN das Dashboard auf 390 px Breite geöffnet wird

@@ -21,14 +21,14 @@ SG-Werte, die eine Quelle bereits liefert (z. B. Arccos `sga/drivingSga/approach
 - THEN zeigt das System die Arccos-SG als `source_provided (goalHcp=X)` und keine `computed`-SG
 
 ### Requirement: Konfigurierbare, dokumentierte Baseline
-Die Baseline SHALL wählbar sein (Tour, Scratch, Handicap-Band X). Mitgeliefert werden zwei als Näherung gekennzeichnete Handicap-Bänder für Damen: `hcp40w-approx-v1` („Mein Niveau", **Standard**) und `hcp18w-approx-v1` („Ziel Handicap 18"). Jede Baseline SHALL als versionierte Tabelle (Lie × Distanz → erwartete Schläge) mit Quellenangabe, Lizenzhinweis, Status, Ziel-Handicap und Anzeigename im Repo liegen, in sich stimmig sein (ein Abschlag ist nie schlechter als ein Fairwayschlag auf gleicher Distanz) und für ein schwächeres Niveau überall höhere erwartete Schläge ergeben. Jede SG-Ausgabe SHALL die verwendete Baseline-ID nennen. Die Wahl SHALL in Oberfläche (`?b=<ID>`, Umschalter, bleibt in der Navigation erhalten), CLI (`--baseline`, Kennung oder Datei; `baselines` listet sie) und MCP (`baseline`) möglich sein; eine unbekannte Kennung SHALL auf den Standard zurückfallen (Oberfläche) bzw. mit einer Liste der verfügbaren Baselines abgelehnt werden (CLI, MCP).
+Die Baseline SHALL wählbar sein (Tour, Scratch, Handicap-Band X). Mitgeliefert werden zwei als Näherung gekennzeichnete Handicap-Bänder für Damen: `hcp18w-approx-v1` („Ziel Handicap 18", **Standard**) und `hcp40w-approx-v1` („Mein Niveau"). Jede Baseline SHALL als versionierte Tabelle (Lie × Distanz → erwartete Schläge) mit Quellenangabe, Lizenzhinweis, Status, Ziel-Handicap und Anzeigename im Repo liegen, in sich stimmig sein (ein Abschlag ist nie schlechter als ein Fairwayschlag auf gleicher Distanz) und für ein schwächeres Niveau überall höhere erwartete Schläge ergeben. Jede SG-Ausgabe SHALL die verwendete Baseline-ID nennen. Die Wahl SHALL in Oberfläche (`?b=<ID>`, Umschalter, bleibt in der Navigation erhalten), CLI (`--baseline`, Kennung oder Datei; `baselines` listet sie) und MCP (`baseline`) möglich sein; eine unbekannte Kennung SHALL auf den Standard zurückfallen (Oberfläche) bzw. mit einer Liste der verfügbaren Baselines abgelehnt werden (CLI, MCP).
 
 #### Scenario: Baseline-Wechsel
 - WHEN die Baseline gewechselt wird
 - THEN werden SG-Werte neu berechnet und die Baseline-ID in der Ausgabe angezeigt
 
 #### Scenario: Umschalter
-- WHEN in der Oberfläche von „Mein Niveau" auf „Ziel Handicap 18" gewechselt wird
+- WHEN in der Oberfläche von „Ziel Handicap 18" auf „Mein Niveau" gewechselt wird
 - THEN zeigen Übersicht, Rundendetail, Hinweise und Vergleich die SG gegen diese Baseline, und die Wahl bleibt beim Navigieren erhalten
 
 ### Requirement: Kategorien

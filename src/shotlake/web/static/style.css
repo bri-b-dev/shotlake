@@ -136,13 +136,13 @@ td.left.muted { white-space: normal; min-width: 7rem; }
 details > summary { cursor: pointer; font-weight: 650; padding: .2rem 0; }
 details[open] > summary { margin-bottom: .6rem; }
 .chart.box text { font-size: 13px; }
-.chart .box-rect { fill: var(--accent); fill-opacity: .3; stroke: var(--accent); stroke-width: 1.5; }
-.chart .whisker { stroke: var(--accent); stroke-width: 1.5; }
+.chart .box-rect { fill: var(--accent); fill-opacity: .16; stroke: var(--accent); stroke-width: 1; }
+.chart.box .whisker { stroke: var(--accent); stroke-opacity: .7; stroke-width: 1; }
 .chart .ci-bar line { stroke: var(--fg); stroke-width: 1.6; stroke-linecap: round; pointer-events: none; }
-.chart .box-out { fill: var(--accent); fill-opacity: .55; }
+.chart .box-out { fill: var(--accent); fill-opacity: .4; }
 .chart .hit { fill: transparent; }
 .chart .hit:hover { fill: var(--accent); fill-opacity: .06; }
-.chart .med { stroke: var(--fg); stroke-width: 3; stroke-linecap: round; }
+.chart .med { stroke: var(--fg); stroke-width: 2; stroke-linecap: round; }
 .chart .thin { opacity: .45; }
 .chart .val { fill: var(--fg); }
 .insight { display: grid; grid-template-columns: 9rem minmax(0, 1fr); gap: .3rem 1.6rem;
@@ -154,8 +154,8 @@ details[open] > summary { margin-bottom: .6rem; }
 .insight-body .facts { margin: .3rem 0 0; }
 .chart.ci { width: 340px; max-width: 100%; }
 .chart .zero { stroke: var(--fg); stroke-width: 1.5; }
-.chart .whisker { stroke-width: 3; stroke-linecap: round; }
-.chart .whisker.pos { stroke: var(--pos); } .chart .whisker.neg { stroke: var(--neg); }
+.chart.ci .whisker { stroke-width: 3; stroke-linecap: round; }
+.chart.ci .whisker.pos { stroke: var(--pos); } .chart.ci .whisker.neg { stroke: var(--neg); }
 .chart .est.pos { fill: var(--pos); } .chart .est.neg { fill: var(--neg); }
 @media (max-width: 600px) { .insight { grid-template-columns: 1fr; } }
 /* Quellen: je Quelle ein Abschnitt mit Zahlen, Lauf-Status und Aktionen */
@@ -218,6 +218,8 @@ body.auth header { border-bottom: 0; }
   .chart.trend .dot { stroke-width: 2.6; }
   .chart.trend .avg { stroke-width: 5; }
   .chart.box text, .chart.bars text { font-size: 19px; }
+  .chart.box .whisker, .chart .box-rect { stroke-width: 1.8; }
+  .chart.box .med { stroke-width: 3.2; }
   form.inputs { grid-template-columns: 1fr; }
   input, select, button { min-height: 2.5rem; }
 }

@@ -266,17 +266,15 @@ def boxplot_svg(rows: list[BoxRow], factor: float = 1.0, unit: str = "m") -> str
             f'<line class="whisker" x1="{x(r.q3):.1f}" x2="{x(r.whisker_hi):.1f}" '
             f'y1="{mid}" y2="{mid}"/>',
             f'<line class="whisker" x1="{x(r.whisker_lo):.1f}" x2="{x(r.whisker_lo):.1f}" '
-            f'y1="{mid - 5}" y2="{mid + 5}"/>',
+            f'y1="{mid - 4}" y2="{mid + 4}"/>',
             f'<line class="whisker" x1="{x(r.whisker_hi):.1f}" x2="{x(r.whisker_hi):.1f}" '
-            f'y1="{mid - 5}" y2="{mid + 5}"/>',
-            f'<rect class="box-rect" x="{x(r.q1):.1f}" y="{mid - 8}" '
-            f'width="{max(x(r.q3) - x(r.q1), 2):.1f}" height="16" rx="2"/>',
+            f'y1="{mid - 4}" y2="{mid + 4}"/>',
+            f'<rect class="box-rect" x="{x(r.q1):.1f}" y="{mid - 6}" '
+            f'width="{max(x(r.q3) - x(r.q1), 2):.1f}" height="12" rx="2"/>',
             f'<line class="med" x1="{x(r.median):.1f}" x2="{x(r.median):.1f}" '
-            f'y1="{mid - 8}" y2="{mid + 8}"/>',
+            f'y1="{mid - 6}" y2="{mid + 6}"/>',
         ]
-        parts += [
-            f'<circle class="box-out" cx="{x(v):.1f}" cy="{mid}" r="2.6"/>' for v in r.outliers
-        ]
+        parts += [f'<circle class="box-out" cx="{x(v):.1f}" cy="{mid}" r="2"/>' for v in r.outliers]
         parts.append("</g>")
         out.append("".join(parts))
     out.append("</svg>")

@@ -234,7 +234,8 @@ def gapping_report(
                 "club": c.club_type, "source": c.source, "method": c.method, "n": c.n,
                 "carry_median_m": c.carry_median_m, "carry_p10_m": c.carry_p10_m,
                 "carry_p90_m": c.carry_p90_m, "side_bias_m_right_positive": c.side_bias_m,
-                "warning": c.warning,
+                "carry_median_ci": _ci(c.carry_median_ci), "side_bias_ci": _ci(c.side_bias_ci),
+                "n_side": c.n_side, "warning": c.warning,
             }
             for c in clubs
         ],

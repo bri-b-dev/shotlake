@@ -22,10 +22,12 @@ from .. import reports
 from ..analytics.course_shots import club_distances
 from ..analytics.dispersion import scatter_groups
 from ..analytics.distance import DEFAULT_MIN_SPEED_RATIO, club_stats
+from ..analytics.insights import MIN_ROUNDS
 from ..analytics.insights import generate as generate_insights
-from ..analytics.metrics import METRICS
+from ..analytics.metrics import METRICS, Context, Filters, sg_round_observations
 from ..analytics.score import round_scores
 from ..analytics.sg import CATEGORIES, strokes_gained
+from ..analytics.stats import bootstrap_ci
 from ..analytics.trend import differential_trend
 from ..baseline import Baseline
 from ..clubs import CANONICAL_CLUBS, club_sort_key
@@ -262,7 +264,22 @@ def create_app(
                 for c in CATEGORIES
                 if sg and sg.complete_holes and (totals[c] != 0 or c != "green_play")
             ]
-            bars = bars_svg(sg_items, "/Loch")
+            sg_ci: dict[str, tuple[float, float, int]] = {}
+            sg_total_ci: tuple[float, float, int] | None = None
+            if (
+                sg and sg.complete_holes
+            ):  # 95-%-Intervalle: Bootstrap über Runden (wie die Insights)
+                obs = sg_round_observations(
+                    con, Filters(source=source), base_of(request), res=sg, ctx=Context(scope)
+                )
+                for key, name in (("total", "Gesamt"), *((c, SG_NAMES[c]) for c in CATEGORIES)):
+                    values = [o.value for o in obs[key]]
+                    interval = bootstrap_ci(values) if len(values) >= MIN_ROUNDS else None
+                    if interval is not None and key == "total":
+                        sg_total_ci = (interval.low, interval.high, len(values))
+                    elif interval is not None:
+                        sg_ci[name] = (interval.low, interval.high, len(values))
+            bars = bars_svg(sg_items, "/Loch", sg_ci)
             return page(
                 request,
                 "dashboard.html",
@@ -280,6 +297,8 @@ def create_app(
                 sg_totals=totals,
                 sg_total=sum(h.total or 0.0 for h in sg.holes if h.complete) if sg else 0.0,
                 bars=bars,
+                sg_total_ci=sg_total_ci,
+                min_rounds=MIN_ROUNDS,
                 sg_worst=min(sg_items, key=lambda i: i[1]) if sg_items else None,
                 sg_best=max(sg_items, key=lambda i: i[1]) if sg_items else None,
                 statuses=source_statuses(con),
@@ -498,8 +517,17 @@ def create_app(
                     continue
                 if c.p25_m is None or c.median_m is None or c.p75_m is None:
                     continue
+                ci = c.median_ci
                 box_rows.append(
-                    box_row(c.club, c.values, c.p25_m, c.median_m, c.p75_m, ok=c.warning is None)
+                    box_row(
+                        c.club,
+                        c.values,
+                        c.p25_m,
+                        c.median_m,
+                        c.p75_m,
+                        ok=c.warning is None,
+                        median_ci=(ci.low, ci.high) if ci else None,
+                    )
                 )
             return page(
                 request,

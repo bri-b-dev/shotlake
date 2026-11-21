@@ -21,6 +21,7 @@
   <p class="lede-text">
     {% if sg_worst and sg_worst[1] < 0 %}Am meisten Schläge gehen bei <strong>{{ sg_worst[0] }}</strong> verloren ({{ sg_worst[1]|num(2, true) }} pro Loch).{% else %}Kein Bereich verliert gegenüber der Baseline Schläge.{% endif %}
     {% if sg_best and sg_best[1] > 0 %}Am besten läuft <strong>{{ sg_best[0] }}</strong> ({{ sg_best[1]|num(2, true) }}).{% endif %}
+    {% if sg_total_ci %}<span class="muted">95-%-Intervall {{ sg_total_ci[0]|num(2, true) }} bis {{ sg_total_ci[1]|num(2, true) }} pro Loch (n = {{ sg_total_ci[2] }} Runden){% if sg_total_ci[0] <= 0 <= sg_total_ci[1] %}: von der Baseline nicht belegbar verschieden{% endif %}.</span>{% else %}<span class="muted">Intervall erst ab {{ min_rounds }} Runden mit vollständig erfassten Löchern.</span>{% endif %}
     <span class="muted">Basis: {{ sg.complete_holes }} von {{ sg.holes|length }} Löchern vollständig erfasst; Vergleich: {{ baseline.title }} ({{ baseline.id }}, {{ 'Näherung' if baseline.status == 'approximation' else baseline.status }}).</span>
   </p>
 </section>
@@ -52,6 +53,7 @@
     <h2 id="h-sg">Wo die Schläge liegen</h2>
     {% if sg and sg.complete_holes %}
       {{ bars|safe }}
+      <p class="muted">Strich: 95-%-Intervall (Bootstrap über Runden, ab {{ min_rounds }} Runden). Schließt er die Nulllinie ein, ist der Unterschied zur Baseline nicht belegt.</p>
     {% else %}
       <p class="muted">Keine vollständig erfassten Löcher für „{{ source or 'alle Quellen' }}".</p>
     {% endif %}

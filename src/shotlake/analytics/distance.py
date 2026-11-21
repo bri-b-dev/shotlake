@@ -10,6 +10,7 @@ import duckdb
 
 from ..clubs import club_sort_key
 from ..quality import EXCLUDE_FLAGS, SPEED_MEDIAN_JOIN, SPEED_RATIO_CONDITION
+from .stats import Interval, mean_ci, median_ci
 
 
 @dataclass(frozen=True)
@@ -32,6 +33,8 @@ class ClubStats:
     center_share: float | None
     right_share: float | None
     warning: str | None
+    carry_median_ci: Interval | None = None  # 95 % (verteilungsfrei), ab 10 Schlägen
+    side_bias_ci: Interval | None = None  # 95 % (t-Intervall des Mittelwerts), ab 10 Schlägen
 
 
 @dataclass(frozen=True)
@@ -114,7 +117,8 @@ def club_stats(
                stddev_samp(sh.carry_m), median(sh.total_m),
                count(sh.carry_side_m), avg(sh.carry_side_m), stddev_samp(sh.carry_side_m),
                count(*) filter (where sh.carry_side_m < ?),
-               count(*) filter (where sh.carry_side_m > ?)
+               count(*) filter (where sh.carry_side_m > ?),
+               list(sh.carry_m order by sh.carry_m)
         from shot sh join session se using (session_id) {speed_join}
         where {" and ".join(where)}
         group by {group}
@@ -144,6 +148,8 @@ def club_stats(
                 right_share=right / n_side if n_side else None,
                 center_share=(n_side - left - right) / n_side if n_side else None,
                 warning="insufficient_data" if n < min_n else None,
+                carry_median_ci=median_ci(r[16]),
+                side_bias_ci=mean_ci(r[12], r[13], n_side),
             )
         )
     out.sort(key=lambda s: (club_sort_key(s.club_type), s.source, s.method))

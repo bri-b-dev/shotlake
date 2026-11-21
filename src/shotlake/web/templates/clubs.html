@@ -17,34 +17,34 @@
     {% include "_chips.html" %}
     {% if boxplot %}{{ boxplot|safe }}<p class="facts"><span>Kasten: mittlere 50 % der Schläge (Q1 bis Q3)</span><span>Strich im Kasten: Median (Tooltip)</span><span>Antennen: bis 1,5 × Kastenbreite</span><span>Punkte: Ausreißer</span><span>blass: weniger als 5 Schläge</span></p>{% endif %}
     <div class="scroll"><table>
-      <thead><tr><th>Schläger</th><th>n</th><th>P10</th><th>Q1</th><th>Median ({{ unit }})</th><th>Q3</th><th>P90</th><th>Max</th><th class="left">Hinweis</th></tr></thead>
+      <thead><tr><th>Schläger</th><th>n</th><th>P10</th><th>Q1</th><th>Median ({{ unit }})</th><th title="95-%-Intervall des Medians (ab 10 Schlägen)">Intervall</th><th>Q3</th><th>P90</th><th>Max</th><th class="left">Hinweis</th></tr></thead>
       <tbody>
       {% for c in course %}
         <tr><td>{{ c.club }}</td><td>{{ c.n }}</td><td>{{ c.p10_m|dist(unit) }}</td><td>{{ c.p25_m|dist(unit) }}</td>
-            <td>{{ c.median_m|dist(unit) }}</td><td>{{ c.p75_m|dist(unit) }}</td><td>{{ c.p90_m|dist(unit) }}</td><td>{{ c.max_m|dist(unit) }}</td>
+            <td>{{ c.median_m|dist(unit) }}</td><td class="muted">{% if c.median_ci %}{{ c.median_ci.low|dist(unit) }} bis {{ c.median_ci.high|dist(unit) }}{% else %}–{% endif %}</td><td>{{ c.p75_m|dist(unit) }}</td><td>{{ c.p90_m|dist(unit) }}</td><td>{{ c.max_m|dist(unit) }}</td>
             <td class="left muted">{{ 'zu wenige Schläge' if c.warning else ('' if c.mapped else 'nicht zugeordnet (config/club_map.toml)') }}</td></tr>
-      {% else %}<tr><td colspan="9" class="muted">Keine Platzschläge.</td></tr>
+      {% else %}<tr><td colspan="10" class="muted">Keine Platzschläge.</td></tr>
       {% endfor %}
       </tbody>
     </table></div>
-    <p class="muted">GPS-Strecke von Start bis Ende inkl. Rollen, <strong>kein Carry</strong>; mit Range-Werten nicht vergleichbar. Putts sind ausgeschlossen. {{ 'Quelle ' ~ source if source else 'Alle Quellen, dedupliziert (führende Quelle für Schläge).' }}</p>
+    <p class="muted">GPS-Strecke von Start bis Ende inkl. Rollen, <strong>kein Carry</strong>; mit Range-Werten nicht vergleichbar. Putts sind ausgeschlossen. Intervall: 95 % für den Median (ab 10 Schlägen), im Tooltip des Boxplots wiederholt. {{ 'Quelle ' ~ source if source else 'Alle Quellen, dedupliziert (führende Quelle für Schläge).' }}</p>
   </section>
 
   <section class="band" aria-labelledby="h-range">
     <h2 id="h-range">Range – Carry und Streuung</h2>
     <div class="scroll"><table>
-      <thead><tr><th>Schläger</th><th>Quelle</th><th>Methode</th><th>n</th><th>Carry-Median ({{ unit }})</th><th>P10</th><th>P90</th><th>Seitenversatz Ø</th><th class="left">Hinweis</th></tr></thead>
+      <thead><tr><th>Schläger</th><th>Quelle</th><th>Methode</th><th>n</th><th>Carry-Median ({{ unit }})</th><th title="95-%-Intervall des Medians (ab 10 Schlägen)">Intervall</th><th>P10</th><th>P90</th><th>Seitenversatz Ø</th><th title="95-%-Intervall des Mittelwerts (ab 10 Schlägen)">Intervall</th><th class="left">Hinweis</th></tr></thead>
       <tbody>
       {% for r in range_stats %}
         <tr><td>{{ r.club_type }}</td><td class="left">{{ r.source }}</td><td class="left">{{ r.method }}</td><td>{{ r.n }}</td>
-            <td>{{ r.carry_median_m|dist(unit) }}</td><td>{{ r.carry_p10_m|dist(unit) }}</td><td>{{ r.carry_p90_m|dist(unit) }}</td>
-            <td>{{ r.side_bias_m|dist(unit, 1) }}</td>
+            <td>{{ r.carry_median_m|dist(unit) }}</td><td class="muted">{% if r.carry_median_ci %}{{ r.carry_median_ci.low|dist(unit) }} bis {{ r.carry_median_ci.high|dist(unit) }}{% else %}–{% endif %}</td><td>{{ r.carry_p10_m|dist(unit) }}</td><td>{{ r.carry_p90_m|dist(unit) }}</td>
+            <td>{{ r.side_bias_m|dist(unit, 1) }}</td><td class="muted">{% if r.side_bias_ci %}{{ r.side_bias_ci.low|dist(unit, 1) }} bis {{ r.side_bias_ci.high|dist(unit, 1) }}{% else %}–{% endif %}</td>
             <td class="left muted">{{ 'zu wenige Schläge' if r.warning else '' }}</td></tr>
-      {% else %}<tr><td colspan="9" class="muted">Keine Range-Daten.</td></tr>
+      {% else %}<tr><td colspan="11" class="muted">Keine Range-Daten.</td></tr>
       {% endfor %}
       </tbody>
     </table></div>
-    <p class="muted">Je Quelle und Messmethode getrennt, da Radar-Systeme systematisch unterschiedlich messen. Seitenversatz: rechts positiv. Ausreißer sind markiert und ausgeschlossen; Teilschläge (Ballgeschwindigkeit unter 70 % des Schläger-Medians je Methode) zählen nicht mit.</p>
+    <p class="muted">Je Quelle und Messmethode getrennt, da Radar-Systeme systematisch unterschiedlich messen. Seitenversatz: rechts positiv. Intervalle (95 %) stehen ab 10 Schlägen und beschreiben die Unsicherheit der Schätzung, nicht die Streuung der Schläge; schließt das Intervall des Seitenversatzes die 0 ein, ist ein Rechts- oder Links-Bias nicht belegt. Ausreißer sind markiert und ausgeschlossen; Teilschläge (Ballgeschwindigkeit unter 70 % des Schläger-Medians je Methode) zählen nicht mit.</p>
   </section>
 
   <section class="band" aria-labelledby="h-scatter">

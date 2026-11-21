@@ -75,7 +75,7 @@ def test_clubs_page_shows_boxplot_and_quartile_columns(client: TestClient) -> No
     header = re.search(r"<thead><tr><th>Schläger</th>(.*?)</tr></thead>", html, re.S)
     assert header is not None
     assert [h for h in re.findall(r"<th[^>]*>(.*?)</th>", header.group(1))][:6] == [
-        "n", "P10", "Q1", "Median (m)", "Q3", "P90",
+        "n", "P10", "Q1", "Median (m)", "Intervall", "Q3",
     ]  # fmt: skip
     assert "reach-bar" not in html  # alte Darstellung ist ersetzt
     assert "Median (yd)" in client.get("/clubs?u=yd").text
@@ -94,3 +94,9 @@ def test_server_timing_header_and_schema_only_once(client: TestClient) -> None:
     first = client.get("/clubs")
     assert first.headers["Server-Timing"].startswith("app;dur=")
     assert client.get("/clubs?source=t").status_code == 200  # zweiter Aufruf ohne Schema/Migration
+
+
+def test_clubs_page_shows_median_intervals(client: TestClient) -> None:
+    html = client.get("/clubs").text
+    assert "95-%-Intervall des Medians" in html and "Median 145 m (95-%-Intervall" in html
+    assert re.search(r'<td class="muted">\d+ bis \d+</td>', html)

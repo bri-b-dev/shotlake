@@ -28,7 +28,7 @@ Das System SHALL Streuung berechnen: seitliche Abweichung (Mittel = Bias links/r
 
 #### Scenario: Fehlerbild
 - WHEN Seitenabweichungen im Mittel 8 m rechts liegen
-- THEN meldet das System „Bias rechts" mit Wert, n und Konfidenzintervall
+- THEN meldet das System „Bias rechts" mit Wert, n und Konfidenzintervall (95 %, t-Intervall des Mittelwerts; der Carry-Median bekommt ein verteilungsfreies Intervall über Rangzahlen, beide ab 10 Schlägen, ohne Resampling und damit auch bei sehr vielen Schlägen schnell)
 
 ### Requirement: Gapping
 Das System SHALL je Schläger Carry-Mediane ordnen und Lücken/Überlappungen zwischen benachbarten Schlägern ausweisen (Differenz, Warnung unter/über konfigurierbaren Schwellen, z. B. < 8 m oder > 18 m).

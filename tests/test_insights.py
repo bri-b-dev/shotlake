@@ -295,3 +295,9 @@ def test_headline_is_short_and_text_stays_complete(con):
     assert putting.headline == "Putten kostet ca. 18,9 Schläge pro 18 Löcher."
     assert "Intervall" not in putting.headline and "n =" not in putting.headline
     assert "Intervall" in putting.text and "n = 8 Runden" in putting.text
+
+
+def test_web_dashboard_shows_sg_intervals(ws: Workspace):
+    html = TestClient(create_app(ws.data_dir, ws.club_map, BASELINE_PATH)).get("/").text
+    assert 'class="ci-bar"' in html and "95-%-Intervall" in html and "n = 8 Runden" in html
+    assert "Strich: 95-%-Intervall" in html

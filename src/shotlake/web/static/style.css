@@ -138,6 +138,7 @@ details[open] > summary { margin-bottom: .6rem; }
 .chart.box text { font-size: 13px; }
 .chart .box-rect { fill: var(--accent); fill-opacity: .3; stroke: var(--accent); stroke-width: 1.5; }
 .chart .whisker { stroke: var(--accent); stroke-width: 1.5; }
+.chart .ci-bar line { stroke: var(--fg); stroke-width: 1.6; stroke-linecap: round; pointer-events: none; }
 .chart .box-out { fill: var(--accent); fill-opacity: .55; }
 .chart .hit { fill: transparent; }
 .chart .hit:hover { fill: var(--accent); fill-opacity: .06; }

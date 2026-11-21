@@ -138,3 +138,19 @@ def test_gapping_orders_by_carry_not_by_name(con, tmp_path):
     [g] = gapping(con, min_n=3)
     assert (g.longer_club, g.shorter_club) == ("driver", "iron_9")
     assert g.status == "gap_too_large"
+
+
+def test_confidence_intervals_for_carry_median_and_side_bias(con, tmp_path):
+    rows = [("Driver", 200 + i, 210 + i, 6.0 + (i % 3)) for i in range(40)]
+    load(con, write_mevo(tmp_path, 1, rows))
+    [s] = club_stats(con, club_type="driver")
+    assert s.carry_median_ci is not None and s.side_bias_ci is not None
+    assert s.carry_median_m is not None and s.side_bias_m is not None
+    assert s.carry_median_ci.low <= s.carry_median_m <= s.carry_median_ci.high
+    assert 0 < s.side_bias_ci.low < s.side_bias_m < s.side_bias_ci.high  # Bias rechts belegt
+    few = [("7 Iron", 100 + i, 110 + i, 1.0) for i in range(9)]
+    load(con, write_mevo(tmp_path, 2, few))
+    [i7] = club_stats(con, club_type="iron_7")
+    assert (
+        i7.carry_median_ci is None and i7.side_bias_ci is None
+    )  # unter 10 Schlägen: keine Aussage

@@ -14,6 +14,8 @@ from datetime import date, datetime, time, timedelta
 
 import duckdb
 
+from .stats import Interval, median_ci
+
 _BASE = """
     from course_shot s
     join round r using (round_id)
@@ -62,6 +64,11 @@ class ClubDistance:
     p25_m: float | None = None
     p75_m: float | None = None
     values: tuple[float, ...] = ()  # alle Distanzen (für Boxplot-Ausreißer)
+
+    @property
+    def median_ci(self) -> Interval | None:
+        """95-%-Intervall des Medians (ab 10 Schlägen)."""
+        return median_ci(self.values)
 
 
 def club_distances(

@@ -76,3 +76,31 @@ def test_bootstrap_results_are_cached_and_identical():
     assert first == again and first[0] is again[0] and first[1] is again[1]
     assert stats._ci.cache_info().hits == 1 and stats._diff_ci.cache_info().hits == 1
     assert stats.bootstrap_ci([1.0, 2.0]) is None  # zu wenige Werte: kein Eintrag
+
+
+def test_median_ci_is_distribution_free_and_brackets_the_median():
+    from statistics import median
+
+    from shotlake.analytics.stats import median_ci
+
+    values = [float(v) for v in range(1, 101)]  # n = 100, Median 50,5
+    ci = median_ci(values)
+    assert ci is not None and ci.low <= median(values) <= ci.high
+    assert (ci.low, ci.high) == (40.0, 61.0)  # Ränge 40 und 61 (50 ± 1,96·√100/2 ≈ 9,8)
+    assert median_ci(values[::-1]) == ci  # Reihenfolge egal
+    assert median_ci(values[:9]) is None  # zu wenige Werte
+    flat = median_ci([5.0] * 12)
+    assert flat is not None and flat.low == flat.high == 5.0
+
+
+def test_mean_ci_uses_t_quantile_and_needs_enough_values():
+    from shotlake.analytics.stats import mean_ci
+
+    ci = mean_ci(10.0, 2.0, 16)  # df 15: t = 2,131
+    assert ci is not None
+    assert abs(ci.low - (10 - 2.131 * 2 / 4)) < 1e-9 and abs(ci.high - (10 + 2.131 * 2 / 4)) < 1e-9
+    wide = mean_ci(0.0, 1.0, 10)
+    big = mean_ci(0.0, 1.0, 5000)
+    assert wide is not None and big is not None and wide.high > big.high
+    assert mean_ci(None, 1.0, 20) is None and mean_ci(1.0, None, 20) is None
+    assert mean_ci(1.0, 1.0, 9) is None

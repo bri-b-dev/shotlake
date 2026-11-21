@@ -108,13 +108,22 @@ def trend_svg(
     return "".join(parts)
 
 
-def bars_svg(items: list[tuple[str, float]], unit: str = "") -> str:
+def bars_svg(
+    items: list[tuple[str, float]],
+    unit: str = "",
+    intervals: dict[str, tuple[float, float, int]] | None = None,
+) -> str:
     """Horizontale Balken um die Nulllinie (SG je Kategorie); die Nulllinie wandert an den Rand,
-    wenn alle Werte dasselbe Vorzeichen haben, damit die Breite genutzt wird."""
+    wenn alle Werte dasselbe Vorzeichen haben, damit die Breite genutzt wird.
+
+    `intervals`: je Beschriftung (untere Grenze, obere Grenze, n) des 95-%-Intervalls; es wird als
+    Strich mit Endkappen über dem Balken gezeichnet, der Tooltip nennt Werte und n."""
     if not items:
         return ""
+    intervals = intervals or {}
     row_h, label_w, width, room = 30, 130, 520, 78  # room: Platz für den Wertetext am Balkenende
-    lo, hi = min(0.0, *(v for _, v in items)), max(0.0, *(v for _, v in items))
+    reach = [v for _, v in items] + [b for lo_, hi_, _ in intervals.values() for b in (lo_, hi_)]
+    lo, hi = min(0.0, *reach), max(0.0, *reach)
     span = max(hi - lo, 0.01)
     left, right = label_w + (room if lo < 0 else 0), width - (room if hi > 0 else 0)
     scale = (right - left) / span
@@ -130,13 +139,33 @@ def bars_svg(items: list[tuple[str, float]], unit: str = "") -> str:
         w = abs(v) * scale
         x0 = zero if v >= 0 else zero - w
         cls = "pos" if v >= 0 else "neg"
+        ci = intervals.get(label)
+        end = zero + w if v >= 0 else zero - w  # Balkenende
+        text_x = end + 6 if v >= 0 else end - 6
+        whisker = tip = ""
+        if ci is not None:
+            c_lo, c_hi, n = ci
+            xl, xh = zero + c_lo * scale, zero + c_hi * scale
+            mid = yy + 13
+            whisker = (
+                f'<g class="ci-bar"><line x1="{xl:.1f}" x2="{xh:.1f}" y1="{mid}" y2="{mid}"/>'
+                f'<line x1="{xl:.1f}" x2="{xl:.1f}" y1="{mid - 5}" y2="{mid + 5}"/>'
+                f'<line x1="{xh:.1f}" x2="{xh:.1f}" y1="{mid - 5}" y2="{mid + 5}"/></g>'
+            )
+            tip = (
+                f"{label}: {v:+.2f}{unit}; 95-%-Intervall {c_lo:+.2f} bis {c_hi:+.2f}{unit}; "
+                f"n = {n} Runden"
+            )
+            text_x = max(end, xh) + 6 if v >= 0 else min(end, xl) - 6
         out.append(
+            f'<g class="bar-row">{f"<title>{escape(tip)}</title>" if tip else ""}'
+            f'<rect class="hit" x="0" y="{yy}" width="{width}" height="{row_h}"/>'
             f'<text class="axis" x="{label_w - 8}" y="{yy + 17}" text-anchor="end">'
             f"{escape(label)}</text>"
             f'<rect class="bar {cls}" x="{x0:.1f}" y="{yy + 4}" width="{w:.1f}" '
-            f'height="18" rx="2"/>'
-            f'<text class="val" x="{(zero + w + 6) if v >= 0 else (zero - w - 6):.1f}" '
-            f'y="{yy + 17}" text-anchor="{"start" if v >= 0 else "end"}">{v:+.2f}{unit}</text>'
+            f'height="18" rx="2"/>{whisker}'
+            f'<text class="val" x="{text_x:.1f}" '
+            f'y="{yy + 17}" text-anchor="{"start" if v >= 0 else "end"}">{v:+.2f}{unit}</text></g>'
         )
     out.append("</svg>")
     return "".join(out)
@@ -155,6 +184,7 @@ class BoxRow:
     whisker_hi: float
     outliers: tuple[float, ...]
     ok: bool = True  # genug Schläge für eine belastbare Darstellung
+    median_ci: tuple[float, float] | None = None  # 95-%-Intervall des Medians
 
 
 def box_row(
@@ -165,6 +195,7 @@ def box_row(
     q3: float,
     *,
     ok: bool = True,
+    median_ci: tuple[float, float] | None = None,
 ) -> BoxRow:
     """Boxplot-Zeile nach Tukey: Antennen bis zum äußersten Wert innerhalb 1,5 x (Q3 - Q1)."""
     reach = 1.5 * (q3 - q1)
@@ -172,7 +203,9 @@ def box_row(
     low = min(inside) if inside else q1
     high = max(inside) if inside else q3
     outliers = tuple(v for v in values if v < q1 - reach or v > q3 + reach)
-    return BoxRow(label, len(values), q1, median, q3, min(low, q1), max(high, q3), outliers, ok)
+    return BoxRow(
+        label, len(values), q1, median, q3, min(low, q1), max(high, q3), outliers, ok, median_ci
+    )
 
 
 def boxplot_svg(rows: list[BoxRow], factor: float = 1.0, unit: str = "m") -> str:
@@ -210,7 +243,14 @@ def boxplot_svg(rows: list[BoxRow], factor: float = 1.0, unit: str = "m") -> str
         y = 4 + i * row_h
         mid = y + 13
         title = escape(
-            f"{r.label}: Median {r.median * factor:.0f} {unit}; "
+            f"{r.label}: Median {r.median * factor:.0f} {unit}"
+            + (
+                f" (95-%-Intervall {r.median_ci[0] * factor:.0f} bis {r.median_ci[1] * factor:.0f}"
+                f" {unit})"
+                if r.median_ci
+                else ""
+            )
+            + "; "
             f"Kasten (Q1 bis Q3) {r.q1 * factor:.0f} bis {r.q3 * factor:.0f} {unit}; "
             f"Antennen {r.whisker_lo * factor:.0f} bis {r.whisker_hi * factor:.0f} {unit}; "
             f"Ausreißer {len(r.outliers)}; n = {r.n}"

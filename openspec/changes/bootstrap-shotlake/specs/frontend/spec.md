@@ -3,7 +3,7 @@
 ## ADDED Requirements
 
 ### Requirement: Dashboard
-Das Dashboard SHALL zeigen: Score-Differential-Verlauf (handicap-relevante Runden hervorgehoben; je Punkt Tooltip mit Datum, Platz, Brutto, Differential, gleitendem Durchschnitt und Relevanz, Klick öffnet die Runde; kein berechneter Handicap-Index), letzter Score, SG-Kategorien (mit Abdeckung/Unsicherheit), Trend einer wählbaren Kennzahl, Status der Quellen.
+Das Dashboard SHALL zeigen: Score-Differential-Verlauf (handicap-relevante Runden hervorgehoben; je Punkt Tooltip mit Datum, Platz, Brutto, Differential, gleitendem Durchschnitt und Relevanz, Klick öffnet die Runde; kein berechneter Handicap-Index), letzter Score, SG-Kategorien (mit Abdeckung und je Kategorie sowie gesamt einem 95-%-Intervall mit n Runden), Trend einer wählbaren Kennzahl, Status der Quellen.
 
 #### Scenario: Wenig Daten
 - WHEN SG nicht berechenbar ist
@@ -15,6 +15,10 @@ Es SHALL eine Schlägerseite geben mit Länge (Carry/Total), Streuung (Scatter +
 #### Scenario: Filter
 - WHEN der Nutzer Quelle „Mevo+" wählt
 - THEN beziehen sich alle Diagramme nur darauf
+
+#### Scenario: Unsicherheit der Schlägerwerte
+- WHEN eine Tabellenzeile mindestens 10 Schläge hat
+- THEN zeigt die Schlägerseite für Platz-Median, Range-Carry-Median und Seitenversatz ein 95-%-Intervall; darunter steht „–", und das Intervall beschreibt die Unsicherheit der Schätzung, nicht die Streuung der Schläge
 
 #### Scenario: Zeitraum („seitdem ich x mache")
 - WHEN der Nutzer ein Datum bei „Seit" (und optional „Bis") setzt

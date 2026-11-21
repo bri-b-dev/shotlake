@@ -7,6 +7,7 @@ die Null nicht einschließt.
 
 from __future__ import annotations
 
+import math
 import random
 import statistics
 from collections.abc import Callable, Sequence
@@ -75,6 +76,43 @@ def _diff_ci(
     return Interval(
         diffs[int((1 - level) / 2 * n_boot)], diffs[min(n_boot - 1, int((1 + level) / 2 * n_boot))]
     )
+
+
+# Schnelle Intervalle für Tabellen mit vielen Gruppen (Schläger): ohne Resampling, deshalb auch bei
+# tausenden Schlägen sofort da. Median: verteilungsfrei über Rangzahlen (Binomial-Näherung);
+# Mittelwert: t-Intervall. Der Bootstrap bleibt für Aussagen über Runden (kleine n, Insights).
+MIN_N_FAST = 10
+_Z95 = 1.959964
+_T975 = {  # t-Quantil 0,975 je Freiheitsgrade; dazwischen gilt der kleinere Eintrag (vorsichtig)
+    1: 12.706, 2: 4.303, 3: 3.182, 4: 2.776, 5: 2.571, 6: 2.447, 7: 2.365, 8: 2.306, 9: 2.262,
+    10: 2.228, 12: 2.179, 15: 2.131, 20: 2.086, 25: 2.060, 30: 2.042, 40: 2.021, 60: 2.000,
+    120: 1.980,
+}  # fmt: skip
+
+
+def _t975(df: int) -> float:
+    keys = [k for k in _T975 if k <= df]
+    return _T975[keys[-1]] if keys and df < 1000 else _Z95
+
+
+def median_ci(values: Sequence[float]) -> Interval | None:
+    """95-%-Intervall des Medians (Rangzahlen); None bei weniger als 10 Werten."""
+    n = len(values)
+    if n < MIN_N_FAST:
+        return None
+    ordered = sorted(values)
+    half = _Z95 * math.sqrt(n) / 2
+    lo_rank = max(1, math.floor(n / 2 - half))
+    hi_rank = min(n, math.ceil(1 + n / 2 + half))
+    return Interval(ordered[lo_rank - 1], ordered[hi_rank - 1])
+
+
+def mean_ci(mean: float | None, std: float | None, n: int) -> Interval | None:
+    """95-%-Intervall des Mittelwerts (t-Verteilung); None bei n < 10 oder fehlender Streuung."""
+    if mean is None or std is None or n < MIN_N_FAST:
+        return None
+    half = _t975(n - 1) * std / math.sqrt(n)
+    return Interval(mean - half, mean + half)
 
 
 @dataclass(frozen=True)

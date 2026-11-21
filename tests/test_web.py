@@ -205,3 +205,10 @@ def test_trend_points_have_tooltip_and_link():
 def test_dashboard_trend_links_to_round(client: TestClient):
     html = client.get("/?source=t").text
     assert 'class="pt-link" href="/rounds/t|r' in html and "Klick: Runde öffnen" in html
+
+
+def test_bars_with_intervals_draw_whiskers_and_tooltip():
+    svg = bars_svg([("Putten", -0.2), ("Abschlag", 0.1)], "/Loch", {"Putten": (-0.35, -0.05, 12)})
+    assert svg.count('class="ci-bar"') == 1
+    assert "Putten: -0.20/Loch; 95-%-Intervall -0.35 bis -0.05/Loch; n = 12 Runden" in svg
+    assert 'class="ci-bar"' not in bars_svg([("Putten", -0.2)], "/Loch")

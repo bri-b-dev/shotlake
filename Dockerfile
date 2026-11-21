@@ -37,6 +37,7 @@ COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 ENV PATH="/app/.venv/bin:${PATH}" \
     PYTHONUNBUFFERED=1 \
     PYTHONFAULTHANDLER=1 \
+    SHOTLAKE_LOG_FORMAT=json \
     HOME=/tmp \
     SHOTLAKE_CLUB_MAP=/data/config/club_map.toml \
     SHOTLAKE_DEDUP_CONFIG=/data/config/dedup.toml

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import time
 from collections.abc import Callable
@@ -71,6 +72,17 @@ def _version() -> str:
         return metadata.version("shotlake")
     except metadata.PackageNotFoundError:
         return "unbekannt"
+
+
+def _error_list(raw: str | None) -> list[str]:
+    """Fehlertexte eines Laufs (in der Datenbank als JSON-Liste abgelegt)."""
+    if not raw:
+        return []
+    try:
+        data = json.loads(raw)
+    except ValueError:
+        return [raw]
+    return [str(e) for e in data] if isinstance(data, list) else [str(data)]
 
 
 def _improved(insight: Any) -> bool | None:
@@ -793,11 +805,19 @@ def create_app(
     @app.get("/sources", response_class=HTMLResponse)
     def sources_page(request: Request) -> HTMLResponse:
         with session() as con:
-            runs = con.execute(
-                "select started_at, source, filename, status, sessions_new, shots_new, "
-                "shots_changed, shots_unchanged, errors from import_run "
-                "order by started_at desc limit 20"
-            ).fetchall()
+            runs = [
+                {
+                    "started": r[0], "source": r[1], "filename": r[2], "status": r[3],
+                    "sessions_new": r[4], "shots_new": r[5], "shots_changed": r[6],
+                    "shots_unchanged": r[7], "errors": _error_list(r[8]), "run_id": r[9],
+                    "seconds": (r[10] - r[0]).total_seconds() if r[10] else None,
+                }
+                for r in con.execute(
+                    "select started_at, source, filename, status, sessions_new, shots_new, "
+                    "shots_changed, shots_unchanged, errors, run_id, finished_at "
+                    "from import_run order by started_at desc limit 20"
+                ).fetchall()
+            ]  # fmt: skip
             try:
                 cred_status = workspace.secrets.status()
             except SecretStoreError:

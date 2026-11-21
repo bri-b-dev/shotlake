@@ -70,11 +70,15 @@ Das System SHALL als Docker-Image (non-root, ein Datenvolumen `/data`, Health-Ch
 - THEN wird die Standardkonfiguration nach `/data/config` kopiert, vorhandene Dateien bleiben unverändert, und die Oberfläche fragt nach dem Passwort
 
 ### Requirement: Observability
-Sync-Läufe SHALL strukturiert geloggt werden (Run-ID, Quelle, Dauer, Zähler, Fehler); Health-Endpunkt und optional Prometheus-Metriken SHALL vorhanden sein.
+Sync- und Importläufe SHALL strukturiert geloggt werden (eine Zeile je Ereignis, JSON im Container; Ereignisse `run.started` und `run.finished` mit Run-ID, Quelle, Status, Dauer, Zählern und Fehlern, außerdem `request.retry` und `sync.crashed` mit Stacktrace); Health-Endpunkte SHALL vorhanden sein, Prometheus-Metriken sind optional. Zugangsdaten SHALL in Feldern und Texten maskiert werden; Zugriffe der Gesundheitsprüfung SHALL nicht protokolliert werden.
 
 #### Scenario: Fehlgeschlagener Sync
 - WHEN ein Sync scheitert
-- THEN ist Fehlerursache über Run-ID in Log und UI auffindbar
+- THEN ist die Fehlerursache über die Run-ID in Log (`run.finished`, Stufe error), Datenbank (`import_run`) und Quellenseite (Run-ID, Dauer, Fehlertexte) auffindbar
+
+#### Scenario: Unerwarteter Absturz eines Syncs
+- WHEN ein Hintergrund-Sync mit einer unerwarteten Ausnahme endet
+- THEN steht der Stacktrace im Log (`sync.crashed`) und die Oberfläche nennt eine kurze Referenz (`Ref`) auf diesen Eintrag statt nur den Ausnahmetyp
 
 ### Requirement: Datenqualitäts-Checks
 Nach jedem Import SHALL Checks laufen: Ausreißer, fehlende Pflicht-/Wunschfelder (Quote je Feld/Quelle), Duplikatverdacht, Einheiten-Plausibilität; Ergebnis SHALL im Import-Report erscheinen.

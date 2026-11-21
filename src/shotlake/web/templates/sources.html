@@ -50,12 +50,15 @@ Fehler: {{ e }}{% endfor %}</pre>{% endif %}
 <p class="muted">Sync und Datei-Import laufen hier oder über die Kommandozeile. Zugangsdaten pflegst du unter <a href="/settings">Einstellungen</a>. „Vollständig" ruft alles neu ab (idempotent).</p>
 
 <section class="band scroll"><h2>Letzte Importläufe</h2><table>
-  <thead><tr><th>Zeit</th><th class="left">Quelle</th><th class="left">Datei</th><th class="left">Status</th><th>Sessions neu</th><th>Schläge neu</th><th>geändert</th><th>unverändert</th><th class="left">Fehler</th></tr></thead>
+  <thead><tr><th>Zeit</th><th class="left">Quelle</th><th class="left">Datei</th><th class="left">Status</th><th>Dauer</th><th>Sessions neu</th><th>Schläge neu</th><th>geändert</th><th>unverändert</th><th class="left">Run-ID</th><th class="left">Fehler</th></tr></thead>
   <tbody>
   {% for r in runs %}
-    <tr><td>{{ r[0].strftime('%d.%m.%Y %H:%M') }}</td><td class="left">{{ r[1] }}</td><td class="left">{{ r[2] }}</td><td class="left">{{ r[3] }}</td>
-        <td>{{ r[4] }}</td><td>{{ r[5] }}</td><td>{{ r[6] }}</td><td>{{ r[7] }}</td><td class="left muted">{{ r[8] or '' }}</td></tr>
-  {% else %}<tr><td colspan="9" class="muted">Noch keine Importläufe.</td></tr>
+    <tr><td>{{ r.started.strftime('%d.%m.%Y %H:%M') }}</td><td class="left">{{ r.source }}</td><td class="left">{{ r.filename }}</td><td class="left">{{ r.status }}</td>
+        <td>{{ '%.1f s'|format(r.seconds) if r.seconds is not none else '' }}</td>
+        <td>{{ r.sessions_new }}</td><td>{{ r.shots_new }}</td><td>{{ r.shots_changed }}</td><td>{{ r.shots_unchanged }}</td>
+        <td class="left muted"><code title="{{ r.run_id }}">{{ r.run_id[:8] }}</code></td>
+        <td class="left muted">{% for e in r.errors %}{{ e }}{% if not loop.last %}<br>{% endif %}{% endfor %}</td></tr>
+  {% else %}<tr><td colspan="11" class="muted">Noch keine Importläufe.</td></tr>
   {% endfor %}
   </tbody>
 </table></section>

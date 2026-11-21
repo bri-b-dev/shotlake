@@ -13,6 +13,7 @@ Zugangsdaten kommen aus Umgebungsvariablen oder einer sops-Datei, nie aus dem Re
 from __future__ import annotations
 
 import json
+import logging
 import os
 import random
 import subprocess
@@ -23,6 +24,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import ClassVar, Literal
 
+from .. import logs
 from ..model import ParsedRound, ParsedSession
 from .base import ContractReport
 
@@ -76,6 +78,14 @@ class RetryPolicy:
         return raw + jitter
 
 
+def log_retry(attempt: int, max_attempts: int, delay: float, exc: Exception) -> None:
+    logs.event(
+        "http", logging.WARNING, "request.retry",
+        attempt=attempt, max_attempts=max_attempts, delay_s=round(delay, 1),
+        error_type=type(exc).__name__, error=str(exc),
+    )  # fmt: skip
+
+
 def with_retry[T](
     fn: Callable[[], T],
     policy: RetryPolicy = RetryPolicy(),
@@ -90,7 +100,9 @@ def with_retry[T](
         except TransientError as exc:
             if attempt >= policy.max_attempts:
                 raise
-            sleep(policy.delay(attempt, exc, rng))
+            delay = policy.delay(attempt, exc, rng)
+            log_retry(attempt, policy.max_attempts, delay, exc)
+            sleep(delay)
             attempt += 1
 
 

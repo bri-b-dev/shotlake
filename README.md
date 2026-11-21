@@ -100,6 +100,16 @@ by DuckDB 2.x cannot be opened by 1.x; copy it first with
 Health checks (no login): `/healthz` (process alive) and `/readyz` (data directory writable,
 database readable; `busy` while a backup runs). The image's `HEALTHCHECK` uses `/healthz`.
 
+Logs go to stderr, one line per event (`docker logs`, Portainer): JSON in the image
+(`SHOTLAKE_LOG_FORMAT=json`), readable text otherwise (`text`); `SHOTLAKE_LOG_LEVEL` sets the
+level (default `INFO`). Every import or sync run logs `run.started` and `run.finished` with the
+same `run_id` (source, status, duration in ms, counts, errors); the Sources page lists the first
+8 characters of that id, the full id is the tooltip and the key in `import_run`. Retries log
+`request.retry`, an unexpected crash of a background sync `sync.crashed` with the traceback and a
+short `ref` that the UI shows. Passwords, tokens and keys are masked (`***`) in fields and in
+free text; health checks are not logged. Example:
+`{"event": "run.finished", "run_id": "…", "source": "trackman", "status": "drift_detected", "duration_ms": 8421, "errors": ["Trackman Scorecards: Serverfehler …"]}`
+
 The GitHub workflow `.github/workflows/ci.yml` runs lint, types and tests, then builds the image for
 `linux/amd64` and `linux/arm64` and pushes it to `ghcr.io/<owner>/shotlake` on every push to `main`
 (tags `latest`, `main`, short commit) and on version tags `v*` (`1.2.3`, `1.2`). Pull requests only

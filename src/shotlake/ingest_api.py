@@ -9,9 +9,9 @@ from pathlib import Path
 
 import duckdb
 
-from .connectors.api import ApiConnector, AuthError, RawRecord, TransientError
+from .connectors.api import ApiConnector, AuthError, RawRecord, TransientError, log_retry
 from .connectors.errors import SchemaDriftError
-from .ingest import ImportReport, _record_run, _write
+from .ingest import ImportReport, _record_run, _write, log_started
 from .ingest_round import write_round
 from .model import ParsedRound
 
@@ -108,6 +108,7 @@ def sync_api(
     """
     started = _now()
     rep = ImportReport(run_id=uuid.uuid4().hex, source=connector.id, filename="(api)")
+    log_started(rep)
     attempt = 0
     try:
         connector.authenticate()
@@ -126,7 +127,9 @@ def sync_api(
                 attempt += 1
                 if attempt >= connector.retry.max_attempts:
                     raise
-                connector.sleep(connector.retry.delay(attempt, exc))
+                delay = connector.retry.delay(attempt, exc)
+                log_retry(attempt, connector.retry.max_attempts, delay, exc)
+                connector.sleep(delay)
     except SchemaDriftError as exc:
         rep.status = "drift_detected"
         rep.errors.append(str(exc))
@@ -151,6 +154,7 @@ def reprocess_raw(con: duckdb.DuckDBPyConnection, connector: ApiConnector) -> Im
 
     started = _now()
     rep = ImportReport(run_id=uuid.uuid4().hex, source=connector.id, filename="(reprocess)")
+    log_started(rep)
     rows = con.execute(
         "select filename, content_hash, stored_path from raw_object "
         "where source = ? and stored_path is not null order by imported_at",

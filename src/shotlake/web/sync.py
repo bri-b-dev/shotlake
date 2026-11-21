@@ -7,9 +7,11 @@ nie Zugangsdaten.
 
 from __future__ import annotations
 
+import logging
 import os
 import re
 import threading
+import uuid
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -21,6 +23,7 @@ from fastapi import FastAPI, File, Form, Request, UploadFile
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 
+from .. import logs
 from ..connectors.api import ApiConnector, AuthError, TransientError
 from ..connectors.errors import SchemaDriftError
 from ..connectors.garmin_login import GarminLogin, GarminLoginError
@@ -79,7 +82,13 @@ class SyncManager:
                 state.errors = rep.errors[:10]
                 state.state = "ok" if rep.status == "ok" else "error"
         except Exception as exc:  # Hintergrund-Thread: nie ohne Meldung sterben
-            state.state, state.text = "error", f"Sync fehlgeschlagen ({type(exc).__name__})"
+            ref = uuid.uuid4().hex[:8]
+            logs.event("sync", logging.ERROR, "sync.crashed", exc_info=True, ref=ref,
+                       source=source, mode=mode, error_type=type(exc).__name__)  # fmt: skip
+            state.state = "error"
+            state.text = (
+                f"Sync fehlgeschlagen ({type(exc).__name__}); Einzelheiten im Log (Ref {ref})"
+            )
         state.started = datetime.now()
 
     def check(self, source: str) -> tuple[bool, str]:

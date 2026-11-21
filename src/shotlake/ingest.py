@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import shutil
 import uuid
 from collections import Counter
@@ -13,6 +14,7 @@ from pathlib import Path
 
 import duckdb
 
+from . import logs
 from .connectors.errors import SchemaDriftError
 from .connectors.registry import CONNECTORS, get_connector
 from .db import SHOT_FIELDS, naive_utc
@@ -70,7 +72,40 @@ def _sha256(path: Path) -> str:
     return h.hexdigest()
 
 
+def log_started(rep: ImportReport) -> None:
+    """Beginn eines Laufs protokollieren (die Run-ID verbindet Log, Datenbank und Oberfläche)."""
+    logs.event(
+        "runs", logging.INFO, "run.started",
+        run_id=rep.run_id, source=rep.source, filename=rep.filename,
+    )  # fmt: skip
+
+
+def _log_finished(rep: ImportReport, started: datetime) -> None:
+    ok = rep.status in ("ok", "duplicate_file")
+    logs.event(
+        "runs",
+        logging.INFO if ok else logging.ERROR,
+        "run.finished",
+        run_id=rep.run_id,
+        source=rep.source,
+        filename=rep.filename,
+        status=rep.status,
+        duration_ms=round((_now() - started).total_seconds() * 1000),
+        sessions_new=rep.sessions_new,
+        shots_new=rep.shots_new,
+        shots_changed=rep.shots_changed,
+        shots_unchanged=rep.shots_unchanged,
+        rounds_new=rep.rounds_new,
+        rounds_changed=rep.rounds_changed,
+        course_shots_new=rep.course_shots_new,
+        warnings=len(rep.warnings),
+        errors=rep.errors[:10],
+        error_count=len(rep.errors),
+    )
+
+
 def _record_run(con: duckdb.DuckDBPyConnection, rep: ImportReport, started: datetime) -> None:
+    _log_finished(rep, started)
     con.execute(
         "insert into import_run values (?,?,?,?,?,?,?,?,?,?,?)",
         [
@@ -98,6 +133,7 @@ def import_file(
     connector = get_connector(source)
     started = _now()
     rep = ImportReport(run_id=uuid.uuid4().hex, source=source, filename=path.name)
+    log_started(rep)
     digest = _sha256(path)
 
     known = con.execute(

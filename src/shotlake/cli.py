@@ -12,6 +12,7 @@ from pathlib import Path
 
 import duckdb
 
+from . import logs
 from .analytics.course_shots import (
     approach_green_rate,
     club_distances,
@@ -681,11 +682,12 @@ def main(argv: list[str] | None = None) -> int:
 
             from .web.app import create_app
 
+            logs.configure()
             print("Datenbank geöffnet, baue die Oberfläche auf", flush=True)
             app = create_app(data, args.club_map, resolve_baseline_path(args.baseline_path))
             print(f"Oberfläche bereit, lausche auf {args.host}:{args.port}", flush=True)
             threading.Thread(target=app.state.warm_up, daemon=True, name="warm-up").start()
-            uvicorn.run(app, host=args.host, port=args.port, log_level="info")
+            uvicorn.run(app, host=args.host, port=args.port, log_config=None)
             return 0
         if args.cmd == "arccos-check":
             return _arccos_check(data / "cache")
